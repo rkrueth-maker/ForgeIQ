@@ -33,6 +33,7 @@ APPROVAL_STATE_FILE = os.path.join("reports", "forgeiq_web_approvals.json")
 REPORTS_DIR = os.path.join("reports")
 AGENT_HISTORY_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_history.json")
 AGENT_REPORT_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_response.md")
+AGENT_REVIEW_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_review.json")
 
 
 TEMPLATE = """
@@ -44,7 +45,7 @@ TEMPLATE = """
   {% if live_refresh %}
   <meta http-equiv="refresh" content="45" />
   {% endif %}
-  <title>ForgeIQ OS</title>
+  <title>ForgeIQ Control Center</title>
   <style>
     :root {
       --bg: #0b1220;
@@ -61,14 +62,27 @@ TEMPLATE = """
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Space Grotesk", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at top left, rgba(125, 211, 252, 0.14), transparent 30%),
         radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 24%),
         linear-gradient(180deg, #08101d 0%, #0b1220 100%);
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.24), transparent 90%);
     }
 
     a { color: var(--accent); text-decoration: none; }
@@ -88,10 +102,45 @@ TEMPLATE = """
       border-radius: 20px;
       box-shadow: var(--shadow);
     }
-    .hero-card { padding: 24px; }
-    .hero h1 { margin: 0 0 8px; font-size: 2.2rem; }
+    .hero-card {
+      padding: 26px;
+      position: relative;
+      overflow: hidden;
+      border-color: rgba(125, 211, 252, 0.18);
+    }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(125, 211, 252, 0.18), transparent 68%);
+      animation: floatGlow 8s ease-in-out infinite;
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2.2rem, 2.8vw, 3.3rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
     .hero p { margin: 0; color: var(--muted); max-width: 68ch; line-height: 1.5; }
     .hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .status-strip {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: #dbeafe;
+      font-size: 0.95rem;
+    }
+    .status-strip span {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(125, 211, 252, 0.09);
+      border: 1px solid rgba(125, 211, 252, 0.14);
+    }
     .pill {
       display: inline-flex;
       align-items: center;
@@ -102,6 +151,7 @@ TEMPLATE = """
       background: rgba(255, 255, 255, 0.03);
       color: var(--text);
       font-size: 0.92rem;
+      backdrop-filter: blur(12px);
     }
     .actions-grid {
       display: grid;
@@ -128,6 +178,8 @@ TEMPLATE = """
       background: linear-gradient(180deg, rgba(23, 34, 56, 0.94), rgba(16, 25, 42, 0.94));
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
     }
     .metric .label { color: var(--muted); font-size: 0.86rem; text-transform: uppercase; letter-spacing: 0.08em; }
     .metric .value { font-size: 2rem; font-weight: 700; margin-top: 8px; }
@@ -135,6 +187,18 @@ TEMPLATE = """
 
     .section { margin-top: 18px; }
     .section h2 { margin: 0 0 10px; font-size: 1.2rem; }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 66ch;
+    }
     .panel { padding: 18px; }
 
     .chart-row { display: grid; grid-template-columns: 160px 1fr 88px; gap: 12px; align-items: center; margin: 12px 0; }
@@ -177,6 +241,7 @@ TEMPLATE = """
     .tag.danger { color: var(--danger); }
 
     .actions form { display: inline; }
+    .preserve-scroll { display: inline; }
     .btn {
       appearance: none;
       border: 1px solid var(--border);
@@ -201,6 +266,17 @@ TEMPLATE = """
     .mini-card h3 { margin: 0 0 8px; font-size: 1rem; }
     .mini-card p, .mini-card li, .muted { color: var(--muted); }
     .stack { display: grid; gap: 10px; }
+    .quick-prompts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .quick-prompts .pill {
+      cursor: pointer;
+      border-style: dashed;
+      background: rgba(125, 211, 252, 0.07);
+    }
     pre {
       margin: 0;
       padding: 14px;
@@ -217,6 +293,10 @@ TEMPLATE = """
     .file-list { display: grid; gap: 8px; }
     .file-item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 14px; background: rgba(255, 255, 255, 0.03); }
     .file-item span { color: var(--muted); }
+    @keyframes floatGlow {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.72; }
+      50% { transform: translate3d(-16px, 10px, 0) scale(1.05); opacity: 1; }
+    }
 
     @media (max-width: 1200px) {
       .hero, .two-col, .grid-6 { grid-template-columns: 1fr; }
@@ -242,6 +322,11 @@ TEMPLATE = """
           This browser dashboard replaces the old text menu with a control center for store health,
           recommendations, approvals, analytics, drafts, scheduled work, logs, and generated reports.
         </p>
+        <div class="status-strip">
+          <span>Browser-first workflow</span>
+          <span>AI agent ready</span>
+          <span>Automation + intelligence live</span>
+        </div>
         <div class="hero-meta">
           <span class="pill">Generated {{ dashboard.generated_at }}</span>
           <span class="pill">{% if live_refresh %}Live refresh on{% else %}Live refresh off{% endif %}</span>
@@ -294,9 +379,14 @@ TEMPLATE = """
     </div>
 
     <div class="section panel">
-      <h2>AI Agent</h2>
+      <div class="section-head">
+        <div>
+          <h2>AI Agent</h2>
+          <p>Use natural language to turn store signals into actions, priorities, and content workflows.</p>
+        </div>
+      </div>
       <div class="two-col">
-        <div class="mini-card">
+        <div class="mini-card" style="background: linear-gradient(180deg, rgba(125, 211, 252, 0.08), rgba(255, 255, 255, 0.03));">
           <h3>Ask ForgeIQ</h3>
           <p>Use plain English to optimize products, generate content, fix alt tags, or ask for priorities.</p>
           <form method="post" action="{{ url_for('agent') }}">
@@ -306,15 +396,37 @@ TEMPLATE = """
               <a class="btn" href="{{ url_for('index') }}?live=1">Use live mode</a>
             </div>
           </form>
-          <div class="stack" style="margin-top: 12px;">
-            <div class="pill">Try: "Fix every missing alt tag."</div>
-            <div class="pill">Try: "Generate blog posts for all garage storage products."</div>
-            <div class="pill">Try: "Show me today's priorities."</div>
-            <div class="pill">Try: "What should I do to make another sale today?"</div>
+          <div class="quick-prompts">
+            <div class="pill">Optimize products under SEO score 85.</div>
+            <div class="pill">Fix every missing alt tag.</div>
+            <div class="pill">Generate blog posts for all garage storage products.</div>
+            <div class="pill">What should I do to make another sale today?</div>
           </div>
         </div>
-        <div class="mini-card">
+        <div class="mini-card" style="background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(255, 255, 255, 0.03));">
           <h3>Recent agent runs</h3>
+          {% if pending_agent_review %}
+          <div class="mini-card" style="margin-bottom: 12px; border-style: dashed;">
+            <h3>Pending review</h3>
+            <p>{{ pending_agent_review.summary }}</p>
+            <div class="muted">{{ pending_agent_review.prompt }}</div>
+            <div class="stack" style="margin-top: 10px;">
+              {% for item in pending_agent_review.details[:4] %}
+                <div>• {{ item }}</div>
+              {% endfor %}
+            </div>
+            <div style="margin-top: 12px; display:flex; gap:10px; flex-wrap:wrap;">
+              <form class="preserve-scroll" method="post" action="{{ url_for('apply_agent_review') }}">
+                <input type="hidden" name="scroll_y" class="scroll-y" value="0" />
+                <button class="btn good" type="submit">Apply review</button>
+              </form>
+              <form class="preserve-scroll" method="post" action="{{ url_for('discard_agent_review') }}">
+                <input type="hidden" name="scroll_y" class="scroll-y" value="0" />
+                <button class="btn danger" type="submit">Discard</button>
+              </form>
+            </div>
+          </div>
+          {% endif %}
           <div class="stack">
             {% for entry in agent_history[:5] %}
               <div>
@@ -398,10 +510,12 @@ TEMPLATE = """
               title={{ rec.needs_title }}, description={{ rec.needs_description }}, tags={{ rec.needs_tags }}, alt={{ rec.alt_recommendations|length }}
             </td>
             <td class="actions">
-              <form method="post" action="{{ url_for('approve', product_id=rec.product_id) }}">
+              <form class="preserve-scroll" method="post" action="{{ url_for('approve', product_id=rec.product_id) }}">
+                <input type="hidden" name="scroll_y" class="scroll-y" value="0" />
                 <button class="btn good" type="submit">Approve</button>
               </form>
-              <form method="post" action="{{ url_for('reject', product_id=rec.product_id) }}">
+              <form class="preserve-scroll" method="post" action="{{ url_for('reject', product_id=rec.product_id) }}">
+                <input type="hidden" name="scroll_y" class="scroll-y" value="0" />
                 <button class="btn danger" type="submit">Reject</button>
               </form>
             </td>
@@ -478,21 +592,24 @@ TEMPLATE = """
           <div class="mini-card">
             <h3>Approvals</h3>
             <p>{{ approvals.approved|length }} approved, {{ approvals.rejected|length }} rejected.</p>
-            <form method="post" action="{{ url_for('apply_approved') }}">
+              <form class="preserve-scroll" method="post" action="{{ url_for('apply_approved') }}">
+                <input type="hidden" name="scroll_y" class="scroll-y" value="0" />
               <button class="btn primary" type="submit">Apply approved</button>
             </form>
           </div>
           <div class="mini-card">
             <h3>Content engine</h3>
             <p>Refresh recent blog drafts and Pinterest queue entries.</p>
-            <form method="post" action="{{ url_for('refresh_content') }}">
+              <form class="preserve-scroll" method="post" action="{{ url_for('refresh_content') }}">
+                <input type="hidden" name="scroll_y" class="scroll-y" value="0" />
               <button class="btn primary" type="submit">Refresh content drafts</button>
             </form>
           </div>
           <div class="mini-card">
             <h3>AI orchestrator</h3>
             <p>Rebuild the daily summary and action plan.</p>
-            <form method="post" action="{{ url_for('refresh_orchestrator') }}">
+              <form class="preserve-scroll" method="post" action="{{ url_for('refresh_orchestrator') }}">
+                <input type="hidden" name="scroll_y" class="scroll-y" value="0" />
               <button class="btn primary" type="submit">Refresh orchestrator</button>
             </form>
           </div>
@@ -662,6 +779,27 @@ TEMPLATE = """
       </div>
     </div>
   </div>
+  <script>
+    (function () {
+      const url = new URL(window.location.href);
+      const scrollY = Number(url.searchParams.get("scroll_y") || 0);
+
+      if (scrollY > 0) {
+        window.scrollTo(0, scrollY);
+        url.searchParams.delete("scroll_y");
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : "") + (url.hash || ""));
+      }
+
+      document.querySelectorAll("form.preserve-scroll").forEach((form) => {
+        form.addEventListener("submit", () => {
+          const input = form.querySelector("input.scroll-y");
+          if (input) {
+            input.value = String(window.scrollY || window.pageYOffset || 0);
+          }
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
 """
@@ -693,6 +831,28 @@ def _save_agent_history(history):
   os.makedirs(REPORTS_DIR, exist_ok=True)
   with open(AGENT_HISTORY_FILE, "w", encoding="utf-8") as handle:
     json.dump(history[:20], handle, indent=2)
+
+
+def _load_agent_review():
+  if not os.path.exists(AGENT_REVIEW_FILE):
+    return None
+
+  with open(AGENT_REVIEW_FILE, "r", encoding="utf-8") as handle:
+    try:
+      return json.load(handle)
+    except json.JSONDecodeError:
+      return None
+
+
+def _save_agent_review(review):
+  os.makedirs(REPORTS_DIR, exist_ok=True)
+  with open(AGENT_REVIEW_FILE, "w", encoding="utf-8") as handle:
+    json.dump(review, handle, indent=2)
+
+
+def _clear_agent_review():
+  if os.path.exists(AGENT_REVIEW_FILE):
+    os.remove(AGENT_REVIEW_FILE)
 
 
 def _append_agent_history(entry):
@@ -770,6 +930,21 @@ def _agent_prompt_summary(title, summary, details=None, intent="general", status
   return entry
 
 
+def _stage_agent_review(prompt, summary, details, action, payload, intent):
+  review = {
+    "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    "prompt": prompt,
+    "summary": summary,
+    "details": details or [],
+    "action": action,
+    "payload": payload,
+    "intent": intent,
+    "status": "review_required",
+  }
+  _save_agent_review(review)
+  return _agent_prompt_summary(prompt, summary, details=details, intent=intent, status="review_required")
+
+
 def _build_daily_priority_response():
   context = build_dashboard_context()
   lines = [
@@ -816,13 +991,21 @@ def _optimize_products_under_score(prompt):
   selected = [rec for rec in selected if rec]
 
   if selected:
-    result = apply_recommendations(selected)
-    summary = f"Optimized {len(selected)} products below SEO score {threshold}."
-    details = [f"Updated products: {result['updated_products']}", f"Updated alt texts: {result['updated_alt_images']}", f"Failures: {result['failures']}"]
+    summary = f"Prepared {len(selected)} products below SEO score {threshold} for review. No changes applied yet."
+    details = ["Review the selected products, then use Apply review to write changes."]
     details.extend(f"{rec['current_title']} (score {next((row['Score'] for row in rows if row['Product ID'] == rec['product_id']), 'n/a')})" for rec in selected[:5])
+    return _stage_agent_review(
+      prompt=prompt,
+      summary=summary,
+      details=details,
+      action="optimize_products",
+      payload={"threshold": threshold, "selected_recommendations": selected},
+      intent="optimize_products",
+    )
   else:
     summary = f"No products found below SEO score {threshold}."
     details = []
+    _clear_agent_review()
 
   return _agent_prompt_summary(prompt, summary, details=details, intent="optimize_products")
 
@@ -832,16 +1015,22 @@ def _fix_missing_alt_tags(prompt):
   _, recommendations = analyze_products(products)
   selected = [rec for rec in recommendations if rec.get("alt_recommendations")]
 
-  updated = 0
-  details = []
-  for recommendation in selected:
-    for alt_change in recommendation["alt_recommendations"]:
-      client.put_image_alt_text(recommendation["product_id"], alt_change["image_id"], alt_change["alt_text"])
-      updated += 1
-    details.append(f"{recommendation['current_title']}: {len(recommendation['alt_recommendations'])} image(s)")
+  if selected:
+    details = ["Review the staged alt-text changes, then use Apply review to write them."]
+    details.extend(f"{recommendation['current_title']}: {len(recommendation['alt_recommendations'])} image(s)" for recommendation in selected)
+    summary = f"Prepared alt-tag updates for {len(selected)} products. No image changes applied yet."
+    return _stage_agent_review(
+      prompt=prompt,
+      summary=summary,
+      details=details,
+      action="fix_alt_tags",
+      payload={"selected_recommendations": selected},
+      intent="fix_alt_tags",
+    )
 
-  summary = f"Fixed {updated} missing alt tags across {len(selected)} products."
-  return _agent_prompt_summary(prompt, summary, details=details, intent="fix_alt_tags")
+  _clear_agent_review()
+  summary = "No missing alt tags found."
+  return _agent_prompt_summary(prompt, summary, details=[], intent="fix_alt_tags")
 
 
 def _generate_blog_posts_for_topic(prompt):
@@ -904,6 +1093,65 @@ def _handle_agent_prompt(prompt):
     "Try one of: optimize products under SEO score 85, generate blog posts for garage storage products, fix every missing alt tag, show me today's priorities, or what should I do to make another sale today?",
     intent="unknown",
     status="needs_guidance",
+  )
+
+
+def _apply_pending_agent_review():
+  review = _load_agent_review()
+  if not review:
+    return _agent_prompt_summary(
+      "Apply pending agent review",
+      "No pending agent review found.",
+      details=[],
+      intent="apply_review",
+      status="error",
+    )
+
+  action = review.get("action")
+  payload = review.get("payload") or {}
+
+  if action == "optimize_products":
+    selected = payload.get("selected_recommendations") or []
+    result = apply_recommendations(selected) if selected else {"updated_products": 0, "updated_alt_images": 0, "failures": 0}
+    details = [
+      f"Updated products: {result['updated_products']}",
+      f"Updated alt texts: {result['updated_alt_images']}",
+      f"Failures: {result['failures']}",
+    ]
+    summary = f"Applied approved SEO updates for {len(selected)} product(s)."
+  elif action == "fix_alt_tags":
+    selected = payload.get("selected_recommendations") or []
+    updated = 0
+    failures = 0
+    details = []
+    for recommendation in selected:
+      for alt_change in recommendation.get("alt_recommendations", []):
+        try:
+          client.put_image_alt_text(recommendation["product_id"], alt_change["image_id"], alt_change["alt_text"])
+          updated += 1
+        except Exception:
+          failures += 1
+      details.append(f"{recommendation.get('current_title', 'Untitled')}: {len(recommendation.get('alt_recommendations', []))} image(s)")
+    details.insert(0, f"Updated alt texts: {updated}")
+    details.insert(1, f"Failures: {failures}")
+    summary = f"Applied approved alt-tag updates for {len(selected)} product(s)."
+  else:
+    _clear_agent_review()
+    return _agent_prompt_summary(
+      review.get("prompt", "Apply pending agent review"),
+      f"No handler available for staged action '{action}'.",
+      details=[],
+      intent="apply_review",
+      status="error",
+    )
+
+  _clear_agent_review()
+  return _agent_prompt_summary(
+    review.get("prompt", "Apply pending agent review"),
+    summary,
+    details=details,
+    intent=f"{action}_applied",
+    status="ok",
   )
 
 
@@ -1159,6 +1407,7 @@ def build_dashboard_context(refresh_content=False, live_refresh=False):
     latest_log_path = log_files[0]["path"] if log_files else None
     approvals = _load_approvals()
     agent_history = _load_agent_history()
+    pending_agent_review = _load_agent_review()
 
     charts = [
         {"label": "Store health", "value": dashboard["health"]["store_health_score"], "width": min(100, int(dashboard["health"]["store_health_score"]))},
@@ -1188,6 +1437,7 @@ def build_dashboard_context(refresh_content=False, live_refresh=False):
         "latest_log_tail": _tail_lines(latest_log_path) if latest_log_path else "No log content available.",
         "approvals": approvals,
         "agent_history": agent_history,
+        "pending_agent_review": pending_agent_review,
         "orchestrator_runs": list(reversed(orchestrator_state.get("runs", [])))[:10],
         "charts": charts,
     }
@@ -1210,7 +1460,8 @@ def create_app():
             state["approved"].append(product_id)
         state["rejected"] = [pid for pid in state["rejected"] if pid != product_id]
         _save_approvals(state)
-        return redirect(url_for("index"))
+        scroll_y = request.form.get("scroll_y", "0")
+        return redirect(url_for("index", scroll_y=scroll_y))
 
     @app.post("/reject/<path:product_id>")
     def reject(product_id):
@@ -1219,7 +1470,8 @@ def create_app():
             state["rejected"].append(product_id)
         state["approved"] = [pid for pid in state["approved"] if pid != product_id]
         _save_approvals(state)
-        return redirect(url_for("index"))
+        scroll_y = request.form.get("scroll_y", "0")
+        return redirect(url_for("index", scroll_y=scroll_y))
 
     @app.post("/apply-approved")
     def apply_approved():
@@ -1228,27 +1480,49 @@ def create_app():
         selected = [rec for rec in queue if rec.get("product_id") in set(state.get("approved", []))]
         if selected:
             apply_recommendations(selected)
-        return redirect(url_for("index"))
+        scroll_y = request.form.get("scroll_y", "0")
+        return redirect(url_for("index", scroll_y=scroll_y))
 
     @app.post("/refresh-content")
     def refresh_content():
         _refresh_content_preview()
-        return redirect(url_for("index", refresh_content="1"))
+        scroll_y = request.form.get("scroll_y", "0")
+        return redirect(url_for("index", refresh_content="1", scroll_y=scroll_y))
 
     @app.get("/live")
     def live():
-      return redirect(url_for("index", live="1"))
+        return redirect(url_for("index", live="1"))
 
     @app.post("/agent")
     def agent():
-      prompt = (request.form.get("prompt") or "").strip()
-      _handle_agent_prompt(prompt)
-      return redirect(url_for("index"))
+        prompt = (request.form.get("prompt") or "").strip()
+        _handle_agent_prompt(prompt)
+        scroll_y = request.form.get("scroll_y", "0")
+        return redirect(url_for("index", scroll_y=scroll_y))
+
+    @app.post("/agent/apply-review")
+    def apply_agent_review():
+      _apply_pending_agent_review()
+      scroll_y = request.form.get("scroll_y", "0")
+      return redirect(url_for("index", scroll_y=scroll_y))
+
+    @app.post("/agent/discard-review")
+    def discard_agent_review():
+      _clear_agent_review()
+      _agent_prompt_summary(
+        "Discard pending agent review",
+        "Pending agent review discarded.",
+        details=[],
+        intent="discard_review",
+      )
+      scroll_y = request.form.get("scroll_y", "0")
+      return redirect(url_for("index", scroll_y=scroll_y))
 
     @app.post("/refresh-orchestrator")
     def refresh_orchestrator():
         orchestrator_run()
-        return redirect(url_for("index"))
+        scroll_y = request.form.get("scroll_y", "0")
+        return redirect(url_for("index", scroll_y=scroll_y))
 
     @app.get("/reports/<path:filename>")
     def download_report(filename):

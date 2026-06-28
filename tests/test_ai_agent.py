@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from pathlib import Path
@@ -10,9 +11,10 @@ os.environ.setdefault("SHOPIFY_STORE", "example.myshopify.com")
 os.environ.setdefault("SHOPIFY_ADMIN_TOKEN", "test-token")
 
 
-def test_agent_optimizes_products_under_seo_score(monkeypatch):
+def test_agent_optimizes_products_under_seo_score(monkeypatch, tmp_path):
     import shopify.web_dashboard as wd
 
+    monkeypatch.chdir(tmp_path)
     products = [{"id": "gid://shopify/Product/1"}, {"id": "gid://shopify/Product/2"}]
     rows = [
         {"Product ID": "gid://shopify/Product/1", "Score": 82, "Current Title": "Low Score Product"},
@@ -47,9 +49,15 @@ def test_agent_optimizes_products_under_seo_score(monkeypatch):
     result = wd._handle_agent_prompt("Optimize products under SEO score 85.")
 
     assert result["intent"] == "optimize_products"
-    assert "Optimized 1 products below SEO score 85." in result["summary"]
-    assert len(applied) == 1
-    assert applied[0]["product_id"] == "gid://shopify/Product/1"
+    assert result["status"] == "review_required"
+    assert "Prepared 1 products below SEO score 85 for review." in result["summary"]
+    assert applied == []
+
+    review_path = tmp_path / "reports" / "forgeiq_agent_review.json"
+    review = json.loads(review_path.read_text(encoding="utf-8"))
+    assert review["action"] == "optimize_products"
+    assert len(review["payload"]["selected_recommendations"]) == 1
+    assert review["payload"]["selected_recommendations"][0]["product_id"] == "gid://shopify/Product/1"
 
 
 def test_agent_generates_blog_posts_for_matching_topic(monkeypatch):
@@ -142,3 +150,51 @@ def test_agent_route_records_prompt(monkeypatch):
 
     assert response.status_code == 302
     assert captured["prompt"] == "What should I do to make another sale today?"
+
+
+def test_agent_review_apply_route_executes_pending_changes(monkeypatch, tmp_path):
+    import shopify.web_dashboard as wd
+
+    monkeypatch.chdir(tmp_path)
+
+    review_path = tmp_path / "reports" / "forgeiq_agent_review.json"
+    review_path.parent.mkdir(parents=True, exist_ok=True)
+    review_path.write_text(
+        json.dumps(
+            {
+                "timestamp": "2026-06-28T00:00:00Z",
+                "prompt": "Optimize products under SEO score 85.",
+                "summary": "Prepared 1 products below SEO score 85 for review. No changes applied yet.",
+                "details": ["Review the selected products, then use Apply review to write changes."],
+                "action": "optimize_products",
+                "payload": {
+                    "threshold": 85,
+                    "selected_recommendations": [
+                        {
+                            "product_id": "gid://shopify/Product/1",
+                            "current_title": "Low Score Product",
+                            "alt_recommendations": [],
+                        }
+                    ],
+                },
+                "intent": "optimize_products",
+                "status": "review_required",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    applied = []
+
+    monkeypatch.setattr(wd, "apply_recommendations", lambda selected: applied.extend(selected) or {"updated_products": len(selected), "updated_alt_images": 0, "failures": 0})
+    monkeypatch.setattr(wd, "_append_agent_history", lambda entry: None)
+    monkeypatch.setattr(wd, "_write_agent_report", lambda entry: None)
+
+    app = wd.create_app()
+    client = app.test_client()
+
+    response = client.post("/agent/apply-review", data={"scroll_y": "120"})
+
+    assert response.status_code == 302
+    assert applied and applied[0]["product_id"] == "gid://shopify/Product/1"
+    assert not review_path.exists()
