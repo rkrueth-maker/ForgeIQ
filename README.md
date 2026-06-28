@@ -49,6 +49,20 @@ ForgeIQ has evolved from standalone scripts into a modular Shopify operations ap
 - CI job uses Python `3.11`, installs `requirements.txt`, then runs:
 	- `python -m pytest -q`
 
+## First Live Store Test
+- Start the dashboard:
+	- `python app.py`
+- Open the dashboard in your browser.
+- Confirm the `Shopify Connection Status` card shows:
+	- connected status
+	- correct store name
+	- product count
+	- write permissions available or missing
+	- order analytics scope available or missing
+- Review recommendations before staging any products.
+- Use `Approve (Stage)` or bulk stage actions first.
+- Use `Apply Approved (Write to Shopify)` only after reviewing the staged queue.
+
 ## Module Catalog
 - `1` SEO Audit: audits products and writes a CSV report.
 - `2` Update Image Alt Text: previews/applies missing image alt text.
