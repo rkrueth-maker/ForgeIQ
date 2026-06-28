@@ -95,6 +95,7 @@ ForgeIQ has evolved from standalone scripts into a modular Shopify operations ap
 - `4` Create Shopify Collections: creates/updates collections and assignments.
 - `5` Generate Blog Post: placeholder, validates connection.
 - `6` Content Engine Preview: generates phase 2 content seeds and writes a markdown preview.
+- `11` Shopify Connection Check: validates app install, token access, and required scopes.
 
 ## Architecture Snapshot
 - `settings.py`: centralized config loading and persistence.
