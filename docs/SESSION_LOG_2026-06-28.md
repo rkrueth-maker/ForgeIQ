@@ -63,6 +63,21 @@ http://127.0.0.1:5050
 - Dashboard code was not directly rewritten in this chat because the file is large and a partial connector patch could risk breaking the launch-ready flow.
 - Safe next path: use the PR13 prompt with Codex/GitHub AI, run tests, review PR, then merge only if tests pass.
 
+## Storefront and traffic closeout — 2026-06-28
+- User provided incognito screenshot showing ForgeIQ Supply public homepage with updated hero: `Build a Better Garage.`
+- Screenshot also showed updated navigation: Garage Organization, Workshop Tools, Automotive Essentials, Shop Lighting, Safety Equipment, and New Arrivals.
+- User reported storefront cleanup completed: 9 garage/workshop products active, $0.99 compare-at prices cleared at variant level, off-theme products removed/drafted, HORUSDY titles removed, support email unified, cart/checkout tested.
+- Assistant public fetch still returned stale Shopify HTML at points in the session, so user screenshot/storefront browser proof should be used as stronger visual confirmation until cache catches up.
+- Google Pay & Wallet Console business profile is in progress. LEI field should be left blank, not filled with `Not applicable`, because Google rejects text in that field.
+- Recommended Google Pay support fields:
+  - Website: `https://forgeiqsupply.myshopify.com/`
+  - Customer support URL: `https://forgeiqsupply.myshopify.com/pages/contact`
+  - Customer support email: `forgeiqsupply@gmail.com`
+  - Customer support phone: `+1 218-212-5299`
+- Pinterest Organic Task 2 queued: create Pinterest business/profile connection, boards, and 9 product pins.
+- Metricool connector was checked multiple times; Metricool account was reachable but showed `connectedNetworks: []`, so Pinterest was not connected and ChatGPT could not schedule pins.
+- Next traffic path: finish Google Pay profile fields, connect Pinterest/Metricool if desired, then begin first visitor plan with Pinterest organic and basic SEO.
+
 ## Next-start command
 Type `hi` in this ForgeIQ project chat, then run:
 
@@ -75,4 +90,4 @@ python -m pytest -q
 python app.py
 ```
 
-If doing the UX task first, type `prompt` and use the PR13 prompt to add the Today’s Next Step card safely.
+If doing traffic first, type `first visitors`. If doing Pinterest first, connect Pinterest in Metricool, then type `check metricool`.
