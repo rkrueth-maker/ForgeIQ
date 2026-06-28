@@ -1,30 +1,34 @@
 # ForgeIQ
 AI-powered garage, workshop, and ecommerce operating system.
 
-![Status](https://img.shields.io/badge/status-v2.0%20core%20operational-success)
-![Tests](https://img.shields.io/badge/tests-9%20passed-success)
-![Python](https://img.shields.io/badge/python-3.12-blue)
+![Status](https://img.shields.io/badge/status-launch%20test%20ready-success)
+![Tests](https://img.shields.io/badge/tests-51%20passed-success)
+![Python](https://img.shields.io/badge/python-3.11-blue)
 
 ## Project Status
 | Area | State | Notes |
 | --- | --- | --- |
 | Core architecture | Complete | Shared settings, config, logging, and Shopify client are in place. |
 | Plugin registry | Complete | Modules auto-discover from the modules package. |
-| Launcher and CLI | Complete | Interactive launcher plus direct option and setting commands. |
-| Shopify modules | Active | SEO audit, alt text, collections, product intelligence, and content preview are available. |
-| Test coverage | Complete | Regression tests for setup, CLI, and optimizer logic are passing. |
-| Next phase | Planned | Content engine expansion, analytics dashboard, orchestrator. |
+| Launcher and CLI | Complete | Interactive launcher plus direct option and setting commands are available. |
+| Shopify modules | Active | SEO audit, alt text, collections, product intelligence, staged approvals, and content preview are available. |
+| Browser dashboard | Launch-ready | Launch Control, First-Run Checklist, Shopify connection status, staged approvals, and Apply Staged Changes flow are in place. |
+| Test coverage | Active | Latest reported validation: `51 passed`. |
+| Next step | Pending local test | Run the dashboard locally and apply one staged Shopify product only. |
 
 ## Overview
-ForgeIQ has evolved from standalone scripts into a modular Shopify operations app with shared configuration, logging, and a reusable API client.
+ForgeIQ has evolved from standalone scripts into a modular Shopify operations app with shared configuration, logging, a reusable API client, and a launch-ready browser dashboard.
 
 ## Current Capabilities
 - Menu-based launcher with direct CLI execution options.
 - Centralized settings management with persistent updates.
 - Shared Shopify GraphQL and REST client path for all active modules.
 - Automatic plugin discovery and registry-backed module routing.
-- Staged dashboard approval workflow: Approve marks products, Apply Approved writes updates.
-- Regression test coverage for setup, CLI, and optimizer behaviors.
+- Launch-ready dashboard with Launch Control, First-Run Checklist, Shopify Connection Status, Products Needing Attention, AI Agent, Analytics Summary, Reports, Logs, and Scheduled Tasks.
+- Staged dashboard approval workflow: Stage/Approve marks products, and Apply Approved to Shopify writes only staged products.
+- Tag-only recommendations now apply through the explicit Shopify product tag update path.
+- Apply feedback banner reports processed products, product updates, alt-text updates, and failures.
+- GitHub Actions workflow and regression test coverage for the staged approval safety model.
 
 ## Application Entry Points
 - Interactive mode:
@@ -52,16 +56,25 @@ ForgeIQ has evolved from standalone scripts into a modular Shopify operations ap
 ## First Live Store Test
 - Start the dashboard:
 	- `python app.py`
-- Open the dashboard in your browser.
-- Confirm the `Shopify Connection Status` card shows:
+- Open the dashboard in your browser:
+	- `http://127.0.0.1:5050`
+- Confirm the top dashboard sections show:
+	- `Launch Control`
+	- `First-Run Checklist`
+	- `Apply Staged Changes`
+	- `Shopify Connection Status`
+	- `Products Needing Attention`
+- Confirm Shopify status shows:
 	- connected status
 	- correct store name
 	- product count
 	- write permissions available or missing
 	- order analytics scope available or missing
 - Review recommendations before staging any products.
-- Use `Approve (Stage)` or bulk stage actions first.
-- Use `Apply Approved (Write to Shopify)` only after reviewing the staged queue.
+- Stage one low-risk product first.
+- Use `Apply Approved to Shopify` only after reviewing the staged queue.
+- Confirm the changed product manually in Shopify admin.
+- Use bulk staging only after the one-product test succeeds.
 
 ## Launch Dashboard Workflow
 1. Start dashboard with `python app.py`
@@ -71,6 +84,9 @@ ForgeIQ has evolved from standalone scripts into a modular Shopify operations ap
 5. Click Apply Approved to Shopify
 6. Confirm the product in Shopify admin
 7. Use bulk staging only after one-product test succeeds
+
+## Session Logs
+- Latest session log: `docs/SESSION_LOG_2026-06-28.md`
 
 ## Module Catalog
 - `1` SEO Audit: audits products and writes a CSV report.
@@ -86,24 +102,26 @@ ForgeIQ has evolved from standalone scripts into a modular Shopify operations ap
 - `shopify/client.py`: shared API client for GraphQL/REST operations.
 - `logger.py`: consistent app and module logging.
 - `modules/`: metadata-driven plugin registry and module entrypoints.
-- `shopify/`: domain workflows for SEO, alt text, collections, product intelligence, and content preview.
+- `shopify/`: domain workflows for SEO, alt text, collections, product intelligence, content preview, and browser dashboard workflows.
 
 ## Verification Status
-- Automated tests currently passing: `9 passed`.
-- CLI routing verified for direct module execution across options 3 and 6.
-- Settings persistence verified through tests and runtime path.
-- Live runtime validations completed:
-	- Option `3` Product Intelligence dry-run against Shopify store, no changes applied.
-	- Option `6` Content Engine preview generated successfully.
+- Latest merged launch UX PR: `#12`.
+- Latest reported automated tests: `51 passed`.
+- Approval safety verified by tests:
+	- Stage/Approve routes do not call Shopify write operations.
+	- Bulk stage does not call Shopify write operations.
+	- Apply Approved applies only approved/staged products.
+	- Apply feedback banner renders after apply.
+	- Launch Control, First-Run Checklist, and Apply Staged Changes render on the dashboard.
+- Local live Shopify test is still pending.
 
-## Roadmap (Next Phase)
-1. Content Engine Expansion:
-	- Blog, social, Pinterest, and email generation from catalog data.
-	- Template packs and channel-specific tone controls.
-2. Product Intelligence Enhancements:
-	- Smarter title/meta/tag heuristics and confidence scoring.
-	- Bulk approval presets and category-based workflows.
-3. Analytics Dashboard:
-	- Shopify + GA + Search Console metrics and SEO health.
-4. AI Orchestrator:
-	- Prioritize actions, queue tasks, and produce operational summaries.
+## Roadmap / Next Session
+1. Run local tests: `python -m pytest -q`.
+2. Start dashboard: `python app.py`.
+3. Verify Shopify connection and write permissions.
+4. Stage one low-risk product only.
+5. Apply that one product to Shopify.
+6. Confirm the product changed correctly in Shopify admin.
+7. If the one-product test passes, test Stage Top 3.
+8. Confirm GitHub Actions checks are visible on future PRs.
+9. Consider caching Shopify connection status to reduce dashboard API calls.
