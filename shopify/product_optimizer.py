@@ -6,6 +6,8 @@ import time
 from statistics import mean
 
 from settings import settings
+from shopify.approval_state import APPROVAL_STATE_FILE
+from shopify.approval_state import stage_approved_product_ids
 from shopify.client import client
 
 REPORT_FILE = os.path.join("reports", "forgeiq_product_intelligence_report.csv")
@@ -402,11 +404,11 @@ def choose_recommendations_for_apply(recommendations, apply_all=False):
     if not sys.stdin.isatty():
         return []
 
-    print("\nReview recommendations (y=yes, n=no, a=apply all remaining, q=stop):")
+    print("\nReview recommendations (y=yes, n=no, a=stage all remaining, q=stop):")
     approved = []
     for index, recommendation in enumerate(recommendations, start=1):
         title = recommendation["current_title"] or recommendation["suggested_title"]
-        prompt = f"[{index}/{len(recommendations)}] Apply changes for '{title}'? [y/N/a/q]: "
+        prompt = f"[{index}/{len(recommendations)}] Stage changes for '{title}'? [y/N/a/q]: "
         choice = input(prompt).strip().lower() or "n"
 
         if choice in {"a", "all"}:
@@ -441,10 +443,20 @@ def choose_recommendations_with_presets(recommendations, apply_all=False, preset
 
     if preset != "manual":
         selected = filter_recommendations_by_preset(recommendations, preset)
-        print(f"\nPreset '{preset}' selected {len(selected)} of {len(recommendations)} recommendations.")
+        print(f"\nPreset '{preset}' selected {len(selected)} of {len(recommendations)} recommendations for staging.")
         return selected
 
     return choose_recommendations_for_apply(recommendations, apply_all=False)
+
+
+def stage_recommendations(recommendations):
+    product_ids = [recommendation.get("product_id") for recommendation in recommendations]
+    state = stage_approved_product_ids(product_ids)
+    return {
+        "staged_products": len([product_id for product_id in product_ids if product_id]),
+        "approval_file": APPROVAL_STATE_FILE,
+        "approved_total": len(state.get("approved", [])),
+    }
 
 
 def print_summary(rows, recommendations):
@@ -486,15 +498,16 @@ def run(apply=False, preset=DEFAULT_PRESET):
 
     selected = choose_recommendations_with_presets(recommendations, apply_all=apply, preset=preset)
     if not selected:
-        print("\nReview report complete. No changes applied.")
+        print("\nReview report complete. No products were staged.")
         return
 
-    print(f"\nApplying approved changes for {len(selected)} products...")
-    result = apply_recommendations(selected)
-    print("\nApply phase complete.")
-    print(f"Updated products: {result['updated_products']}")
-    print(f"Updated image alt texts: {result['updated_alt_images']}")
-    print(f"Failures: {result['failures']}")
+    print(f"\nStaging approved changes for {len(selected)} products...")
+    result = stage_recommendations(selected)
+    print("\nStage phase complete.")
+    print(f"Staged products: {result['staged_products']}")
+    print(f"Approval queue file: {result['approval_file']}")
+    print(f"Total approved products in queue: {result['approved_total']}")
+    print("Use the web dashboard and click 'Apply Approved (Write to Shopify)' to publish staged changes.")
 
 
 def main():
@@ -502,7 +515,7 @@ def main():
     parser.add_argument(
         "--apply",
         action="store_true",
-        help="Apply all recommended product updates without per-product prompts.",
+        help="Stage all recommended product updates without per-product prompts.",
     )
     parser.add_argument(
         "--preset",

@@ -11,7 +11,10 @@ from flask import Flask, abort, redirect, render_template_string, request, send_
 
 from logger import LOG_DIR
 from settings import settings
-from shopify.analytics_dashboard import build_dashboard_data
+from shopify.approval_state import load_approvals as _load_approvals
+from shopify.approval_state import save_approvals as _save_approvals
+from shopify.approval_state import stage_approved_product_ids
+from shopify.analytics_dashboard import build_dashboard_data, gather_shopify_analytics_native
 from shopify.competitive_intelligence import build_competitive_intelligence_data
 from shopify.content_engine import REPORT_FILE as CONTENT_REPORT_FILE
 from shopify.content_engine import generate_blog_post
@@ -33,7 +36,6 @@ from shopify.scheduler import get_job_definitions
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 REPORTS_DIR = str(PROJECT_ROOT / "reports")
 LOGS_DIR = str((PROJECT_ROOT / LOG_DIR).resolve()) if not os.path.isabs(LOG_DIR) else LOG_DIR
-APPROVAL_STATE_FILE = os.path.join(REPORTS_DIR, "forgeiq_web_approvals.json")
 AGENT_HISTORY_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_history.json")
 AGENT_REPORT_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_response.md")
 AGENT_REVIEW_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_review.json")
@@ -460,6 +462,37 @@ TEMPLATE = """
       <div class="metric"><div class="label">CTR</div><div class="value">{{ (dashboard.search_console.ctr * 100) | round(1) }}%</div><div class="sub">Search performance</div></div>
       <div class="metric"><div class="label">Orders</div><div class="value">{{ dashboard.shopify_native.orders_last_50 }}</div><div class="sub">Last 50 orders</div></div>
       <div class="metric"><div class="label">Revenue</div><div class="value">{{ dashboard.shopify_native.estimated_revenue_last_50 }}</div><div class="sub">{{ dashboard.shopify_native.currency }}</div></div>
+    </div>
+
+    <div class="section panel">
+      <div class="section-head">
+        <div>
+          <h2>Shopify Connection Status</h2>
+          <p>Read-only live connection check before staging or applying optimization changes.</p>
+        </div>
+      </div>
+      <div class="grid-4">
+        <div class="mini-card">
+          <h3>Connection</h3>
+          <p><span class="tag {{ shopify_connection.connected_class }}">{{ shopify_connection.connected_label }}</span></p>
+          <p class="muted">{{ shopify_connection.message }}</p>
+        </div>
+        <div class="mini-card">
+          <h3>Store</h3>
+          <p>{{ shopify_connection.store_name }}</p>
+          <p class="muted">Product count: {{ shopify_connection.product_count }}</p>
+        </div>
+        <div class="mini-card">
+          <h3>Write permissions</h3>
+          <p><span class="tag {{ shopify_connection.write_permissions_class }}">{{ shopify_connection.write_permissions_label }}</span></p>
+          <p class="muted">{{ shopify_connection.write_permissions_message }}</p>
+        </div>
+        <div class="mini-card">
+          <h3>Order analytics scope</h3>
+          <p><span class="tag {{ shopify_connection.order_scope_class }}">{{ shopify_connection.order_scope_label }}</span></p>
+          <p class="muted">{{ shopify_connection.order_scope_message }}</p>
+        </div>
+      </div>
     </div>
 
     <div class="section panel">
@@ -924,22 +957,6 @@ DOCUMENT_TEMPLATE = """
 </body>
 </html>
 """
-
-
-def _load_approvals():
-    if not os.path.exists(APPROVAL_STATE_FILE):
-        return {"approved": [], "rejected": []}
-
-    with open(APPROVAL_STATE_FILE, "r", encoding="utf-8") as handle:
-        return json.load(handle)
-
-
-def _save_approvals(data):
-    os.makedirs(REPORTS_DIR, exist_ok=True)
-    with open(APPROVAL_STATE_FILE, "w", encoding="utf-8") as handle:
-        json.dump(data, handle, indent=2)
-
-
 def _load_agent_history():
   if not os.path.exists(AGENT_HISTORY_FILE):
     return []
@@ -1481,6 +1498,77 @@ def _safe_competitive_intelligence():
     }
 
 
+def _safe_shopify_connection_status(dashboard):
+    status = {
+        "connected": False,
+        "connected_label": "Not connected",
+        "connected_class": "danger",
+        "message": "Shopify credentials missing, invalid, or connection failed.",
+        "store_name": "Unavailable",
+        "product_count": int((dashboard.get("shopify") or {}).get("product_count") or 0),
+        "write_permissions_available": False,
+        "write_permissions_label": "Unknown",
+        "write_permissions_class": "warn",
+        "write_permissions_message": "Unable to verify write scopes.",
+        "order_scope_label": "Unknown",
+        "order_scope_class": "warn",
+        "order_scope_message": "Order analytics scope not checked.",
+    }
+
+    try:
+        shop_name = client.validate_connection()
+        status["connected"] = True
+        status["connected_label"] = "Connected"
+        status["connected_class"] = "success"
+        status["store_name"] = shop_name
+        status["message"] = "Read-only Shopify connection verified successfully."
+
+        scopes_query = """
+        query connectionHealth {
+          currentAppInstallation {
+            accessScopes {
+              handle
+            }
+          }
+        }
+        """
+        data = client.graphql(scopes_query)
+        handles = {
+            scope.get("handle", "")
+            for scope in ((data.get("currentAppInstallation") or {}).get("accessScopes") or [])
+            if scope.get("handle")
+        }
+
+        write_available = any(handle.startswith("write_") for handle in handles) and "write_products" in handles
+        status["write_permissions_available"] = write_available
+        if write_available:
+            status["write_permissions_label"] = "Available"
+            status["write_permissions_class"] = "success"
+            status["write_permissions_message"] = "Product write scope detected."
+        else:
+            status["write_permissions_label"] = "Missing"
+            status["write_permissions_class"] = "danger"
+            status["write_permissions_message"] = "Product write scope not detected."
+
+        analytics = gather_shopify_analytics_native()
+        if analytics.get("source") == "native":
+            status["order_scope_label"] = "Available"
+            status["order_scope_class"] = "success"
+            status["order_scope_message"] = "Order analytics query succeeded."
+        elif analytics.get("source") == "native_scope_missing":
+            status["order_scope_label"] = "Missing"
+            status["order_scope_class"] = "warn"
+            status["order_scope_message"] = "Orders scope is missing for analytics queries."
+        else:
+            status["order_scope_label"] = "Unavailable"
+            status["order_scope_class"] = "warn"
+            status["order_scope_message"] = "Order analytics could not be verified."
+    except Exception as exc:
+        status["message"] = str(exc)
+
+    return status
+
+
 def _normalize_dashboard_data(dashboard):
     dashboard = dict(dashboard or {})
     dashboard.setdefault("generated_at", datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
@@ -1523,6 +1611,7 @@ def _normalize_dashboard_data(dashboard):
 
 def build_dashboard_context(refresh_content=False, live_refresh=False):
     dashboard = _normalize_dashboard_data(_safe_dashboard_data())
+    shopify_connection = _safe_shopify_connection_status(dashboard)
     attention_queue, products, recommendations = _safe_attention_queue()
     competitive_intelligence = _safe_competitive_intelligence()
     orchestrator_state = load_orchestrator_state()
@@ -1563,6 +1652,7 @@ def build_dashboard_context(refresh_content=False, live_refresh=False):
 
     return {
         "dashboard": dashboard,
+        "shopify_connection": shopify_connection,
         "live_refresh": live_refresh,
         "attention_queue": attention_queue,
         "trends": trends,
@@ -1631,13 +1721,8 @@ def create_app():
                 count = 5
             selected = queue[:count]
 
-        state = _load_approvals()
-        selected_ids = list(dict.fromkeys(rec.get("product_id") for rec in selected if rec.get("product_id")))
-        for product_id in selected_ids:
-            if product_id not in state["approved"]:
-                state["approved"].append(product_id)
-        state["rejected"] = [pid for pid in state["rejected"] if pid not in selected_ids]
-        _save_approvals(state)
+        selected_ids = [rec.get("product_id") for rec in selected if rec.get("product_id")]
+        stage_approved_product_ids(selected_ids)
 
         scroll_y = request.form.get("scroll_y", "0")
         return redirect(url_for("index", scroll_y=scroll_y))

@@ -116,8 +116,14 @@ def test_web_dashboard_bulk_approve_stages_top_n(monkeypatch):
     applied = []
 
     monkeypatch.setattr(wd, "_build_attention_queue", lambda: (queue, [], queue))
-    monkeypatch.setattr(wd, "_load_approvals", lambda: state)
-    monkeypatch.setattr(wd, "_save_approvals", lambda data: state.update(data))
+    def fake_stage(product_ids):
+        for product_id in product_ids:
+            if product_id not in state["approved"]:
+                state["approved"].append(product_id)
+        state["rejected"] = [product_id for product_id in state["rejected"] if product_id not in product_ids]
+        return state
+
+    monkeypatch.setattr(wd, "stage_approved_product_ids", fake_stage)
     monkeypatch.setattr(wd, "apply_recommendations", lambda selected: applied.extend(selected) or {"updated_products": len(selected), "updated_alt_images": 0, "failures": 0})
 
     app = wd.create_app()
@@ -181,3 +187,123 @@ def test_web_dashboard_live_refresh_mode(monkeypatch):
     html = response.get_data(as_text=True)
     assert '<meta http-equiv="refresh" content="45" />' in html
     assert "Live refresh on" in html
+
+
+def test_web_dashboard_shows_successful_shopify_connection_status(monkeypatch):
+    import shopify.web_dashboard as wd
+
+    monkeypatch.setattr(wd, "build_dashboard_context", lambda refresh_content=False, live_refresh=False: {
+        "dashboard": {
+            "generated_at": "2026-06-28T00:00:00Z",
+            "health": {"store_health_score": 80},
+            "shopify": {"product_count": 16, "average_seo_score": 80, "products_missing_meta": 0, "images_missing_alt": 0},
+            "search_console": {"ctr": 0.1, "clicks": 10, "impressions": 100, "average_position": 12, "source": "csv"},
+            "google_analytics": {"sessions": 10, "users": 5, "conversions": 1, "source": "csv"},
+            "shopify_native": {"orders_last_50": 1, "estimated_revenue_last_50": 0, "currency": "USD", "source": "native"},
+        },
+        "shopify_connection": {
+            "connected_label": "Connected",
+            "connected_class": "success",
+            "message": "Read-only Shopify connection verified successfully.",
+            "store_name": "ForgeIQ Supply",
+            "product_count": 16,
+            "write_permissions_label": "Available",
+            "write_permissions_class": "success",
+            "write_permissions_message": "Product write scope detected.",
+            "order_scope_label": "Available",
+            "order_scope_class": "success",
+            "order_scope_message": "Order analytics query succeeded.",
+        },
+        "live_refresh": live_refresh,
+        "attention_queue": [],
+        "trends": {"trend_note": "ok", "priority_change": 0},
+        "opportunities": [],
+        "inventory_recommendations": [],
+        "campaigns": [],
+        "forecast": {"baseline_health_score": 80, "projected_health_score_30d": 82, "assumption": "x"},
+        "planned_actions": [],
+        "competitive_intelligence": {"summary": {"price_gap_count": 0, "trend_count": 0, "keyword_gap_count": 0, "margin_count": 0}, "price_signals": [], "trend_signals": [], "keyword_gaps": [], "product_additions": [], "forecast": {"projected_revenue_lift": 0, "confidence": "low"}},
+        "blog_drafts": [],
+        "pinterest_queue": [],
+        "scheduled_tasks": [],
+        "report_files": [],
+        "report_file_names": set(),
+        "log_files": [],
+        "latest_log_tail": "",
+        "approvals": {"approved": [], "rejected": []},
+        "agent_history": [],
+        "pending_agent_review": None,
+        "orchestrator_runs": [],
+        "charts": [],
+    })
+
+    app = wd.create_app()
+    client = app.test_client()
+    response = client.get("/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Shopify Connection Status" in html
+    assert "Connected" in html
+    assert "ForgeIQ Supply" in html
+    assert "Product write scope detected." in html
+
+
+def test_web_dashboard_shows_failed_shopify_connection_status(monkeypatch):
+    import shopify.web_dashboard as wd
+
+    monkeypatch.setattr(wd, "build_dashboard_context", lambda refresh_content=False, live_refresh=False: {
+        "dashboard": {
+            "generated_at": "2026-06-28T00:00:00Z",
+            "health": {"store_health_score": 80},
+            "shopify": {"product_count": 0, "average_seo_score": 0, "products_missing_meta": 0, "images_missing_alt": 0},
+            "search_console": {"ctr": 0, "clicks": 0, "impressions": 0, "average_position": 0, "source": "unconfigured"},
+            "google_analytics": {"sessions": 0, "users": 0, "conversions": 0, "source": "unconfigured"},
+            "shopify_native": {"orders_last_50": 0, "estimated_revenue_last_50": 0, "currency": "USD", "source": "unconfigured"},
+        },
+        "shopify_connection": {
+            "connected_label": "Not connected",
+            "connected_class": "danger",
+            "message": "Shopify Admin API returned HTTP 401.",
+            "store_name": "Unavailable",
+            "product_count": 0,
+            "write_permissions_label": "Unknown",
+            "write_permissions_class": "warn",
+            "write_permissions_message": "Unable to verify write scopes.",
+            "order_scope_label": "Unknown",
+            "order_scope_class": "warn",
+            "order_scope_message": "Order analytics scope not checked.",
+        },
+        "live_refresh": live_refresh,
+        "attention_queue": [],
+        "trends": {"trend_note": "ok", "priority_change": 0},
+        "opportunities": [],
+        "inventory_recommendations": [],
+        "campaigns": [],
+        "forecast": {"baseline_health_score": 80, "projected_health_score_30d": 82, "assumption": "x"},
+        "planned_actions": [],
+        "competitive_intelligence": {"summary": {"price_gap_count": 0, "trend_count": 0, "keyword_gap_count": 0, "margin_count": 0}, "price_signals": [], "trend_signals": [], "keyword_gaps": [], "product_additions": [], "forecast": {"projected_revenue_lift": 0, "confidence": "low"}},
+        "blog_drafts": [],
+        "pinterest_queue": [],
+        "scheduled_tasks": [],
+        "report_files": [],
+        "report_file_names": set(),
+        "log_files": [],
+        "latest_log_tail": "",
+        "approvals": {"approved": [], "rejected": []},
+        "agent_history": [],
+        "pending_agent_review": None,
+        "orchestrator_runs": [],
+        "charts": [],
+    })
+
+    app = wd.create_app()
+    client = app.test_client()
+    response = client.get("/")
+
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "Shopify Connection Status" in html
+    assert "Not connected" in html
+    assert "Unavailable" in html
+    assert "Shopify Admin API returned HTTP 401." in html

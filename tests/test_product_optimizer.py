@@ -1,6 +1,8 @@
 import builtins
+import io
 import os
 import sys
+from contextlib import redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +17,9 @@ from shopify.product_optimizer import (
     choose_recommendations_for_apply,
     choose_recommendations_with_presets,
     filter_recommendations_by_preset,
+    run,
     score_product,
+    stage_recommendations,
     suggest_description,
     suggest_title,
 )
@@ -120,3 +124,60 @@ def test_choose_recommendations_with_presets_safe_wins():
     ]
     selected = choose_recommendations_with_presets(recs, apply_all=False, preset="safe-wins")
     assert selected == [recs[0]]
+
+
+def test_stage_recommendations_updates_shared_approval_queue(monkeypatch, tmp_path):
+    from shopify import approval_state
+
+    approval_file = tmp_path / "reports" / "forgeiq_web_approvals.json"
+    monkeypatch.setattr(approval_state, "APPROVAL_STATE_FILE", str(approval_file))
+    monkeypatch.setattr("shopify.product_optimizer.APPROVAL_STATE_FILE", str(approval_file))
+
+    result = stage_recommendations(
+        [
+            {"product_id": "gid://shopify/Product/1"},
+            {"product_id": "gid://shopify/Product/2"},
+        ]
+    )
+
+    assert result["staged_products"] == 2
+    assert result["approved_total"] == 2
+    assert approval_file.exists()
+    assert "forgeiq_web_approvals.json" in result["approval_file"]
+
+
+def test_run_stages_instead_of_applying(monkeypatch, tmp_path):
+    from shopify import approval_state
+
+    approval_file = tmp_path / "reports" / "forgeiq_web_approvals.json"
+    monkeypatch.setattr(approval_state, "APPROVAL_STATE_FILE", str(approval_file))
+    monkeypatch.setattr("shopify.product_optimizer.APPROVAL_STATE_FILE", str(approval_file))
+
+    recommendation = {
+        "product_id": "gid://shopify/Product/1",
+        "current_title": "Live Product",
+        "suggested_title": "Live Product",
+        "needs_title": False,
+        "needs_description": True,
+        "needs_tags": False,
+        "alt_recommendations": [],
+        "confidence": 0.9,
+        "priority": 80,
+    }
+
+    monkeypatch.setattr("shopify.product_optimizer.client.validate_connection", lambda: "ForgeIQ Supply")
+    monkeypatch.setattr("shopify.product_optimizer.fetch_products", lambda: [{"id": "gid://shopify/Product/1"}])
+    monkeypatch.setattr("shopify.product_optimizer.analyze_products", lambda products: ([{"Current Title": "Live Product", "Score": 80, "Confidence": 0.9, "Priority": 80, "Issues": "Missing meta description", "Missing Alt Images": 0}], [recommendation]))
+    monkeypatch.setattr("shopify.product_optimizer.write_report", lambda rows: None)
+    monkeypatch.setattr("shopify.product_optimizer.print_summary", lambda rows, recommendations: None)
+    monkeypatch.setattr("shopify.product_optimizer.choose_recommendations_with_presets", lambda recommendations, apply_all=False, preset="manual": recommendations)
+    monkeypatch.setattr("shopify.product_optimizer.apply_recommendations", lambda selected: (_ for _ in ()).throw(AssertionError("apply_recommendations should not be called")))
+
+    stream = io.StringIO()
+    with redirect_stdout(stream):
+        run(apply=False, preset="manual")
+
+    output = stream.getvalue()
+    assert "Staging approved changes for 1 products" in output
+    assert "Use the web dashboard and click 'Apply Approved (Write to Shopify)'" in output
+    assert approval_file.exists()
