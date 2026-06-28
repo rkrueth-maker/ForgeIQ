@@ -3,11 +3,15 @@ import csv
 import os
 import sys
 import time
+from statistics import mean
 
+from settings import settings
 from shopify.client import client
 
 REPORT_FILE = os.path.join("reports", "forgeiq_product_intelligence_report.csv")
 SLEEP_SECONDS = 0.2
+DEFAULT_PRESET = "manual"
+PRESET_CHOICES = ["manual", "high-impact", "high-confidence", "safe-wins"]
 
 
 def fetch_products():
@@ -65,6 +69,57 @@ def _truncate_sentence(text, max_len=155):
         return text
     clipped = text[:max_len].rsplit(" ", 1)[0].strip()
     return clipped if clipped else text[:max_len]
+
+
+def _issue_penalty(issues):
+    weighted = {
+        "Missing meta description": 18,
+        "Meta description may be too short": 8,
+        "Meta description may be too long": 4,
+        "Title may be too short": 10,
+        "Title may be too long": 8,
+        "Missing product type": 8,
+        "Not enough tags": 6,
+        "missing alt text": 7,
+        "Missing product images": 10,
+    }
+
+    penalty = 0
+    for issue in issues:
+        matched = False
+        for key, value in weighted.items():
+            if key.lower() in issue.lower():
+                penalty += value
+                matched = True
+                break
+        if not matched:
+            penalty += 3
+    return penalty
+
+
+def calculate_recommendation_confidence(product, issues):
+    confidence = 1.0
+    fields = [product.get("title"), product.get("vendor"), product.get("productType")]
+    completeness = sum(1 for f in fields if (f or "").strip()) / len(fields)
+    confidence *= 0.6 + (0.4 * completeness)
+
+    issue_penalty = min(0.4, _issue_penalty(issues) / 100)
+    confidence -= issue_penalty
+
+    title = (product.get("title") or "").strip()
+    if len(title.split()) <= 1:
+        confidence -= 0.08
+
+    return max(0.2, round(min(1.0, confidence), 2))
+
+
+def calculate_priority_score(score, issues, confidence, alt_missing_count):
+    base_impact = max(0, 100 - score)
+    issue_weight = min(40, _issue_penalty(issues))
+    confidence_bonus = int(confidence * 20)
+    alt_bonus = min(15, alt_missing_count * 3)
+    priority = min(100, base_impact + issue_weight + confidence_bonus + alt_bonus)
+    return int(priority)
 
 
 def score_product(product):
@@ -204,6 +259,9 @@ def analyze_products(products):
         needs_tags = sorted(current_tags) != sorted(tags_suggestion)
         needs_alt = bool(alt_recommendations)
 
+        confidence = calculate_recommendation_confidence(product, issues)
+        priority = calculate_priority_score(score, issues, confidence, len(alt_recommendations))
+
         rows.append(
             {
                 "Product ID": product.get("id", ""),
@@ -214,6 +272,8 @@ def analyze_products(products):
                 "Current Tags": ", ".join(current_tags),
                 "Suggested Tags": ", ".join(tags_suggestion),
                 "Score": score,
+                "Confidence": confidence,
+                "Priority": priority,
                 "Issues": "; ".join(issues),
                 "Missing Alt Images": len(alt_recommendations),
                 "Needs Update": "yes" if (needs_title or needs_description or needs_tags or needs_alt) else "no",
@@ -232,10 +292,13 @@ def analyze_products(products):
                     "needs_title": needs_title,
                     "needs_description": needs_description,
                     "needs_tags": needs_tags,
+                    "confidence": confidence,
+                    "priority": priority,
                 }
             )
 
-    rows.sort(key=lambda row: int(row["Score"]))
+    rows.sort(key=lambda row: (int(row["Priority"]), -int(row["Score"])), reverse=True)
+    recommendations.sort(key=lambda rec: (int(rec["priority"]), rec["confidence"]), reverse=True)
     return rows, recommendations
 
 
@@ -250,6 +313,8 @@ def write_report(rows):
         "Current Tags",
         "Suggested Tags",
         "Score",
+        "Confidence",
+        "Priority",
         "Issues",
         "Missing Alt Images",
         "Needs Update",
@@ -355,9 +420,36 @@ def choose_recommendations_for_apply(recommendations, apply_all=False):
     return approved
 
 
+def filter_recommendations_by_preset(recommendations, preset):
+    if preset == "high-impact":
+        return [rec for rec in recommendations if rec["priority"] >= 75]
+    if preset == "high-confidence":
+        return [rec for rec in recommendations if rec["confidence"] >= 0.75]
+    if preset == "safe-wins":
+        return [
+            rec
+            for rec in recommendations
+            if not rec["needs_title"] and rec["confidence"] >= 0.65
+        ]
+    return recommendations
+
+
+def choose_recommendations_with_presets(recommendations, apply_all=False, preset=DEFAULT_PRESET):
+    if apply_all:
+        return recommendations
+
+    if preset != "manual":
+        selected = filter_recommendations_by_preset(recommendations, preset)
+        print(f"\nPreset '{preset}' selected {len(selected)} of {len(recommendations)} recommendations.")
+        return selected
+
+    return choose_recommendations_for_apply(recommendations, apply_all=False)
+
+
 def print_summary(rows, recommendations):
     low_score = sum(1 for row in rows if int(row["Score"]) < 85)
     total_missing_alt = sum(int(row["Missing Alt Images"]) for row in rows)
+    average_confidence = round(mean(row["Confidence"] for row in rows), 2) if rows else 0
 
     print("")
     print("ForgeIQ Product Intelligence Engine")
@@ -366,14 +458,19 @@ def print_summary(rows, recommendations):
     print(f"Products needing updates: {len(recommendations)}")
     print(f"Low-score products (<85): {low_score}")
     print(f"Missing image alt text count: {total_missing_alt}")
+    print(f"Average recommendation confidence: {average_confidence}")
     print(f"Report created: {REPORT_FILE}")
     print("")
     print("Top priority products:")
     for row in rows[:10]:
-        print(f"- {row['Score']} | {row['Current Title']} | {row['Issues'] or 'No major issues'}")
+        print(
+            f"- priority={row['Priority']} confidence={row['Confidence']} "
+            f"score={row['Score']} | {row['Current Title']} | {row['Issues'] or 'No major issues'}"
+        )
 
 
-def run(apply=False):
+def run(apply=False, preset=DEFAULT_PRESET):
+    preset = preset or settings.get("BULK_APPROVAL_PRESET", DEFAULT_PRESET)
     shop_name = client.validate_connection()
     print(f"Connected to Shopify store: {shop_name}")
 
@@ -386,7 +483,7 @@ def run(apply=False):
         print("No updates required.")
         return
 
-    selected = choose_recommendations_for_apply(recommendations, apply_all=apply)
+    selected = choose_recommendations_with_presets(recommendations, apply_all=apply, preset=preset)
     if not selected:
         print("\nReview report complete. No changes applied.")
         return
@@ -406,8 +503,14 @@ def main():
         action="store_true",
         help="Apply all recommended product updates without per-product prompts.",
     )
+    parser.add_argument(
+        "--preset",
+        default=settings.get("BULK_APPROVAL_PRESET", DEFAULT_PRESET),
+        choices=PRESET_CHOICES,
+        help="Bulk approval preset when not using --apply.",
+    )
     args = parser.parse_args()
-    run(apply=args.apply)
+    run(apply=args.apply, preset=args.preset)
 
 
 if __name__ == "__main__":
