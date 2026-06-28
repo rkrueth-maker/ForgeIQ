@@ -10,7 +10,15 @@ if str(ROOT) not in sys.path:
 os.environ.setdefault("SHOPIFY_STORE", "example.myshopify.com")
 os.environ.setdefault("SHOPIFY_ADMIN_TOKEN", "test-token")
 
-from shopify.product_optimizer import analyze_products, choose_recommendations_for_apply, score_product, suggest_description, suggest_title
+from shopify.product_optimizer import (
+    analyze_products,
+    choose_recommendations_for_apply,
+    choose_recommendations_with_presets,
+    filter_recommendations_by_preset,
+    score_product,
+    suggest_description,
+    suggest_title,
+)
 
 
 def _sample_product(**overrides):
@@ -67,6 +75,10 @@ def test_analyze_products_returns_recommendations_for_weak_products():
     assert len(rows) == 1
     assert len(recommendations) == 1
     assert rows[0]["Needs Update"] == "yes"
+    assert "Confidence" in rows[0]
+    assert "Priority" in rows[0]
+    assert recommendations[0]["confidence"] >= 0.2
+    assert recommendations[0]["priority"] >= 1
     assert recommendations[0]["needs_description"] is True
 
 
@@ -90,3 +102,21 @@ def test_choose_recommendations_per_product_prompt(monkeypatch):
 
     selected = choose_recommendations_for_apply(recs, apply_all=False)
     assert selected == [recs[0], recs[2]]
+
+
+def test_filter_recommendations_by_preset_high_confidence():
+    recs = [
+        {"confidence": 0.8, "priority": 70, "needs_title": False},
+        {"confidence": 0.6, "priority": 90, "needs_title": True},
+    ]
+    selected = filter_recommendations_by_preset(recs, "high-confidence")
+    assert selected == [recs[0]]
+
+
+def test_choose_recommendations_with_presets_safe_wins():
+    recs = [
+        {"confidence": 0.8, "priority": 55, "needs_title": False},
+        {"confidence": 0.9, "priority": 80, "needs_title": True},
+    ]
+    selected = choose_recommendations_with_presets(recs, apply_all=False, preset="safe-wins")
+    assert selected == [recs[0]]

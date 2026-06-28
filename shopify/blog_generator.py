@@ -1,7 +1,5 @@
-from shopify.client import client
+from shopify.content_engine import run as content_engine_run
 
 
 def run():
-    shop_name = client.validate_connection()
-    print(f"Connected to Shopify store: {shop_name}")
-    print("Blog post generator is not implemented yet.")
+    content_engine_run(channels=["blog"])

@@ -1,4 +1,5 @@
 from modules.base import BaseModule
+from shopify.blog_generator import run as blog_run
 
 
 class BlogModule(BaseModule):
@@ -7,4 +8,4 @@ class BlogModule(BaseModule):
     description = "Generate a blog post draft from Shopify product content."
 
     def run(self):
-        print("Blog post generator is not implemented yet.")
+        blog_run()
