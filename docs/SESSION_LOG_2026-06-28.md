@@ -54,3 +54,25 @@ http://127.0.0.1:5050
 - Consider caching Shopify connection status to reduce page-load API calls.
 - After one-product live test passes, test Stage Top 3.
 - Update README again if real live test results differ from expected behavior.
+
+## Closeout update — 2026-06-28
+- Phone shortcut workflow created in Google Drive: ForgeIQ Phone Command Menu and ForgeIQ Phone Shortcuts folder.
+- Master Google Sheet was checked; Dashboard still says `v1.2 Launch Test Ready` and next action remains local one-product live test.
+- AI Tasks still show `Today’s Next Step UX Card` as a next small UX improvement.
+- PR13 prompt exists at `docs/PR13_TODAYS_NEXT_STEP_UX.md`.
+- Dashboard code was not directly rewritten in this chat because the file is large and a partial connector patch could risk breaking the launch-ready flow.
+- Safe next path: use the PR13 prompt with Codex/GitHub AI, run tests, review PR, then merge only if tests pass.
+
+## Next-start command
+Type `hi` in this ForgeIQ project chat, then run:
+
+```bash
+cd ForgeIQ
+git checkout main
+git pull
+source .venv/bin/activate
+python -m pytest -q
+python app.py
+```
+
+If doing the UX task first, type `prompt` and use the PR13 prompt to add the Today’s Next Step card safely.
