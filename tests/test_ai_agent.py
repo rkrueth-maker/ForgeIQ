@@ -15,6 +15,8 @@ def test_agent_optimizes_products_under_seo_score(monkeypatch, tmp_path):
     import shopify.web_dashboard as wd
 
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(wd, "REPORTS_DIR", str(tmp_path / "reports"))
+    monkeypatch.setattr(wd, "AGENT_REVIEW_FILE", str(tmp_path / "reports" / "forgeiq_agent_review.json"))
     products = [{"id": "gid://shopify/Product/1"}, {"id": "gid://shopify/Product/2"}]
     rows = [
         {"Product ID": "gid://shopify/Product/1", "Score": 82, "Current Title": "Low Score Product"},
@@ -156,6 +158,8 @@ def test_agent_review_apply_route_executes_pending_changes(monkeypatch, tmp_path
     import shopify.web_dashboard as wd
 
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(wd, "REPORTS_DIR", str(tmp_path / "reports"))
+    monkeypatch.setattr(wd, "AGENT_REVIEW_FILE", str(tmp_path / "reports" / "forgeiq_agent_review.json"))
 
     review_path = tmp_path / "reports" / "forgeiq_agent_review.json"
     review_path.parent.mkdir(parents=True, exist_ok=True)

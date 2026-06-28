@@ -102,6 +102,58 @@ def test_competitive_intelligence_auto_discovers_forgeiq_reports(tmp_path, monke
     assert data["sources"]["product_intelligence_csv"].endswith("forgeiq_product_intelligence_report.csv")
 
 
+def test_competitive_intelligence_markdown_has_readable_sections(tmp_path, monkeypatch):
+    from shopify.competitive_intelligence import build_competitive_intelligence_data
+    from shopify.competitive_intelligence import write_competitive_intelligence_report
+
+    reports_dir = tmp_path / "reports"
+    reports_dir.mkdir()
+
+    dashboard_json = reports_dir / "forgeiq_analytics_dashboard.json"
+    dashboard_json.write_text(
+        """
+        {
+          "generated_at": "2026-06-28T00:00:00Z",
+          "search_console": {"clicks": 40, "impressions": 400, "ctr": 0.1, "average_position": 12},
+          "health": {"store_health_score": 88}
+        }
+        """.strip(),
+        encoding="utf-8",
+    )
+
+    product_report = reports_dir / "forgeiq_product_intelligence_report.csv"
+    product_report.write_text(
+        "\n".join(
+            [
+                "Product ID,Current Title,Suggested Title,Current Meta Description,Suggested Meta Description,Current Tags,Suggested Tags,Score,Issues,Missing Alt Images,Needs Update,Priority,Confidence",
+                'gid://shopify/Product/1,Garage Hook,Garage Hook - Heavy Duty,,Suggested description,garage hook,garage hook,82,Missing meta description,0,yes,88,0.82',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(settings, "get", lambda key, default=None: default)
+
+    data = build_competitive_intelligence_data()
+    md_file, _json_file = write_competitive_intelligence_report(data)
+    content = Path(md_file).read_text(encoding="utf-8")
+
+    assert "## Executive Snapshot" in content
+    assert "## What To Do Next" in content
+    assert "## Competitor Price Monitoring" in content
+    assert "## Trend Analysis" in content
+    assert "## Keyword Gap Analysis" in content
+    assert "## Suggested Product Additions" in content
+    assert "## Margin Analysis" in content
+    assert "## Sales Forecast" in content
+    assert "| Severity | Action |" in content
+    assert "| High |" in content or "| Medium |" in content or "| Low |" in content
+    assert "| Keyword | Our Rank | Competitor Rank | Search Volume | Gap | Recommendation |" in content
+    assert "| Product | Revenue | Cost | Margin | Margin Rate | Recommendation |" in content
+
+
 def test_scheduler_includes_automation_jobs(monkeypatch):
     import shopify.scheduler as scheduler
 

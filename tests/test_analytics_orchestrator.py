@@ -12,6 +12,8 @@ os.environ.setdefault("SHOPIFY_ADMIN_TOKEN", "test-token")
 
 from shopify.analytics_dashboard import gather_google_analytics_metrics, gather_search_console_metrics
 from shopify.analytics_dashboard import build_dashboard_data
+from shopify.analytics_dashboard import write_dashboard
+from shopify.orchestrator import generate_daily_summary
 from shopify.orchestrator import prioritize_recommendations
 
 
@@ -150,3 +152,107 @@ def test_shopify_native_metrics_scope_denied(monkeypatch):
     data = gather_shopify_analytics_native()
     assert data["source"] == "native_scope_missing"
     assert data["orders_last_50"] == 0
+
+
+def test_dashboard_markdown_has_readable_sections(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    data = {
+        "generated_at": "2026-06-28T00:00:00Z",
+        "shopify": {
+            "product_count": 5,
+            "average_seo_score": 91.2,
+            "products_missing_meta": 1,
+            "images_missing_alt": 2,
+        },
+        "shopify_native": {
+            "source": "native",
+            "orders_last_50": 12,
+            "estimated_revenue_last_50": 720.5,
+            "currency": "USD",
+        },
+        "google_analytics": {
+            "source": "csv",
+            "sessions": 100,
+            "users": 80,
+            "conversions": 6,
+        },
+        "search_console": {
+            "source": "csv",
+            "clicks": 40,
+            "impressions": 400,
+            "ctr": 0.1,
+            "average_position": 11.5,
+        },
+        "health": {
+            "store_health_score": 72.1,
+            "seo_performance": {
+                "average_product_score": 91.2,
+                "search_ctr": 0.1,
+                "average_position": 11.5,
+            },
+            "product_performance": {
+                "product_count": 5,
+                "products_missing_meta": 1,
+                "images_missing_alt": 2,
+            },
+        },
+    }
+
+    md_file, _json_file = write_dashboard(data)
+    content = Path(md_file).read_text(encoding="utf-8")
+
+    assert "## Executive Snapshot" in content
+    assert "## Shopify Metrics" in content
+    assert "## Google Analytics" in content
+    assert "## Google Search Console" in content
+    assert "## Unified Health Breakdown" in content
+    assert "| Metric | Value |" in content
+    assert "| Source | csv |" in content
+    assert "| CTR | 10.0% |" in content
+
+
+def test_orchestrator_markdown_has_readable_sections(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    top_recommendations = [
+        {"priority": 88, "confidence": 0.93, "current_title": "Garage Hook"},
+    ]
+    actions = ["Review and approve high-priority optimizer recommendations"]
+    dashboard = {
+        "health": {"store_health_score": 73.2},
+        "shopify": {"product_count": 5, "average_seo_score": 91.2},
+    }
+    trends = {"trend_note": "Improving"}
+    opportunities = [{"title": "Wall Rack", "reason": "High demand cluster"}]
+    inventory = [{"title": "Garage Hook", "action": "Restock soon"}]
+    campaigns = [{"title": "Wall Rack", "campaign": "Summer Push", "channels": ["blog", "email"]}]
+    forecast = {
+        "baseline_health_score": 73.2,
+        "projected_health_score_30d": 80.1,
+        "assumption": "Apply approved recommendations this month",
+    }
+
+    md_file = generate_daily_summary(
+        top_recommendations,
+        actions,
+        dashboard,
+        trends,
+        opportunities,
+        inventory,
+        campaigns,
+        forecast,
+    )
+    content = Path(md_file).read_text(encoding="utf-8")
+
+    assert "## Executive Snapshot" in content
+    assert "## Priority Recommendations" in content
+    assert "## Planned Actions" in content
+    assert "## Product Opportunities" in content
+    assert "## Inventory-Aware Recommendations" in content
+    assert "## Campaign Plan" in content
+    assert "## Forecast" in content
+    assert "| Priority | Confidence | Product |" in content
+    assert "- Review and approve high-priority optimizer recommendations" in content
+    assert "| Product | Why It Matters |" in content
+    assert "| Metric | Value |" in content

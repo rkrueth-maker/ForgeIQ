@@ -446,35 +446,99 @@ def write_competitive_intelligence_report(data):
         "# ForgeIQ Competitive Intelligence Report",
         f"Generated: {data['generated_at']}",
         "",
-        "## Summary",
+        "## Executive Snapshot",
         f"- Price comparisons analyzed: {data['summary']['price_gap_count']}",
         f"- Search trend signals analyzed: {data['summary']['trend_count']}",
         f"- Keyword gaps analyzed: {data['summary']['keyword_gap_count']}",
         f"- Margin records analyzed: {data['summary']['margin_count']}",
+        f"- Projected revenue lift: {data['forecast']['projected_revenue_lift']} ({data['forecast']['confidence']} confidence)",
         "",
-        "## Competitor Price Monitoring",
+        "## What To Do Next",
     ]
 
+    def _action_severity(action_type, item):
+        if action_type == "price":
+            return "High"
+        if action_type == "keyword":
+            return "High" if item.get("gap", 0) >= 5 else "Medium"
+        if action_type == "margin":
+            return "High" if item.get("margin_rate", 0) < 20 else "Medium"
+        if action_type == "trend":
+            return "Medium"
+        return "Low"
+
+    top_actions = []
     if data["price_signals"]:
-        for item in data["price_signals"][:5]:
+        top_actions.append(("price", data["price_signals"][0], data["price_signals"][0]["recommendation"]))
+    if data["trend_signals"]:
+        top_actions.append(("trend", data["trend_signals"][0], data["trend_signals"][0]["recommendation"]))
+    if data["keyword_gaps"]:
+        top_actions.append(("keyword", data["keyword_gaps"][0], data["keyword_gaps"][0]["recommendation"]))
+    if data["margin_signals"]:
+        top_actions.append(("margin", data["margin_signals"][0], data["margin_signals"][0]["recommendation"]))
+    if data["product_additions"]:
+        top_actions.append(
+            (
+                "product_addition",
+                data["product_additions"][0],
+                f"Evaluate {data['product_additions'][0]['suggested_product']}",
+            )
+        )
+
+    if top_actions:
+        lines.extend(
+            [
+                "| Severity | Action |",
+                "| --- | --- |",
+            ]
+        )
+        for action_type, payload, message in top_actions[:5]:
+            severity = _action_severity(action_type, payload)
+            lines.append(f"| {severity} | {message} |")
+    else:
+        lines.append("- No high-priority actions yet. Add source files or run more discovery jobs.")
+
+    lines.extend(["", "## Competitor Price Monitoring"])
+    if data["price_signals"]:
+        lines.extend(
+            [
+                "| Product | Competitor | Our Price | Competitor Price | Gap | Recommendation |",
+                "| --- | --- | ---: | ---: | ---: | --- |",
+            ]
+        )
+        for item in data["price_signals"][:8]:
             lines.append(
-                f"- {item['product']} vs {item['competitor']}: our {item['our_price']} / competitor {item['competitor_price']} ({item['price_gap']})"
+                f"| {item['product']} | {item['competitor']} | {item['our_price']} | {item['competitor_price']} | {item['price_gap']} | {item['recommendation']} |"
             )
     else:
         lines.append("- No competitor price data available.")
 
     lines.extend(["", "## Trend Analysis"])
     if data["trend_signals"]:
-        for item in data["trend_signals"][:5]:
-            lines.append(f"- {item['keyword']}: {item['change']} ({item['pct_change']}%) - {item['recommendation']}")
+        lines.extend(
+            [
+                "| Keyword | Current Volume | Previous Volume | Change | % Change | Recommendation |",
+                "| --- | ---: | ---: | ---: | ---: | --- |",
+            ]
+        )
+        for item in data["trend_signals"][:8]:
+            lines.append(
+                f"| {item['keyword']} | {item['current_volume']} | {item['previous_volume']} | {item['change']} | {item['pct_change']}% | {item['recommendation']} |"
+            )
     else:
         lines.append("- No trend data available.")
 
-    lines.extend(["", "## Keyword Gaps"])
+    lines.extend(["", "## Keyword Gap Analysis"])
     if data["keyword_gaps"]:
-        for item in data["keyword_gaps"][:5]:
+        lines.extend(
+            [
+                "| Keyword | Our Rank | Competitor Rank | Search Volume | Gap | Recommendation |",
+                "| --- | ---: | ---: | ---: | ---: | --- |",
+            ]
+        )
+        for item in data["keyword_gaps"][:8]:
             lines.append(
-                f"- {item['keyword']}: our rank {item['our_rank'] or 'n/a'} vs competitor {item['competitor_rank'] or 'n/a'}"
+                f"| {item['keyword']} | {item['our_rank'] or 'n/a'} | {item['competitor_rank'] or 'n/a'} | {item['search_volume']} | {item['gap']} | {item['recommendation']} |"
             )
     else:
         lines.append("- No keyword gap data available.")
@@ -482,14 +546,23 @@ def write_competitive_intelligence_report(data):
     lines.extend(["", "## Suggested Product Additions"])
     if data["product_additions"]:
         for item in data["product_additions"]:
-            lines.append(f"- {item['suggested_product']} ({item['reason']})")
+            lines.append(f"- {item['suggested_product']}")
+            lines.append(f"  - Reason: {item['reason']}")
     else:
         lines.append("- No product additions suggested.")
 
     lines.extend(["", "## Margin Analysis"])
     if data["margin_signals"]:
-        for item in data["margin_signals"][:5]:
-            lines.append(f"- {item['product']}: margin rate {item['margin_rate']}% ({item['recommendation']})")
+        lines.extend(
+            [
+                "| Product | Revenue | Cost | Margin | Margin Rate | Recommendation |",
+                "| --- | ---: | ---: | ---: | ---: | --- |",
+            ]
+        )
+        for item in data["margin_signals"][:8]:
+            lines.append(
+                f"| {item['product']} | {item['revenue']} | {item['cost']} | {item['margin']} | {item['margin_rate']}% | {item['recommendation']} |"
+            )
     else:
         lines.append("- No margin data available.")
 
