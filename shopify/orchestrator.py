@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from shopify.analytics_dashboard import build_dashboard_data
 from shopify.content_engine import generate_preview
@@ -107,8 +107,6 @@ def plan_actions(top_recommendations, dashboard, inventory_recommendations=None)
     actions = []
     if top_recommendations:
         actions.append("Review and approve high-priority optimizer recommendations")
-    if dashboard["shopify"]["images_missing_alt"] > 0:
-        actions.append("Run targeted alt text updates for products with missing image alt text")
     if dashboard["shopify"]["products_missing_meta"] > 0:
         actions.append("Prioritize metadata generation for products missing meta descriptions")
     if dashboard["google_analytics"]["source"] == "unconfigured":
@@ -124,13 +122,15 @@ def plan_actions(top_recommendations, dashboard, inventory_recommendations=None)
 def generate_daily_summary(top_recommendations, actions, dashboard, trends, opportunities, inventory, campaigns, forecast):
     lines = [
         "# ForgeIQ Orchestrator Daily Summary",
-        f"Generated: {datetime.utcnow().isoformat()}Z",
+        f"Generated: {datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')}",
         "",
-        "## Store Health",
+        "## Executive Snapshot",
         f"- Store health score: {dashboard['health']['store_health_score']}",
         f"- Product count: {dashboard['shopify']['product_count']}",
         f"- Average SEO score: {dashboard['shopify']['average_seo_score']}",
         f"- Trend: {trends['trend_note']}",
+        f"- Planned actions: {len(actions)}",
+        f"- Open opportunities: {len(opportunities)}",
         "",
         "## Priority Recommendations",
     ]
@@ -138,42 +138,74 @@ def generate_daily_summary(top_recommendations, actions, dashboard, trends, oppo
     if not top_recommendations:
         lines.append("- No high-priority recommendations at this time.")
     else:
+        lines.extend(
+            [
+                "| Priority | Confidence | Product |",
+                "| ---: | ---: | --- |",
+            ]
+        )
         for rec in top_recommendations:
             lines.append(
-                f"- priority={rec.get('priority', 0)} confidence={rec.get('confidence', 0)} "
-                f"| {rec.get('current_title', 'Untitled')}"
+                f"| {rec.get('priority', 0)} | {rec.get('confidence', 0)} | {rec.get('current_title', 'Untitled')} |"
             )
 
     lines.extend(["", "## Planned Actions"])
-    for action in actions:
-        lines.append(f"- {action}")
+    if not actions:
+        lines.append("- No planned actions for this cycle.")
+    else:
+        for action in actions:
+            lines.append(f"- {action}")
 
     lines.extend(["", "## Product Opportunities"])
     if not opportunities:
         lines.append("- No major opportunities detected.")
     else:
+        lines.extend(
+            [
+                "| Product | Why It Matters |",
+                "| --- | --- |",
+            ]
+        )
         for item in opportunities:
-            lines.append(f"- {item['title']}: {item['reason']}")
+            lines.append(f"| {item['title']} | {item['reason']} |")
 
     lines.extend(["", "## Inventory-Aware Recommendations"])
     if not inventory:
         lines.append("- No inventory-specific actions detected.")
     else:
+        lines.extend(
+            [
+                "| Product | Action |",
+                "| --- | --- |",
+            ]
+        )
         for item in inventory:
-            lines.append(f"- {item['title']}: {item['action']}")
+            lines.append(f"| {item['title']} | {item['action']} |")
 
     lines.extend(["", "## Campaign Plan"])
     if not campaigns:
         lines.append("- No campaigns generated.")
     else:
+        lines.extend(
+            [
+                "| Product | Campaign | Channels |",
+                "| --- | --- | --- |",
+            ]
+        )
         for campaign in campaigns:
             channels = ", ".join(campaign["channels"])
-            lines.append(f"- {campaign['title']}: {campaign['campaign']} ({channels})")
+            lines.append(f"| {campaign['title']} | {campaign['campaign']} | {channels} |")
 
     lines.extend(["", "## Forecast"])
-    lines.append(f"- Baseline health score: {forecast['baseline_health_score']}")
-    lines.append(f"- Projected 30-day health score: {forecast['projected_health_score_30d']}")
-    lines.append(f"- Assumption: {forecast['assumption']}")
+    lines.extend(
+        [
+            "| Metric | Value |",
+            "| --- | --- |",
+            f"| Baseline health score | {forecast['baseline_health_score']} |",
+            f"| Projected 30-day health score | {forecast['projected_health_score_30d']} |",
+            f"| Assumption | {forecast['assumption']} |",
+        ]
+    )
 
     os.makedirs("reports", exist_ok=True)
     with open(SUMMARY_FILE, "w", encoding="utf-8") as handle:
@@ -210,7 +242,7 @@ def run():
     )
 
     run_record = {
-        "timestamp": f"{datetime.utcnow().isoformat()}Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "top_recommendations": [
             {
                 "title": rec.get("current_title"),
