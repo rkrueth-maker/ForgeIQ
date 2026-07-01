@@ -2,18 +2,20 @@
 
 ## Executive Summary
 
-**RangeRivet Works** is a practical shop, garage, and small-business systems brand built around six connected offers:
+**RangeRivet Works** is a practical shop, garage, home, and small-business systems brand built around seven connected offers:
 
 1. Shop products
 2. Plans and layout help
 3. Job tracking setup
 4. AI workflow setup
 5. AI quick-sale setup packages
-6. Shop process improvement
+6. Web and app setup
+7. Smart home and garage automation setup
+8. Shop process improvement
 
-The business helps homeowners, garage owners, side businesses, small contractors, small shops, and fabrication/repair businesses turn messy spaces, rough ideas, scattered job information, inefficient workflows, and repeated paperwork into practical plans, cleaner systems, and better buying decisions.
+The business helps homeowners, garage owners, side businesses, small contractors, small shops, and fabrication/repair businesses turn messy spaces, rough ideas, scattered job information, inefficient workflows, repeated paperwork, confusing tech, and disconnected devices into practical plans, cleaner systems, and better buying decisions.
 
-**Working tagline:** Practical tools, plans, and systems for garages, shops, and small businesses.
+**Working tagline:** Practical tools, plans, and systems for garages, shops, homes, and small businesses.
 
 RangeRivet Works should be treated as the working umbrella brand until the name is verified through Minnesota SOS, USPTO, domain availability, Google search, and social handle checks. ForgeIQ remains the existing Shopify/store/code asset for now and should not be permanently rebranded until name clearance is complete.
 
@@ -25,7 +27,11 @@ RangeRivet Works should sound practical, mechanical, grounded, and easy to under
 
 The brand should not lead with software, AI, or consulting language. It should lead with hands-on problem solving:
 
-> Send photos, notes, measurements, quotes, job details, or repeated paperwork. RangeRivet Works helps turn them into a practical plan, cleaner quote, better layout, simple tracking system, or AI-assisted workflow.
+> Send photos, notes, measurements, quotes, job details, device lists, or repeated paperwork. RangeRivet Works helps turn them into a practical plan, cleaner quote, better layout, simple tracking system, AI-assisted workflow, or smart-home/garage setup plan.
+
+Core promise:
+
+> Practical systems that actually work.
 
 ---
 
@@ -41,6 +47,7 @@ Needs:
 - Material lists
 - Build-order checklists
 - Project planning before spending money
+- Smart lighting, cameras, sensors, alerts, and simple routines
 
 ### Small Contractors and Service Businesses
 
@@ -62,6 +69,7 @@ Needs:
 - Job status tracking
 - Simple systems that do not require expensive software
 - Faster replies, follow-ups, quote wording, and closeout messages
+- Simple website/intake form setup
 
 ### Small Shops and Fabrication Businesses
 
@@ -96,6 +104,18 @@ Needs:
 - Simple AI rules with owner review
 - Intake forms that feed job trackers
 
+### Homeowners With Confusing Tech
+
+Needs:
+
+- Camera placement planning
+- Smart light and sensor setup
+- App/device naming cleanup
+- Phone alerts that make sense
+- Garage door, motion, light, and camera routines
+- Wi-Fi/device placement planning
+- Basic phone setup only when connected to a larger automation service
+
 ---
 
 ## Service Lane 1: Shop Products
@@ -114,13 +134,15 @@ Potential products:
 - Job tracking templates
 - AI prompt packs
 - Quote and estimate cleanup templates
+- Smart garage setup checklists
+- Camera placement checklists
 
 Strategy:
 
 - Keep ForgeIQ running as the current backend/store asset for now.
 - Use RangeRivet Works as the working umbrella brand.
 - Do not permanently rebrand Shopify until name clearance is complete.
-- Eventually, products and services can support each other: products solve physical shop problems, services solve planning and workflow problems.
+- Eventually, products and services can support each other: products solve physical shop/home problems, services solve planning, workflow, and setup problems.
 
 ---
 
@@ -283,15 +305,6 @@ These are smaller, easier-to-understand services that can be sold quickly before
 
 For contractors, landscapers, snow plow operators, handyman services, garage work, fabrication, repair jobs, and small service businesses.
 
-Customer sends:
-
-- Photos
-- Notes
-- Measurements
-- Rough pricing
-- Materials
-- Job description
-
 Deliverables:
 
 - Clean customer-ready quote structure
@@ -371,15 +384,6 @@ Examples:
 - Before/after photo checklist
 - Invoice closeout checklist
 
-Deliverables:
-
-- One-page SOP
-- Step-by-step checklist
-- Before/during/after photo requirements
-- Materials/tools needed
-- Quality check
-- Reusable AI checklist prompt
-
 ### AI Follow-Up System
 
 **Price:** $100-$300
@@ -415,65 +419,211 @@ Deliverables:
 
 ---
 
-## App Stack for First Sales
+## Service Lane 6: Web and App Setup
 
-Do not buy a big app before a real lead.
+Do not sell this as complex software development. Sell it as simple web, intake, and job organization systems for small businesses.
 
-### Free Starter Stack
+Positioning:
 
-Use this first:
+> RangeRivet Works builds simple web and job intake systems for small businesses that need leads, photos, quotes, and job information organized without complicated software.
 
-- Google Forms
-- Google Sheets
-- Google Drive
-- Gmail
-- ChatGPT
+### One-Page Business Website
 
-Good for:
+**Price:** $150-$500
 
-- Basic intake
-- Basic job tracking
-- Simple customer submissions
-- Free proof-of-concept
+Best for:
 
-### Low-Cost Paid Stack
+- Landscapers
+- Snow plow services
+- Handyman services
+- Junk removal
+- Garage businesses
+- Small shops
+- Side businesses
 
-Use when a client needs stronger forms or file uploads:
+Deliverables:
 
-- Tally Pro or Fillout Starter/Pro
-- Google Sheets
-- Google Drive
-- ChatGPT
+- One-page mobile-friendly website
+- Service sections
+- About/positioning copy
+- Contact/request section
+- Basic local wording
+- Static GitHub Pages, Google Sites, or simple hosting setup
 
-Good for:
+### Landing Page + Intake Form
 
-- Better-looking intake forms
-- File/photo uploads
-- Conditional logic
-- Payments
-- Cleaner customer experience
-- Form-to-tracker workflows
+**Price:** $250-$750
 
-### Heavier Client Stack
+Best first website/app offer to sell.
 
-Use only if a client needs more built-in form/app/PDF/payment features:
+Deliverables:
 
-- Jotform
-- Google Sheets or Jotform Tables
-- Google Drive
-- ChatGPT
+- One-page landing page
+- Quote/request form
+- Photo/file upload option
+- Customer/job questions
+- Google Sheet response tracker
+- Basic customer reply templates
 
-Good for:
+### Job Tracker Mini-App
 
-- PDF packets
-- Signatures
-- Payments
-- Client app-style portals
-- More advanced integrations
+**Price:** $400-$1,500
+
+Start with Google Sheets. Only use a no-code app builder when the customer is paying for an app-style interface.
+
+Deliverables:
+
+- Customer list
+- Job list
+- Status tracker
+- Photo/file links
+- Materials/receipts
+- Quote/invoice tracking
+- Simple dashboard
+
+Avoid saying:
+
+- Full custom app development
+- SaaS platform
+- Mobile app store app
+- Complex automation
+- Full CRM replacement
+
+Use terms like:
+
+- Simple webpage
+- Intake form
+- Job tracker
+- Photo/job organization
+- Small business web system
 
 ---
 
-## Service Lane 6: Shop Process Improvement
+## Service Lane 7: Smart Home and Garage Automation Setup
+
+This fits RangeRivet Works when it stays practical and connected to garages, cameras, lights, sensors, Wi-Fi devices, phone alerts, and simple routines.
+
+Positioning:
+
+> Practical smart-home and garage automation planning, setup, and cleanup for people who want cameras, lights, sensors, Wi-Fi devices, and alerts to actually work together.
+
+### Smart Home Setup Plan
+
+**Price:** $75-$200
+
+Best for:
+
+- Homeowners who want a smart-home plan before buying devices
+- Garage owners who want cameras/lights/sensors
+- People confused by too many apps and device choices
+
+Deliverables:
+
+- Goal review
+- House/garage layout review
+- Wi-Fi/device placement notes
+- Recommended device categories
+- Buying plan
+- App/routine plan
+
+### Camera and Alert Setup
+
+**Price:** $100-$300
+
+Deliverables:
+
+- Camera placement plan
+- Notification/alert recommendations
+- Phone alert cleanup
+- Storage/subscription notes
+- Basic viewing instructions
+- Labeling/naming plan
+
+### Garage Automation Setup
+
+**Price:** $150-$500
+
+Deliverables:
+
+- Smart light plan
+- Door/motion sensor plan
+- Camera and alert plan
+- Routine ideas
+- Remote monitoring setup plan
+- Owner instruction checklist
+
+### Smart Device Cleanup
+
+**Price:** $75-$250
+
+For customers who already bought devices but the setup is messy.
+
+Deliverables:
+
+- App cleanup
+- Room/device naming cleanup
+- Reconnect/relabel device list
+- Remove duplicate/unused routines
+- Clean up annoying alerts
+- Owner instruction sheet
+
+### Full Smart Home Starter System
+
+**Price:** $300-$1,000+
+
+Deliverables:
+
+- Planning session
+- Device list
+- Room/garage layout plan
+- App setup workflow
+- Routine plan
+- Alert plan
+- Basic owner instructions
+
+### Phone Setup Add-On
+
+**Price:** $25-$75 only when attached to a smart-home, camera, job-tracker, or intake-form service.
+
+Includes:
+
+- Install needed apps
+- Set camera notifications
+- Set up Google/Alexa/Apple Home app basics
+- Organize device names
+- Turn off annoying alerts
+- Show customer how to view cameras/lights/forms
+- Basic photo upload instructions for job tracking
+
+Do not advertise general cell phone help as a standalone service yet. It can become endless support and does not fit the brand as cleanly.
+
+### Boundaries and Liability Rules
+
+Do not advertise or perform:
+
+- Electrical wiring
+- Panel work
+- Hardwired fixture installation
+- Alarm/security system contracting
+- Lock installation that creates liability
+- Anything requiring a licensed electrician
+
+Advertise this as:
+
+- Design
+- Planning
+- Device selection
+- App organization
+- Wi-Fi/device placement planning
+- Automation routines
+- Basic setup help
+- Owner instruction checklists
+
+If wiring or licensed installation is needed, the customer uses an electrician or licensed installer.
+
+---
+
+## Service Lane 8: Shop Process Improvement
 
 Premium add-on services based on CNC, automation, material handling, quoting, and shop-floor experience.
 
@@ -536,9 +686,78 @@ Deliverables:
 
 ---
 
+## App Stack for First Sales
+
+Do not buy a big app before a real lead.
+
+### Free Starter Stack
+
+Use this first:
+
+- Google Forms
+- Google Sheets
+- Google Drive
+- Gmail
+- ChatGPT
+
+Good for:
+
+- Basic intake
+- Basic job tracking
+- Simple customer submissions
+- Free proof-of-concept
+
+### Low-Cost Paid Stack
+
+Use when a client needs stronger forms or file uploads:
+
+- Tally Pro or Fillout Starter/Pro
+- Google Sheets
+- Google Drive
+- ChatGPT
+
+Good for:
+
+- Better-looking intake forms
+- File/photo uploads
+- Conditional logic
+- Payments
+- Cleaner customer experience
+- Form-to-tracker workflows
+
+### Heavier Client Stack
+
+Use only if a client needs more built-in form/app/PDF/payment features:
+
+- Jotform
+- Google Sheets or Jotform Tables
+- Google Drive
+- ChatGPT
+
+Good for:
+
+- PDF packets
+- Signatures
+- Payments
+- Client app-style portals
+- More advanced integrations
+
+### No-Code Mini-App Stack
+
+Use only after a customer is paying for an app-style interface:
+
+- Glide, Softr, Airtable Interfaces, or similar no-code app builder
+- Google Sheets or Airtable backend
+- Forms for intake
+- Drive for files/photos
+
+Do not buy a paid no-code app plan until there is a paying client or a clear sales reason.
+
+---
+
 ## Recheck: Additional Fast Services to Consider
 
-The recheck supports adding these as secondary offers or add-ons:
+The current plan supports these as secondary offers or add-ons:
 
 1. **Shopify Product Listing Cleanup** — strong fit because existing ForgeIQ files already cover Shopify products, SEO, descriptions, tags, marketing, and product research.
 2. **Prompt Library Setup for Small Business** — package reusable prompts for quotes, replies, SOPs, listings, follow-ups, and job summaries.
@@ -547,6 +766,9 @@ The recheck supports adding these as secondary offers or add-ons:
 5. **Seasonal Service Reminder System** — snow plow, lawn care, garage cleanout, maintenance, and repeat customer reminders.
 6. **One-Page Business Operating Checklist** — daily/weekly checklist for a solo business owner.
 7. **Lead Response Speed Setup** — intake form plus quick reply templates so new leads are answered fast.
+8. **Smart Garage Starter Plan** — lights, cameras, sensor, Wi-Fi, and phone alert plan.
+9. **Camera Notification Cleanup** — fix excessive or missing alerts.
+10. **Phone Setup Add-On** — only attached to another service.
 
 Do not add all of these to the homepage at first. Keep them as add-ons or discovery-call upsells.
 
@@ -558,7 +780,7 @@ Homepage should be simple and customer-facing.
 
 Main headline:
 
-**Practical tools, plans, and systems for garages, shops, and small businesses.**
+**Practical tools, plans, and systems for garages, shops, homes, and small businesses.**
 
 Main buttons:
 
@@ -566,14 +788,17 @@ Main buttons:
 - Plan my garage, shop, or project
 - Organize my jobs, photos, quotes, and invoices
 - Use AI to save time
+- Set up smart garage/home devices
 
-Main sections:
+Main public sections:
 
 1. Shop Products
 2. Plans & Layout Help
 3. Job Tracking Setup
 4. AI Workflow Setup
-5. Shop Process Improvement
+5. Web & App Setup
+6. Smart Home & Garage Automation
+7. Shop Process Improvement
 
 Optional add-on section:
 
@@ -605,15 +830,17 @@ Do not use the old public names:
 - Use email or Google Form for intake at first
 - Do not build a full app yet
 
-### Phase 2: First 5 Customers
+### Phase 2: First 7 Customers
 
 Try to sell:
 
-1. Two garage/shop layout reviews
+1. One garage/shop layout review
 2. One project plan + material list
 3. One job tracker setup
 4. One AI intake form + job tracker setup
-5. One equipment quote review or quote cleanup
+5. One landing page + intake form
+6. One smart garage/camera setup plan
+7. One equipment quote review or quote cleanup
 
 Goal:
 
@@ -631,6 +858,8 @@ Turn repeated work into templates:
 - Equipment quote review checklist
 - Customer reply pack
 - SOP/checklist pack
+- Smart garage setup checklist
+- Camera placement checklist
 
 ### Phase 4: App Later
 
@@ -647,6 +876,7 @@ Future app idea:
 - Status tracking
 - Export packets
 - AI-assisted job summaries
+- Smart-home setup checklist library
 
 ---
 
@@ -655,19 +885,21 @@ Future app idea:
 ### Week 1
 
 - Keep RangeRivet Works as working brand
-- Publish a static landing page
+- Publish/update static landing page
 - Add a contact email or temporary request instructions
 - Create sample deliverables
 - Rename internal files away from ILS/Industrial Logic wording
 - Build one sample intake form
+- Build one smart garage setup checklist
 
 ### Week 2
 
 - Post locally with a simple offer
 - Message 5-10 likely users
-- Offer two discounted layout reviews
+- Offer one discounted layout review
 - Offer one discounted job tracker setup
 - Offer one discounted AI quote/reply setup
+- Offer one discounted smart garage/camera plan
 - Collect feedback
 
 ### Week 3
@@ -677,6 +909,7 @@ Future app idea:
 - Create one-page sample job tracker setup
 - Create quote cleanup sample
 - Create AI customer reply pack sample
+- Create smart garage/camera sample plan
 
 ### Week 4
 
@@ -687,7 +920,7 @@ Future app idea:
 
 ---
 
-## First Service to Sell
+## Best First Services to Sell
 
 Best first service if buying an app for a sale:
 
@@ -696,18 +929,22 @@ Best first service if buying an app for a sale:
 Why:
 
 - Easy for small businesses to understand
-- Uses forms, photos, job tracking, AI, and your existing Google Sheet
+- Uses forms, photos, job tracking, AI, and the existing Google Sheet
 - Can be delivered fast
 - Can start free and upgrade only after a real lead
-- Naturally leads to quote cleanup, customer replies, follow-ups, and job closeout packets
+- Naturally leads to quotes, follow-ups, customer replies, invoices, and job closeout packets
 
-Second best:
+Best first website/app service:
 
-**AI Quote / Estimate Draft Setup**
+**Landing Page + Intake Form**
 
-Third best:
+Best first smart-home service:
 
-**AI Customer Reply Pack**
+**Smart Garage / Camera Setup Plan**
+
+Best first physical/shop service:
+
+**Garage / Shop Layout Review**
 
 ---
 
