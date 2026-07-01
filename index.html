@@ -3,251 +3,359 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RangeRivet Works — Practical systems that actually work</title>
-  <meta name="description" content="RangeRivet Works helps homeowners, garage owners, small shops, contractors, side businesses, and small business owners turn messy spaces, scattered job details, confusing tech, repeated paperwork, and disconnected devices into practical plans and simple systems that actually work." />
+  <title>RangeRivet Works — Messy project in. Clear next step out.</title>
+  <meta name="description" content="RangeRivet Works helps turn messy garage, shop, home, and small business project details into clear plans, trackers, workflows, quotes, and next steps." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --black:#111; --dark:#1c1c1e; --panel:#242426; --muted:#666; --light:#f4f2ee; --cream:#faf8f4; --accent:#c8622a; --green:#4a7c59; --text:#1c1c1e; --line:#e2ddd5; --radius:10px; --max:1120px; }
+    :root {
+      --black:#111111;
+      --dark:#1c1c1e;
+      --panel:#242426;
+      --muted:#666666;
+      --light:#f4f2ee;
+      --cream:#faf8f4;
+      --white:#ffffff;
+      --accent:#c8622a;
+      --accent-dark:#a94f20;
+      --green:#4a7c59;
+      --text:#1c1c1e;
+      --line:#e2ddd5;
+      --radius:14px;
+      --max:1120px;
+    }
     html { scroll-behavior: smooth; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:var(--cream); color:var(--text); line-height:1.6; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
     a { color: inherit; }
-    nav { background:var(--dark); color:#fff; padding:0 1.25rem; min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:1rem; position:sticky; top:0; z-index:100; border-bottom:4px solid var(--accent); }
-    .nav-logo { color:#fff; text-decoration:none; font-weight:800; letter-spacing:-.01em; }
-    .nav-logo span { color:var(--accent); }
-    .nav-links { display:flex; flex-wrap:wrap; gap:1rem; list-style:none; font-size:.86rem; }
-    .nav-links a { color:#d8d8d8; text-decoration:none; }
-    .nav-links a:hover { color:#fff; }
-    @media(max-width:900px){ .nav-links{display:none;} }
-    .hero { background:linear-gradient(135deg,#171717,#282828); color:#fff; padding:5.5rem 1.5rem 4.5rem; text-align:center; }
-    .hero-eyebrow { display:inline-block; background:var(--accent); color:#fff; font-size:.75rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; padding:.35rem .75rem; border-radius:5px; margin-bottom:1.1rem; }
-    .hero h1 { font-size:clamp(2rem,5vw,4rem); line-height:1.08; max-width:900px; margin:0 auto 1rem; letter-spacing:-.03em; }
-    .hero p { max-width:790px; margin:0 auto 2rem; color:#d0d0d0; font-size:1.08rem; }
-    .hero-buttons { display:flex; flex-wrap:wrap; gap:.75rem; justify-content:center; }
-    .btn { display:inline-block; padding:.78rem 1.1rem; border-radius:var(--radius); text-decoration:none; font-weight:750; font-size:.92rem; transition:.15s; }
-    .btn:hover { transform:translateY(-1px); opacity:.9; }
-    .btn-primary { background:var(--accent); color:#fff; }
-    .btn-secondary { background:var(--green); color:#fff; }
-    .btn-outline { border:1.5px solid #777; color:#fff; }
-    .section { padding:4.25rem 1.5rem; }
-    .section-alt { background:var(--light); }
-    .container { max-width:var(--max); margin:0 auto; }
-    .section-header { text-align:center; max-width:780px; margin:0 auto 2.4rem; }
-    .badge { display:inline-block; background:#e8e4dc; color:var(--accent); font-size:.7rem; font-weight:850; letter-spacing:.08em; text-transform:uppercase; padding:.25rem .65rem; border-radius:5px; margin-bottom:.75rem; }
-    .section-header h2 { font-size:clamp(1.45rem,3vw,2.2rem); line-height:1.2; margin-bottom:.6rem; letter-spacing:-.02em; }
-    .section-header p { color:#555; font-size:.98rem; }
-    .card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:1.2rem; }
-    .card { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:1.35rem; box-shadow:0 10px 30px rgba(28,28,30,.06); }
-    .card-icon { font-size:1.45rem; margin-bottom:.4rem; }
-    .card h3 { font-size:1.02rem; margin-bottom:.35rem; }
-    .card p, .card li { font-size:.9rem; color:#555; }
-    .card ul { padding-left:1.1rem; margin-top:.45rem; }
-    .price { display:inline-block; color:var(--accent); font-weight:850; margin:.2rem 0 .45rem; }
-    .services-strip { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; margin-top:2rem; }
-    .service-tile { background:var(--panel); color:#fff; border-radius:var(--radius); padding:1.35rem; text-decoration:none; display:block; }
-    .service-tile:hover { background:#2f2f32; }
-    .tile-num { display:block; color:var(--accent); font-size:.7rem; font-weight:850; letter-spacing:.09em; text-transform:uppercase; margin-bottom:.4rem; }
-    .service-tile h3 { font-size:1rem; margin-bottom:.35rem; }
-    .service-tile p { color:#bdbdbd; font-size:.84rem; }
-    .steps { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; counter-reset:steps; }
-    .step { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:1.35rem; counter-increment:steps; }
-    .step::before { content:counter(steps); display:flex; width:2rem; height:2rem; align-items:center; justify-content:center; border-radius:50%; background:var(--accent); color:#fff; font-weight:850; margin-bottom:.75rem; }
+    nav {
+      background: rgba(28, 28, 30, .98);
+      color: #fff;
+      min-height: 62px;
+      padding: 0 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 4px solid var(--accent);
+      backdrop-filter: blur(10px);
+    }
+    .nav-logo {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      font-size: 1.04rem;
+      white-space: nowrap;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; font-size: .88rem; }
+    .nav-links a { color: #dedede; text-decoration: none; font-weight: 650; }
+    .nav-links a:hover { color: #fff; }
+    @media(max-width:860px){ .nav-links{ display:none; } }
+
+    .hero {
+      background:
+        radial-gradient(circle at 20% 20%, rgba(200,98,42,.35), transparent 30%),
+        linear-gradient(135deg,#151515,#2b2b2d 70%, #1b1b1c);
+      color:#fff;
+      padding: 6rem 1.5rem 5rem;
+      text-align:center;
+    }
+    .hero-eyebrow {
+      display:inline-block;
+      background: var(--accent);
+      color:#fff;
+      font-size:.75rem;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      padding:.38rem .8rem;
+      border-radius:999px;
+      margin-bottom:1.15rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.15rem, 6vw, 4.45rem);
+      line-height: 1.03;
+      max-width: 980px;
+      margin: 0 auto 1rem;
+      letter-spacing: -.045em;
+    }
+    .hero p {
+      max-width: 790px;
+      margin: 0 auto 2rem;
+      color: #d4d4d4;
+      font-size: 1.1rem;
+    }
+    .hero-buttons { display:flex; flex-wrap:wrap; gap:.8rem; justify-content:center; align-items:center; }
+    .btn {
+      display:inline-block;
+      padding:.86rem 1.18rem;
+      border-radius: var(--radius);
+      text-decoration:none;
+      font-weight:800;
+      font-size:.94rem;
+      transition:.15s ease;
+      border: 1.5px solid transparent;
+    }
+    .btn:hover { transform: translateY(-1px); opacity:.94; }
+    .btn-primary { background: var(--accent); color:#fff; }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-secondary { background: var(--green); color:#fff; }
+    .btn-outline { border-color:#777; color:#fff; background: transparent; }
+    .btn-dark { background: var(--dark); color:#fff; }
+
+    .section { padding: 4.4rem 1.5rem; }
+    .section-alt { background: var(--light); }
+    .container { max-width: var(--max); margin: 0 auto; }
+    .section-header { text-align:center; max-width: 780px; margin: 0 auto 2.4rem; }
+    .badge {
+      display:inline-block;
+      background:#e8e4dc;
+      color:var(--accent);
+      font-size:.7rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      padding:.28rem .68rem;
+      border-radius:999px;
+      margin-bottom:.75rem;
+    }
+    .section-header h2 {
+      font-size: clamp(1.5rem, 3vw, 2.3rem);
+      line-height:1.16;
+      margin-bottom:.65rem;
+      letter-spacing:-.03em;
+    }
+    .section-header p { color:#555; font-size:1rem; }
+
+    .focus-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      padding: 1.7rem;
+      box-shadow:0 18px 45px rgba(28,28,30,.08);
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:1.25rem;
+      align-items:center;
+    }
+    .focus-card h2 { font-size: clamp(1.55rem, 3vw, 2.35rem); letter-spacing:-.035em; line-height:1.14; margin-bottom:.75rem; }
+    .focus-card p { color:#555; margin-bottom:.9rem; }
+    .price-pill { display:inline-block; background:#fff2e9; color:var(--accent); font-weight:900; padding:.42rem .75rem; border-radius:999px; margin:.25rem 0 1rem; }
+    .quick-list { list-style:none; display:grid; gap:.45rem; }
+    .quick-list li { background: var(--cream); border:1px solid var(--line); padding:.7rem .8rem; border-radius:10px; font-size:.93rem; color:#444; }
+    @media(max-width:780px){ .focus-card{ grid-template-columns:1fr; } }
+
+    .card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem; }
+    .card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:1.35rem;
+      box-shadow:0 10px 30px rgba(28,28,30,.055);
+    }
+    .card-icon { font-size:1.45rem; margin-bottom:.45rem; }
+    .card h3 { font-size:1.03rem; margin-bottom:.32rem; }
+    .card p, .card li { font-size:.91rem; color:#555; }
+    .card ul { padding-left:1.15rem; margin-top:.45rem; }
+    .price { display:inline-block; color:var(--accent); font-weight:900; margin:.15rem 0 .42rem; }
+
+    .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1rem; counter-reset:steps; }
+    .step {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:1.35rem;
+      counter-increment:steps;
+    }
+    .step::before {
+      content:counter(steps);
+      display:flex;
+      width:2.1rem;
+      height:2.1rem;
+      align-items:center;
+      justify-content:center;
+      border-radius:50%;
+      background:var(--accent);
+      color:#fff;
+      font-weight:900;
+      margin-bottom:.75rem;
+    }
     .step h3 { font-size:1rem; margin-bottom:.35rem; }
-    .step p { font-size:.9rem; color:#555; }
-    .notice { background:#fff7ec; border-left:5px solid var(--accent); padding:1rem; border-radius:var(--radius); color:#4a4038; font-size:.9rem; margin-top:1.4rem; }
-    .request-box { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:1.6rem; max-width:760px; margin:0 auto; text-align:left; }
+    .step p { font-size:.91rem; color:#555; }
+
+    .notice {
+      background:#fff7ec;
+      border-left:5px solid var(--accent);
+      padding:1rem;
+      border-radius:var(--radius);
+      color:#4a4038;
+      font-size:.92rem;
+      margin-top:1.4rem;
+    }
+    .request-box {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:calc(var(--radius) + 4px);
+      padding:1.65rem;
+      max-width:800px;
+      margin:0 auto;
+      text-align:left;
+      box-shadow:0 15px 40px rgba(28,28,30,.06);
+    }
     .request-box p { color:#555; margin-bottom:1rem; }
     .request-list { padding-left:1.2rem; color:#555; margin-bottom:1.25rem; }
     .request-action { text-align:center; margin-top:1.35rem; }
-    .cta-band { background:var(--accent); color:#fff; text-align:center; padding:3.5rem 1.5rem; }
-    .cta-band h2 { font-size:clamp(1.4rem,3vw,2rem); margin-bottom:.7rem; }
-    .cta-band p { max-width:620px; margin:0 auto 1.4rem; opacity:.92; }
+    .cta-band { background:var(--accent); color:#fff; text-align:center; padding:3.6rem 1.5rem; }
+    .cta-band h2 { font-size:clamp(1.45rem,3vw,2.1rem); margin-bottom:.7rem; letter-spacing:-.02em; }
+    .cta-band p { max-width:650px; margin:0 auto 1.4rem; opacity:.95; }
     footer { background:var(--black); color:#aaa; text-align:center; padding:2.4rem 1.5rem; font-size:.86rem; }
     footer strong { color:#ddd; }
-    .small { font-size:.78rem; color:#555; }
+    .small { font-size:.8rem; color:#666; }
   </style>
 </head>
 <body>
   <nav>
     <a class="nav-logo" href="#top"><span>Range</span>Rivet Works</a>
     <ul class="nav-links">
-      <li><a href="#shop-products">Products</a></li>
-      <li><a href="#plans-layout">Plans</a></li>
-      <li><a href="#job-tracking">Tracking</a></li>
-      <li><a href="#ai-workflow">AI</a></li>
-      <li><a href="#web-app-setup">Web/App</a></li>
-      <li><a href="#smart-home">Smart Home</a></li>
-      <li><a href="#process-improvement">Process</a></li>
-      <li><a href="#request-help">Request Help</a></li>
+      <li><a href="#first-offer">First Offer</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#boundaries">Boundaries</a></li>
+      <li><a href="#request-help">Start Request</a></li>
     </ul>
   </nav>
 
   <main id="top">
     <section class="hero">
       <div class="hero-eyebrow">Garage • Shop • Home • Small Business</div>
-      <h1>Practical systems that actually work.</h1>
-      <p>RangeRivet Works helps homeowners, garage owners, small shops, contractors, side businesses, and small business owners turn messy spaces, scattered job details, confusing tech, repeated paperwork, and disconnected devices into practical plans and simple systems that actually work.</p>
+      <h1>Messy project in. Clear next step out.</h1>
+      <p>RangeRivet Works helps turn scattered photos, notes, measurements, product links, quote details, job information, and rough ideas into practical plans, trackers, workflows, checklists, and next steps.</p>
       <div class="hero-buttons">
-        <a href="#plans-layout" class="btn btn-primary">Plan my garage, shop, or project</a>
-        <a href="#job-tracking" class="btn btn-secondary">Organize my jobs, photos, quotes, and invoices</a>
-        <a href="#ai-workflow" class="btn btn-outline">Set up AI workflows</a>
-        <a href="#web-app-setup" class="btn btn-outline">Build a webpage or intake form</a>
-        <a href="#smart-home" class="btn btn-outline">Set up smart garage/home devices</a>
         <a href="https://docs.google.com/forms/d/e/1FAIpQLSfVpB7zVAh-F59413ImSK4cECntqSNJjv58ipVZcdejp9ur-g/viewform" class="btn btn-primary" target="_blank" rel="noopener">Start a Request</a>
+        <a href="#first-offer" class="btn btn-outline">See the first offer</a>
+        <a href="#services" class="btn btn-outline">View services</a>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="first-offer">
+      <div class="container">
+        <div class="focus-card">
+          <div>
+            <span class="badge">Best first service</span>
+            <h2>Project Cleanup Snapshot</h2>
+            <span class="price-pill">$79 intro / $99 normal</span>
+            <p>Send the messy project details. RangeRivet reviews what you have and turns it into a clear one-page direction you can actually act on.</p>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSfVpB7zVAh-F59413ImSK4cECntqSNJjv58ipVZcdejp9ur-g/viewform" class="btn btn-primary" target="_blank" rel="noopener">Request a Snapshot</a>
+          </div>
+          <div>
+            <ul class="quick-list">
+              <li><strong>Problem summary:</strong> what the project really is.</li>
+              <li><strong>Missing information:</strong> what still needs photos, dimensions, links, or decisions.</li>
+              <li><strong>Risk check:</strong> what looks confusing, costly, unsafe, or easy to miss.</li>
+              <li><strong>Next steps:</strong> the clean action list to move forward.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="services">
       <div class="container">
         <div class="section-header">
-          <span class="badge">What We Do</span>
-          <h2>Seven public service lanes, one practical brand</h2>
-          <p>Start with the problem you have now. RangeRivet Works can help with products, planning, tracking, AI workflows, web intake, smart-home/garage setup, or shop process cleanup.</p>
+          <span class="badge">Services</span>
+          <h2>Practical help without overcomplicating the job</h2>
+          <p>Start small. Choose the service that matches the problem in front of you.</p>
         </div>
-        <div class="services-strip">
-          <a href="#shop-products" class="service-tile"><span class="tile-num">01</span><h3>Shop Products</h3><p>Garage, shop, storage, workbench, tool, smart garage, and practical product picks.</p></a>
-          <a href="#plans-layout" class="service-tile"><span class="tile-num">02</span><h3>Plans &amp; Layout Help</h3><p>Garage/shop layouts, project plans, material lists, and workflow cleanup.</p></a>
-          <a href="#job-tracking" class="service-tile"><span class="tile-num">03</span><h3>Job Tracking Setup</h3><p>Customers, jobs, photos, receipts, quotes, invoices, and job status.</p></a>
-          <a href="#ai-workflow" class="service-tile"><span class="tile-num">04</span><h3>AI Workflow Setup</h3><p>Quotes, replies, follow-ups, checklists, listings, summaries, and repeat tasks.</p></a>
-          <a href="#web-app-setup" class="service-tile"><span class="tile-num">05</span><h3>Web &amp; App Setup</h3><p>Simple web and job intake systems without complicated software.</p></a>
-          <a href="#smart-home" class="service-tile"><span class="tile-num">06</span><h3>Smart Home &amp; Garage Automation</h3><p>Cameras, lights, sensors, Wi-Fi devices, alerts, and routines.</p></a>
-          <a href="#process-improvement" class="service-tile"><span class="tile-num">07</span><h3>Shop Process Improvement</h3><p>Equipment quote review, automation opportunities, CNC/fab workflow, and material handling.</p></a>
-        </div>
-      </div>
-    </section>
-
-    <section class="section section-alt" id="shop-products">
-      <div class="container">
-        <div class="section-header"><span class="badge">01 — Shop Products</span><h2>Practical product picks for garages and shops</h2><p>Garage, shop, storage, workbench, tool, smart garage, and practical products that solve real problems in working spaces.</p></div>
         <div class="card-grid">
-          <div class="card"><div class="card-icon">🔧</div><h3>Tool Storage &amp; Organization</h3><p>Tool holders, wall storage, shelving, organizers, and small-part systems for garages and workbenches.</p></div>
-          <div class="card"><div class="card-icon">🏠</div><h3>Smart Garage Products</h3><p>Useful camera, sensor, light, Wi-Fi, and monitoring products that support garage and home setup plans.</p></div>
-          <div class="card"><div class="card-icon">📋</div><h3>Digital Templates</h3><p>Future checklists, job trackers, quote templates, product-listing prompts, and smart garage setup guides.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="plans-layout">
-      <div class="container">
-        <div class="section-header"><span class="badge">02 — Plans &amp; Layout Help</span><h2>Turn a rough space or project into a usable plan</h2><p>Garage/shop layouts, project plans, material lists, and small shop workflow cleanup.</p></div>
-        <div class="card-grid">
-          <div class="card"><div class="card-icon">📐</div><h3>Garage / Shop Layout Review</h3><span class="price">$75-$150</span><p>Review photos, sketches, dimensions, tools, vehicles, and goals to create a practical layout plan.</p></div>
-          <div class="card"><div class="card-icon">🧾</div><h3>Project Plan + Material List</h3><span class="price">$150-$300</span><p>Step-by-step build order, materials, tools, and cost-saving notes for small garage/shop projects.</p></div>
-          <div class="card"><div class="card-icon">🏗️</div><h3>Small Shop Workflow Cleanup</h3><span class="price">$250-$500</span><p>Find bottlenecks, wasted steps, poor storage flow, and layout issues before spending money.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section section-alt" id="job-tracking">
-      <div class="container">
-        <div class="section-header"><span class="badge">03 — Job Tracking Setup</span><h2>Stop losing track of customers, jobs, photos, and invoices</h2><p>Simple tracking for small businesses that need organization without complicated software.</p></div>
-        <div class="card-grid">
-          <div class="card"><div class="card-icon">👤</div><h3>Job Tracker Template</h3><span class="price">$49-$99</span><p>Google Sheet and Drive-based tracker for customers, jobs, photos, receipts, quotes, invoices, and status.</p></div>
-          <div class="card"><div class="card-icon">⚙️</div><h3>Job Tracker Setup</h3><span class="price">$150-$300</span><p>Customized tracker setup for landscapers, snow plow, handyman, junk removal, garage side businesses, and small shops.</p></div>
-          <div class="card"><div class="card-icon">🧹</div><h3>Job Tracking Cleanup</h3><span class="price">$300-$750</span><p>Organize old photos, receipts, notes, quotes, invoices, and customer/job information into a cleaner system.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="ai-workflow">
-      <div class="container">
-        <div class="section-header"><span class="badge">04 — AI Workflow Setup</span><h2>Use AI for repeat business work without losing control</h2><p>AI drafts. The owner reviews before anything is sent or used.</p></div>
-        <div class="card-grid">
-          <div class="card"><div class="card-icon">📝</div><h3>AI Quote / Estimate Draft Setup</h3><span class="price">$75-$200</span><p>Turn photos, notes, measurements, and rough pricing into a cleaner customer-ready quote structure.</p></div>
-          <div class="card"><div class="card-icon">✉️</div><h3>AI Customer Reply Pack</h3><span class="price">$49-$150</span><p>Reusable replies for price requests, photo requests, scheduling, follow-ups, invoice reminders, and review requests.</p></div>
-          <div class="card"><div class="card-icon">📥</div><h3>AI Intake Form + Job Tracker Setup</h3><span class="price">$150-$400</span><p>Simple intake form connected to a tracker for job type, notes, budget, measurements, and photos/files.</p></div>
-          <div class="card"><div class="card-icon">🛒</div><h3>AI Product Listing Cleanup</h3><span class="price">$75-$300</span><p>Product titles, descriptions, benefits, SEO titles, meta descriptions, FAQs, image/alt-text suggestions, and categories.</p></div>
-          <div class="card"><div class="card-icon">✅</div><h3>AI SOP / Checklist Builder</h3><span class="price">$75-$250</span><p>Turn repeated work into one-page checklists for service jobs, setup work, photos, quoting, and closeout.</p></div>
-          <div class="card"><div class="card-icon">🔁</div><h3>AI Follow-Up System</h3><span class="price">$100-$300</span><p>Quote follow-ups, unpaid invoice reminders, job completed messages, review requests, and seasonal reminders.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section section-alt" id="web-app-setup">
-      <div class="container">
-        <div class="section-header"><span class="badge">05 — Web &amp; App Setup</span><h2>Simple webpages and intake systems for small businesses</h2><p>Not complex software. Simple web and job intake systems for leads, photos, quotes, and job information.</p></div>
-        <div class="card-grid">
-          <div class="card"><div class="card-icon">🌐</div><h3>One-Page Business Website</h3><span class="price">$150-$500</span><p>Mobile-friendly service page with basic local wording, services, about section, and request/contact section.</p></div>
-          <div class="card"><div class="card-icon">📩</div><h3>Landing Page + Intake Form</h3><span class="price">$250-$750</span><p>Focused page plus quote/request form, photo/file upload option, customer/job questions, and tracker connection.</p></div>
-          <div class="card"><div class="card-icon">📊</div><h3>Job Tracker Mini-App</h3><span class="price">$400-$1,500</span><p>Customer list, jobs, status, photo/file links, materials/receipts, quote/invoice tracking, and simple dashboard.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="smart-home">
-      <div class="container">
-        <div class="section-header"><span class="badge">06 — Smart Home &amp; Garage Automation</span><h2>Smart-home and garage setup that actually works together</h2><p>Practical planning, setup, and cleanup for cameras, lights, sensors, Wi-Fi devices, phone alerts, and simple routines.</p></div>
-        <div class="card-grid">
-          <div class="card"><div class="card-icon">📋</div><h3>Smart Home Setup Plan</h3><span class="price">$75-$200</span><p>Goal review, house/garage layout review, Wi-Fi/device placement notes, device categories, buying plan, and app/routine plan.</p></div>
-          <div class="card"><div class="card-icon">📹</div><h3>Camera and Alert Setup</h3><span class="price">$100-$300</span><p>Camera placement plan, notification recommendations, phone alert cleanup, storage/subscription notes, and basic viewing instructions.</p></div>
-          <div class="card"><div class="card-icon">🚗</div><h3>Garage Automation Setup</h3><span class="price">$150-$500</span><p>Smart lights, door/motion sensors, camera and alert plan, routine ideas, remote monitoring setup plan, and owner checklist.</p></div>
-          <div class="card"><div class="card-icon">🧹</div><h3>Smart Device Cleanup</h3><span class="price">$75-$250</span><p>App cleanup, room/device naming, reconnect/relabel list, duplicate routine removal, annoying alert cleanup, and owner instructions.</p></div>
-          <div class="card"><div class="card-icon">🏠</div><h3>Full Smart Home Starter System</h3><span class="price">$300-$1,000+</span><p>Planning session, device list, layout plan, app setup workflow, routine plan, alert plan, and basic owner instructions.</p></div>
-          <div class="card"><div class="card-icon">📱</div><h3>Phone Setup Add-On</h3><span class="price">$25-$75 add-on only</span><p>Phone setup only when attached to a smart-home, camera, job-tracker, or intake-form service. Not sold as general phone help.</p></div>
-        </div>
-        <div class="notice"><strong>Boundaries:</strong> RangeRivet Works does not advertise or perform electrical wiring, panel work, hardwired fixture installation, alarm/security system contracting, lock installation that creates liability, or anything requiring a licensed electrician. If wiring or licensed installation is needed, use an electrician or licensed installer. Smart-home work is advertised as design, planning, device selection, app organization, Wi-Fi/device placement planning, automation routines, basic setup help, and owner instruction checklists.</div>
-      </div>
-    </section>
-
-    <section class="section section-alt" id="process-improvement">
-      <div class="container">
-        <div class="section-header"><span class="badge">07 — Shop Process Improvement</span><h2>Find and fix waste in your shop workflow</h2><p>Premium add-on services based on CNC, automation, material handling, quoting, and shop-floor experience.</p></div>
-        <div class="card-grid">
-          <div class="card"><div class="card-icon">⚙️</div><h3>Equipment Quote Review</h3><span class="price">$100-$500</span><p>Review equipment, tool, storage, automation, compressor, lift, rack, or shop system quotes before spending money.</p></div>
-          <div class="card"><div class="card-icon">🤖</div><h3>Automation Opportunity Review</h3><span class="price">$250-$750+</span><p>Review a process and identify low-cost improvements, simple automation opportunities, and ROI questions.</p></div>
-          <div class="card"><div class="card-icon">📈</div><h3>Machine / Shop Process Monitoring</h3><span class="price">$200-$600</span><p>Define what to track, downtime categories, utilization notes, spreadsheet/log setup, and first improvement targets.</p></div>
-          <div class="card"><div class="card-icon">🔬</div><h3>CNC &amp; Fabrication Workflow Review</h3><span class="price">$300-$1,000+</span><p>Material flow, machine/workbench/tooling organization, setup/changeover ideas, fixture/jig concepts, and error-reduction suggestions.</p></div>
+          <div class="card"><div class="card-icon">🧹</div><h3>Project Cleanup Snapshot</h3><span class="price">$79 intro / $99 normal</span><p>Clean summary, missing-info list, risks, quick wins, and next steps from messy notes/photos/details.</p></div>
+          <div class="card"><div class="card-icon">📐</div><h3>Garage / Shop Layout Review</h3><span class="price">$75–$150</span><p>Use photos, dimensions, tools, vehicles, and goals to create a practical layout concept.</p></div>
+          <div class="card"><div class="card-icon">🧾</div><h3>Project Plan + Material List</h3><span class="price">$150–$300</span><p>Build order, materials, tools, missing measurements, and practical next steps.</p></div>
+          <div class="card"><div class="card-icon">📊</div><h3>Job Tracker Setup</h3><span class="price">$150–$300</span><p>Simple customer, job, quote, invoice, photo, receipt, and follow-up tracking.</p></div>
+          <div class="card"><div class="card-icon">📥</div><h3>AI Intake Form + Tracker Setup</h3><span class="price">$150–$400</span><p>Customer intake form connected to a clean tracker for leads, jobs, notes, budgets, and follow-ups.</p></div>
+          <div class="card"><div class="card-icon">✉️</div><h3>AI Customer Reply Pack</h3><span class="price">$49–$150</span><p>Reusable email/text replies for quotes, missing info, follow-ups, invoices, and customer updates.</p></div>
+          <div class="card"><div class="card-icon">📹</div><h3>Smart Garage / Camera Setup Plan</h3><span class="price">$75–$300</span><p>Camera placement, alerts, Wi-Fi/device notes, app cleanup, and owner setup checklist.</p></div>
+          <div class="card"><div class="card-icon">⚙️</div><h3>Shop Process Improvement Review</h3><span class="price">$250–$750+</span><p>Review workflow, bottlenecks, layout, material flow, simple automation ideas, and ROI questions.</p></div>
         </div>
       </div>
     </section>
 
     <section class="section" id="how-it-works">
       <div class="container">
-        <div class="section-header"><span class="badge">How It Works</span><h2>Simple process, no complicated setup</h2><p>Start with what is messy or costing time. Get a practical next step.</p></div>
+        <div class="section-header">
+          <span class="badge">How It Works</span>
+          <h2>Simple process, clean result</h2>
+          <p>No big meeting needed to start. Send what you have and get a practical path forward.</p>
+        </div>
         <div class="steps">
-          <div class="step"><h3>Pick the problem</h3><p>Garage layout, project planning, job tracking, AI workflow, webpage/intake form, smart devices, or shop process cleanup.</p></div>
-          <div class="step"><h3>Send what you have</h3><p>Photos, notes, sketches, measurements, product links, quotes, receipts, customer/job details, or device lists.</p></div>
-          <div class="step"><h3>Get a practical plan</h3><p>Layout, checklist, quote cleanup, tracking setup, web/intake structure, device plan, or shop improvement notes.</p></div>
-          <div class="step"><h3>Build from there</h3><p>Turn repeat work into templates, products, forms, app workflows, or setup checklists only after the idea proves useful.</p></div>
+          <div class="step"><h3>Send the mess</h3><p>Photos, notes, measurements, sketches, links, quotes, receipts, device lists, or rough ideas.</p></div>
+          <div class="step"><h3>Review the problem</h3><p>RangeRivet identifies what is clear, what is missing, and what needs to be decided first.</p></div>
+          <div class="step"><h3>Get the plan</h3><p>Receive a snapshot, checklist, layout concept, tracker, workflow map, quote, or setup plan.</p></div>
+          <div class="step"><h3>Move forward</h3><p>Use the next-step list to quote, build, organize, buy, schedule, or clean up the project.</p></div>
         </div>
       </div>
     </section>
 
-    <section class="section section-alt" id="request-help">
+    <section class="section section-alt" id="boundaries">
       <div class="container">
-        <div class="section-header"><span class="badge">Request Help</span><h2>Start a RangeRivet Works request</h2><p>Use the intake form to send the basics. Photos, measurements, sketches, device lists, job notes, quotes, receipts, and product links all help.</p></div>
+        <div class="section-header">
+          <span class="badge">Clear Boundaries</span>
+          <h2>Practical planning help, not licensed trade work</h2>
+          <p>RangeRivet focuses on organization, planning, workflow, and owner-ready next steps.</p>
+        </div>
+        <div class="card-grid">
+          <div class="card"><div class="card-icon">✅</div><h3>What this is</h3><p>Planning help, layout concepts, checklists, trackers, workflow drafts, quote organization, and setup recommendations.</p></div>
+          <div class="card"><div class="card-icon">⚠️</div><h3>What this is not</h3><p>Not permit-ready structural, electrical, plumbing, HVAC, engineering, legal, or financial work.</p></div>
+          <div class="card"><div class="card-icon">👀</div><h3>Owner review required</h3><p>AI-assisted work is drafted and organized, but the owner reviews before sending, buying, building, or installing.</p></div>
+        </div>
+        <div class="notice"><strong>Note:</strong> If a project requires a licensed contractor, electrician, engineer, inspector, attorney, accountant, or other professional, use the proper licensed help. RangeRivet can help organize questions, photos, notes, and next steps so that conversation is clearer.</div>
+      </div>
+    </section>
+
+    <section class="section" id="request-help">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge">Start Here</span>
+          <h2>Send the project details</h2>
+          <p>The more complete the details, the cleaner the recommendation.</p>
+        </div>
         <div class="request-box">
-          <p><strong>Use this form for any service:</strong> garage/shop planning, job tracking, AI workflow setup, web/app setup, smart home and garage automation, product picks, or shop process improvement.</p>
+          <p><strong>Use the request form for:</strong> garage/shop projects, layout help, project cleanup, material lists, job tracking, intake forms, AI workflows, smart garage/camera planning, or shop process review.</p>
           <ul class="request-list">
             <li>Your name and preferred contact method</li>
             <li>What kind of help you need</li>
-            <li>Photos, sketches, dimensions, product links, quotes, or device/app list</li>
-            <li>What outcome you want: plan, layout, form, tracker, AI workflow, smart setup, or shop/process review</li>
+            <li>Photos, sketches, measurements, product links, quotes, receipts, or device/app list</li>
+            <li>The outcome you want: snapshot, plan, layout, tracker, form, workflow, checklist, or recommendation</li>
           </ul>
           <div class="request-action">
             <a class="btn btn-primary" href="https://docs.google.com/forms/d/e/1FAIpQLSfVpB7zVAh-F59413ImSK4cECntqSNJjv58ipVZcdejp9ur-g/viewform" target="_blank" rel="noopener">Start a Request</a>
           </div>
-          <p class="small" style="margin-top:1rem; text-align:center;">After you submit the form, the next step is reviewing the details and deciding whether this is a layout, tracker, AI, web/app, smart setup, product, or process-improvement job.</p>
+          <p class="small" style="margin-top:1rem; text-align:center;">After the form is submitted, the next step is reviewing the details and deciding whether this fits a cleanup snapshot, layout review, tracker setup, AI workflow, smart setup plan, or process review.</p>
         </div>
       </div>
     </section>
 
     <section class="cta-band">
-      <h2>Best first services to test</h2>
-      <p>Start with Garage / Shop Layout Review, Landing Page + Intake Form, AI Intake Form + Job Tracker Setup, or Smart Garage / Camera Setup Plan.</p>
+      <h2>Got a messy project?</h2>
+      <p>Start with the Project Cleanup Snapshot. It is the simplest way to turn scattered details into a clear next step.</p>
       <div class="hero-buttons">
         <a href="https://docs.google.com/forms/d/e/1FAIpQLSfVpB7zVAh-F59413ImSK4cECntqSNJjv58ipVZcdejp9ur-g/viewform" class="btn btn-outline" target="_blank" rel="noopener">Start a Request</a>
-        <a href="#plans-layout" class="btn btn-outline">Layout review</a>
-        <a href="#web-app-setup" class="btn btn-outline">Web intake setup</a>
-        <a href="#ai-workflow" class="btn btn-outline">AI workflow</a>
-        <a href="#smart-home" class="btn btn-outline">Smart garage setup</a>
+        <a href="#first-offer" class="btn btn-outline">See Snapshot Offer</a>
       </div>
     </section>
   </main>
 
   <footer>
     <strong>RangeRivet Works</strong>
-    <div>Practical tools, plans, and systems for garages, shops, homes, and small businesses.</div>
-    <div style="margin-top:.9rem; color:#555;">Working brand. Verify name, domain, and contact method before final public launch.</div>
+    <div>Practical plans, trackers, workflows, and next steps for garages, shops, homes, and small businesses.</div>
+    <div style="margin-top:.9rem; color:#666;">Working brand. Verify final name, domain, and contact method before broad paid promotion.</div>
   </footer>
 </body>
 </html>
