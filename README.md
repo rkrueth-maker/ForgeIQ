@@ -1,5 +1,20 @@
-# ForgeIQ
-AI-powered garage, workshop, and ecommerce operating system.
+# RangeRivet Works
+Practical tools, plans, and systems for garages, shops, and small businesses.
+
+**Live site:** https://rkrueth-maker.github.io/ForgeIQ/
+
+## GitHub Pages Setup
+To publish the site:
+1. Go to **Settings → Pages**
+2. Under **Build and deployment**, select **Deploy from a branch**
+3. Branch: `main` — Folder: `/ (root)`
+4. Click **Save**
+
+The site will be live at: `https://rkrueth-maker.github.io/ForgeIQ/`
+
+> The `.nojekyll` file at the root disables Jekyll processing so the plain HTML/CSS page loads correctly.
+
+---
 
 ![Status](https://img.shields.io/badge/status-launch%20test%20ready-success)
 ![Tests](https://img.shields.io/badge/tests-51%20passed-success)

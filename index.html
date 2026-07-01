@@ -1,194 +1,677 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RangeRivet Works | Tools, Plans, and Systems for Shops</title>
-  <meta name="description" content="RangeRivet Works provides practical tools, plans, job tracking setup, AI workflow setup, and shop process improvement for garages, shops, contractors, and small businesses." />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RangeRivet Works — Practical tools, plans, and systems for garages, shops, and small businesses.</title>
+  <meta name="description" content="RangeRivet Works helps homeowners, garages, small shops, contractors, and side businesses organize spaces, plan projects, find useful shop products, and set up simple systems for tracking jobs, photos, quotes, receipts, invoices, workflows, and repeat business tasks." />
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --charcoal: #1f2324;
-      --dark: #111414;
-      --steel: #3c4648;
-      --rust: #b45f2a;
-      --rust-dark: #8d441d;
-      --sand: #f4eadc;
-      --cream: #fffaf2;
-      --muted: #6e6a63;
-      --line: #ded1be;
+      --black:   #111111;
+      --dark:    #1c1c1e;
+      --panel:   #242426;
+      --border:  #333336;
+      --muted:   #888;
+      --light:   #f4f2ee;
+      --cream:   #faf8f4;
+      --accent:  #c8622a;
+      --accent2: #4a7c59;
+      --text:    #1c1c1e;
+      --radius:  8px;
+      --max:     1100px;
     }
-    * { box-sizing: border-box; }
+
     html { scroll-behavior: smooth; }
-    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--sand); color: var(--charcoal); line-height: 1.6; }
-    a { color: inherit; text-decoration: none; }
-    .topbar { background: var(--dark); color: var(--cream); padding: 16px 20px; position: sticky; top: 0; z-index: 10; border-bottom: 4px solid var(--rust); }
-    .nav { max-width: 1120px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .brand { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
-    .navlinks { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.92rem; }
-    .navlinks a { opacity: 0.9; }
-    .navlinks a:hover { color: #ffcc9d; }
-    .hero { background: linear-gradient(135deg, rgba(17,20,20,0.94), rgba(40,45,45,0.91)), radial-gradient(circle at top right, rgba(180,95,42,0.4), transparent 35%); color: var(--cream); padding: 78px 20px 70px; }
-    .wrap { max-width: 1120px; margin: 0 auto; }
-    .hero-grid { display: grid; grid-template-columns: 1.4fr 0.9fr; gap: 36px; align-items: center; }
-    .eyebrow { display: inline-block; color: #ffc894; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 12px; }
-    h1 { font-size: clamp(2.25rem, 5vw, 4.6rem); line-height: 1.05; margin: 0 0 18px; }
-    .hero p { font-size: 1.15rem; color: #f1e7da; max-width: 760px; margin: 0 0 24px; }
-    .button-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
-    .btn { display: inline-block; background: var(--rust); color: white; border-radius: 8px; padding: 12px 16px; font-weight: 700; border: 2px solid var(--rust); box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
-    .btn:hover { background: var(--rust-dark); border-color: var(--rust-dark); }
-    .btn.secondary { background: transparent; border-color: #dec6aa; color: var(--cream); box-shadow: none; }
-    .hero-card { background: rgba(255,250,242,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: 18px; padding: 24px; backdrop-filter: blur(6px); }
-    .hero-card h2 { margin-top: 0; font-size: 1.3rem; }
-    .hero-card ul { margin: 0; padding-left: 20px; color: #f0e4d4; }
-    section { padding: 58px 20px; }
-    .section-title { max-width: 820px; margin-bottom: 28px; }
-    .section-title h2 { font-size: clamp(1.8rem, 3vw, 2.6rem); margin: 0 0 10px; }
-    .section-title p { color: var(--muted); margin: 0; font-size: 1.05rem; }
-    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-    .card { background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 22px; box-shadow: 0 10px 26px rgba(41,33,21,0.08); }
-    .card h3 { margin: 0 0 8px; font-size: 1.25rem; }
-    .price { display: inline-block; color: var(--rust-dark); font-weight: 800; margin-bottom: 10px; }
-    .card p { margin: 0 0 12px; color: #3c3a35; }
-    .card ul { margin: 0; padding-left: 18px; color: #4c4942; }
-    .dark-section { background: var(--charcoal); color: var(--cream); }
-    .dark-section .section-title p, .dark-section .card p, .dark-section .card ul { color: #e4d8c8; }
-    .dark-section .card { background: #2b3031; border-color: #465052; }
-    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-    .steps { display: grid; gap: 14px; }
-    .step { background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-    .step strong { color: var(--rust-dark); }
-    .contact-box { background: var(--dark); color: var(--cream); border-radius: 18px; padding: 28px; border: 4px solid var(--rust); }
-    .contact-box h2 { margin-top: 0; font-size: 2rem; }
-    .note { background: #fff2df; border: 1px solid #e4c9a8; border-left: 6px solid var(--rust); padding: 16px; border-radius: 12px; color: #3d352d; }
-    footer { background: var(--dark); color: #cfc6ba; padding: 26px 20px; font-size: 0.92rem; }
-    footer .wrap { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
-    @media (max-width: 850px) { .hero-grid, .split { grid-template-columns: 1fr; } .cards { grid-template-columns: 1fr; } .navlinks { display: none; } }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--dark);
+      color: #fff;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #fff;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: #fff; }
+    @media (max-width: 640px) { .nav-links { display: none; } }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+      counter-reset: steps;
+    }
+    .step {
+      counter-increment: steps;
+      position: relative;
+      background: #fff;
+      border: 1px solid #e2ddd5;
+      border-radius: var(--radius);
+      padding: 1.75rem 1.5rem 1.5rem;
+    }
+    .step::before {
+      content: counter(steps);
+      display: block;
+      width: 2rem;
+      height: 2rem;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .step p  { font-size: 0.875rem; color: #555; }
+
+    /* ── REQUEST HELP ── */
+    .request-form {
+      max-width: 620px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #e2ddd5;
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: #444; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      border: 1px solid #d0cbc2;
+      border-radius: 6px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--cream);
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .form-submit { width: 100%; padding: 0.8rem; font-size: 1rem; font-weight: 700; }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--dark);
+      color: #fff;
+      padding: 5rem 1.5rem 4rem;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.75rem;
+      border-radius: 4px;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 800;
+      line-height: 1.2;
+      max-width: 780px;
+      margin: 0 auto 1.25rem;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      font-size: 1.05rem;
+      color: #bbb;
+      max-width: 680px;
+      margin: 0 auto 2.25rem;
+    }
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.4rem;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      border: none;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary   { background: var(--accent);  color: #fff; }
+    .btn-secondary { background: var(--accent2); color: #fff; }
+    .btn-outline   { background: transparent; color: #fff; border: 1.5px solid #555; }
+    .btn-outline:hover { border-color: #fff; }
+
+    /* ── SECTION WRAPPER ── */
+    .section { padding: 4rem 1.5rem; }
+    .section-alt { background: var(--light); }
+    .container { max-width: var(--max); margin: 0 auto; }
+
+    /* ── SECTION HEADER ── */
+    .section-header { text-align: center; margin-bottom: 2.5rem; }
+    .section-header .badge {
+      display: inline-block;
+      background: #e8e4dc;
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      margin-bottom: 0.75rem;
+    }
+    .section-header h2 {
+      font-size: clamp(1.35rem, 3vw, 1.9rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.6rem;
+    }
+    .section-header p {
+      color: #555;
+      max-width: 600px;
+      margin: 0 auto;
+      font-size: 0.95rem;
+    }
+
+    /* ── CARD GRID ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e2ddd5;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .card-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .card p {
+      font-size: 0.875rem;
+      color: #555;
+      flex: 1;
+    }
+
+    /* ── SERVICES STRIP ── */
+    .services-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .service-tile {
+      background: var(--panel);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 1.5rem 1.25rem;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: background 0.15s;
+    }
+    .service-tile:hover { background: #2e2e30; }
+    .service-tile .tile-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .service-tile h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .service-tile p {
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid #ddd9d0;
+      margin: 0;
+    }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      background: var(--accent);
+      color: #fff;
+      text-align: center;
+      padding: 3.5rem 1.5rem;
+    }
+    .cta-band h2 {
+      font-size: clamp(1.3rem, 3vw, 1.85rem);
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .cta-band p {
+      font-size: 0.95rem;
+      opacity: 0.88;
+      max-width: 540px;
+      margin: 0 auto 1.75rem;
+    }
+    .cta-band .btn-outline { border-color: rgba(255,255,255,0.6); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--black);
+      color: #888;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    footer strong { color: #ccc; }
+    footer .footer-tagline { margin-top: 0.35rem; color: #666; }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="nav">
-      <a class="brand" href="#top">RangeRivet Works</a>
-      <nav class="navlinks" aria-label="Main navigation">
-        <a href="#products">Products</a>
-        <a href="#plans">Plans</a>
-        <a href="#tracking">Job Tracking</a>
-        <a href="#ai">AI Setup</a>
-        <a href="#process">Shop Process</a>
-        <a href="#contact">Request Help</a>
-      </nav>
-    </div>
-  </header>
 
-  <main id="top">
-    <section class="hero">
-      <div class="wrap hero-grid">
-        <div>
-          <span class="eyebrow">Garage • Shop • Contractor • Small Business</span>
-          <h1>Practical tools, plans, and systems for garages, shops, and small businesses.</h1>
-          <p>RangeRivet Works helps turn rough ideas, messy spaces, scattered job notes, photos, quotes, receipts, and workflows into practical plans and simple systems you can actually use.</p>
-          <div class="button-row">
-            <a class="btn" href="#contact">Request Help</a>
-            <a class="btn secondary" href="#plans">Plan a Project</a>
-            <a class="btn secondary" href="#tracking">Organize Jobs</a>
-            <a class="btn secondary" href="#products">Shop Products</a>
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="#"><span>Range</span>Rivet Works</a>
+  <ul class="nav-links">
+    <li><a href="#shop-products">Shop Products</a></li>
+    <li><a href="#plans-layout">Plans &amp; Layout</a></li>
+    <li><a href="#job-tracking">Job Tracking</a></li>
+    <li><a href="#ai-workflow">AI Workflow</a></li>
+    <li><a href="#process-improvement">Process Improvement</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#request-help">Request Help</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-eyebrow">RangeRivet Works</div>
+  <h1>Practical tools, plans, and systems for garages, shops, and small businesses.</h1>
+  <p>RangeRivet Works helps homeowners, garages, small shops, contractors, and side businesses organize spaces, plan projects, find useful shop products, and set up simple systems for tracking jobs, photos, quotes, receipts, invoices, workflows, and repeat business tasks.</p>
+  <div class="hero-buttons">
+    <a href="#shop-products"   class="btn btn-primary">Shop garage &amp; workshop products</a>
+    <a href="#plans-layout"    class="btn btn-secondary">Plan my garage, shop, or project</a>
+    <a href="#job-tracking"    class="btn btn-outline">Organize my jobs, photos, quotes, and invoices</a>
+    <a href="#ai-workflow"     class="btn btn-outline">Use AI to save time</a>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── SERVICES OVERVIEW ── -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">What We Do</span>
+      <h2>Five ways RangeRivet Works helps you</h2>
+      <p>From shop products to workflow systems — pick what fits your situation right now.</p>
+    </div>
+    <div class="services-strip">
+      <a href="#shop-products" class="service-tile">
+        <span class="tile-num">01</span>
+        <h3>Shop Products</h3>
+        <p>Garage, workbench, tool, and mechanic-focused products for real shop problems.</p>
+      </a>
+      <a href="#plans-layout" class="service-tile">
+        <span class="tile-num">02</span>
+        <h3>Plans &amp; Layout Help</h3>
+        <p>Garage layout reviews, project plans, material lists, and shop workflow cleanup.</p>
+      </a>
+      <a href="#job-tracking" class="service-tile">
+        <span class="tile-num">03</span>
+        <h3>Job Tracking Setup</h3>
+        <p>Organize customers, jobs, photos, receipts, quotes, invoices, and job status.</p>
+      </a>
+      <a href="#ai-workflow" class="service-tile">
+        <span class="tile-num">04</span>
+        <h3>AI Workflow Setup</h3>
+        <p>Use AI for customer replies, quote drafts, job summaries, and repeat tasks.</p>
+      </a>
+      <a href="#process-improvement" class="service-tile">
+        <span class="tile-num">05</span>
+        <h3>Shop Process Improvement</h3>
+        <p>Equipment quote review, automation, CNC/fabrication workflow, and material handling.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 1. SHOP PRODUCTS ── -->
+<section class="section section-alt" id="shop-products">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">01 — Shop Products</span>
+      <h2>Garage, shop, and workbench products that actually get used</h2>
+      <p>For garage organization, tool storage, workbench setups, mechanic gear, and small shop supplies. Products picked for real spaces, not showrooms.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <h3>Tool Storage &amp; Organization</h3>
+        <p>Wall-mounted racks, pegboard systems, tool holders, and hooks that keep tools off the floor and within reach.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🪣</div>
+        <h3>Garage &amp; Shop Storage</h3>
+        <p>Bins, shelving, cord organizers, hose management, and parts storage for DIYers, mechanics, and homeowners.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔩</div>
+        <h3>Workbench Supplies</h3>
+        <p>Bench accessories, vise mounts, lighting, and small-part organizers built for the way shops actually work.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚗</div>
+        <h3>Mechanic &amp; Vehicle Gear</h3>
+        <p>Creepers, drain pans, fluid containment, shop mats, and service tools for garage bays and side-of-driveway work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 2. PLANS & LAYOUT HELP ── -->
+<section class="section" id="plans-layout">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">02 — Plans &amp; Layout Help</span>
+      <h2>Turn a cluttered space into a shop that works</h2>
+      <p>Garage and shop layout reviews, project plans, material lists, and small shop workflow cleanup — so you stop moving things twice and start working faster.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">📐</div>
+        <h3>Garage Layout Review</h3>
+        <p>Send your dimensions and goals. Get a practical layout plan that fits your space, vehicles, and how you actually use the garage.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <h3>Project Plans &amp; Material Lists</h3>
+        <p>Workbench builds, storage walls, shelving systems, and shop additions — with a clear list of what to buy and how to build it.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏗️</div>
+        <h3>Small Shop Workflow Cleanup</h3>
+        <p>Identify the bottlenecks, wasted steps, and tool placement issues slowing down your day-to-day work.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Storage &amp; Phase Planning</h3>
+        <p>Break a big shop upgrade into affordable phases so you can improve the space over time without starting over.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 3. JOB TRACKING ── -->
+<section class="section section-alt" id="job-tracking">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">03 — Job Tracking Setup</span>
+      <h2>Stop losing track of jobs, customers, and invoices</h2>
+      <p>For small businesses that need a simple system for customers, jobs, photos, receipts, quotes, invoices, and job status — without complicated software or a monthly subscription.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">👤</div>
+        <h3>Customer &amp; Job Records</h3>
+        <p>Keep a clean record of every customer, what work was done, what was charged, and what's still open.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📸</div>
+        <h3>Photo &amp; Receipt Tracking</h3>
+        <p>Attach photos and receipts to the right job so you can find them when you need them — at billing time or in a dispute.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💵</div>
+        <h3>Quotes &amp; Invoices</h3>
+        <p>Build and send simple quotes and invoices without building them from scratch every time.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Job Status &amp; Follow-Up</h3>
+        <p>See what's pending, in progress, waiting on parts, or needs a follow-up call — all in one place.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 4. AI WORKFLOW ── -->
+<section class="section" id="ai-workflow">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">04 — AI Workflow Setup</span>
+      <h2>Use AI to handle the repeat work that eats your time</h2>
+      <p>For small businesses that want to use AI for customer replies, quote drafts, job summaries, product descriptions, follow-up messages, and email cleanup — without becoming a tech person to do it.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">✉️</div>
+        <h3>Customer Reply Templates</h3>
+        <p>Set up AI-assisted replies for your most common customer questions, requests, and follow-ups.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📝</div>
+        <h3>Quote &amp; Job Summary Drafts</h3>
+        <p>Turn job notes into a clean quote or summary without rewriting the same thing for every job.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🛒</div>
+        <h3>Product Descriptions</h3>
+        <p>Write clear, consistent product or service descriptions that don't sound like they were pulled off a supplier sheet.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔁</div>
+        <h3>Repeat Task Automation</h3>
+        <p>Identify the tasks you do the same way every week and build a simple AI-assisted workflow to handle them faster.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── 5. PROCESS IMPROVEMENT ── -->
+<section class="section section-alt" id="process-improvement">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">05 — Shop Process Improvement</span>
+      <h2>Find the waste in your shop workflow and cut it out</h2>
+      <p>For equipment quote review, automation opportunity review, CNC and fabrication workflow review, machine and process monitoring, and material handling improvement.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">⚙️</div>
+        <h3>Equipment Quote Review</h3>
+        <p>Review equipment quotes against real-world use cases — not just spec sheets — so you buy the right machine for the work you're actually doing.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🤖</div>
+        <h3>Automation Opportunity Review</h3>
+        <p>Identify which manual steps in your shop are good candidates for simple automation without major capital investment.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔬</div>
+        <h3>CNC &amp; Fabrication Workflow Review</h3>
+        <p>Look at how jobs flow from design to cut to finish and find the steps that slow throughput or create rework.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <h3>Material Handling Improvement</h3>
+        <p>Reduce how many times material gets touched, moved, or staged before it becomes finished work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── HOW IT WORKS ── -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">How It Works</span>
+      <h2>Simple process, no complicated setup</h2>
+      <p>Tell us what you need. We point you to the right product, plan, or system — and help you put it in place.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>Pick your situation</h3>
+        <p>Are you organizing a garage, planning a shop build, tracking jobs, automating repeat tasks, or reviewing a process? Start with whichever fits.</p>
+      </div>
+      <div class="step">
+        <h3>Tell us what you're working with</h3>
+        <p>Space size, current setup, what's not working, tools you already have — the more context you give, the more useful the output.</p>
+      </div>
+      <div class="step">
+        <h3>Get a practical plan or product recommendation</h3>
+        <p>No generic advice. You get a layout, a material list, a workflow outline, or a specific product recommendation based on your actual situation.</p>
+      </div>
+      <div class="step">
+        <h3>Put it in place</h3>
+        <p>Use the plan, buy the product, or set up the system. If something doesn't fit, we adjust — no long contracts or complicated onboarding.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── REQUEST HELP ── -->
+<section class="section section-alt" id="request-help">
+  <div class="container">
+    <div class="section-header">
+      <span class="badge">Request Help</span>
+      <h2>Tell us what you're working on</h2>
+      <p>Fill out the form and we'll follow up with the right next step — product, plan, or system.</p>
+    </div>
+    <div class="request-form">
+      <form action="mailto:hello@rangerivetworks.com" method="get" enctype="text/plain">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="req-name">Your name</label>
+            <input type="text" id="req-name" name="name" placeholder="First and last name" required />
+          </div>
+          <div class="form-group">
+            <label for="req-email">Email address</label>
+            <input type="email" id="req-email" name="email" placeholder="you@example.com" required />
           </div>
         </div>
-        <aside class="hero-card">
-          <h2>What can you send?</h2>
-          <ul>
-            <li>Photos of a garage, shop, job, or process</li>
-            <li>Measurements, sketches, or rough ideas</li>
-            <li>Quotes, materials, receipts, or product links</li>
-            <li>Customer/job notes that need organizing</li>
-            <li>Repeat tasks you want AI to help draft</li>
-          </ul>
-        </aside>
-      </div>
-    </section>
-
-    <section id="products">
-      <div class="wrap">
-        <div class="section-title">
-          <h2>Shop Products</h2>
-          <p>Garage, shop, storage, workbench, tool, and mechanic-focused products. The product store can support the same problems the planning services solve.</p>
+        <div class="form-group">
+          <label for="req-topic">What do you need help with?</label>
+          <select id="req-topic" name="topic" required>
+            <option value="" disabled selected>Select a topic...</option>
+            <option value="shop-products">Shop Products — garage, workbench, or tool storage</option>
+            <option value="plans-layout">Plans &amp; Layout Help — garage or shop layout, project plan</option>
+            <option value="job-tracking">Job Tracking Setup — customers, quotes, invoices, job status</option>
+            <option value="ai-workflow">AI Workflow Setup — customer replies, quote drafts, repeat tasks</option>
+            <option value="process-improvement">Shop Process Improvement — equipment, CNC, fabrication, material handling</option>
+            <option value="not-sure">Not sure — describe below</option>
+          </select>
         </div>
-        <div class="cards">
-          <article class="card"><h3>Garage & Shop Products</h3><p>Tool storage, organizers, workbench accessories, shop supplies, and practical product picks for working spaces.</p></article>
-          <article class="card"><h3>Digital Templates</h3><p>Future templates for job tracking, quote cleanup, project planning, equipment review, and AI prompt workflows.</p></article>
-          <article class="card"><h3>Product Store Status</h3><p>ForgeIQ can remain the backend store asset for now while RangeRivet Works is tested as the public umbrella brand.</p></article>
+        <div class="form-group">
+          <label for="req-details">Details</label>
+          <textarea id="req-details" name="details" placeholder="Describe your space, situation, or what's not working. The more detail the better."></textarea>
         </div>
-      </div>
-    </section>
+        <button type="submit" class="btn btn-primary form-submit">Send request</button>
+      </form>
+    </div>
+  </div>
+</section>
 
-    <section id="plans" class="dark-section">
-      <div class="wrap">
-        <div class="section-title"><h2>Plans & Layout Help</h2><p>Photo-based planning for garages, home shops, small shops, and small projects.</p></div>
-        <div class="cards">
-          <article class="card"><h3>Garage / Shop Layout Review</h3><span class="price">$75-$150</span><p>For garage owners, mechanics, hobby shops, and small work areas that need better layout and flow.</p><ul><li>Photo/sketch review</li><li>Tool and equipment placement</li><li>Storage, workbench, safety, and access notes</li></ul></article>
-          <article class="card"><h3>Project Plan + Material List</h3><span class="price">$150-$300</span><p>For shelves, workbenches, garage upgrades, sheds, storage, or small builds.</p><ul><li>Build order</li><li>Material and tool list</li><li>Cost-saving and sequence notes</li></ul></article>
-          <article class="card"><h3>Small Shop Workflow Cleanup</h3><span class="price">$250-$500</span><p>For small shops, repair areas, CNC/home shops, resellers, and garage businesses.</p><ul><li>Bottleneck list</li><li>Quoting and workflow suggestions</li><li>Before-you-spend-money improvement plan</li></ul></article>
-        </div>
-      </div>
-    </section>
+<hr class="divider" />
 
-    <section id="tracking">
-      <div class="wrap">
-        <div class="section-title"><h2>Job Tracking Setup</h2><p>Simple organization for small businesses that need customers, jobs, photos, materials, receipts, quotes, invoices, and status tracking without complicated software.</p></div>
-        <div class="cards">
-          <article class="card"><h3>Job Tracker Template</h3><span class="price">$49-$99</span><p>A Google Sheet and Drive-based tracker for basic job organization.</p></article>
-          <article class="card"><h3>Job Tracker Setup</h3><span class="price">$150-$300</span><p>Customized setup for landscapers, snow plow operators, handyman services, junk removal, garage side businesses, and small contractors.</p></article>
-          <article class="card"><h3>Job Tracking Cleanup</h3><span class="price">$300-$750</span><p>Organize messy job information from texts, photos, notebooks, receipts, emails, quotes, and invoices.</p></article>
-        </div>
-      </div>
-    </section>
+<!-- ── CTA BAND ── -->
+<section class="cta-band">
+  <h2>Not sure where to start?</h2>
+  <p>Tell us what you're working on — garage, shop, side business, or all three — and we'll point you to the right section.</p>
+  <div class="hero-buttons">
+    <a href="#shop-products" class="btn btn-outline">Browse shop products</a>
+    <a href="#plans-layout"  class="btn btn-outline">Get a layout or project plan</a>
+    <a href="#job-tracking"  class="btn btn-outline">Set up job tracking</a>
+    <a href="#ai-workflow"   class="btn btn-outline">Set up an AI workflow</a>
+  </div>
+</section>
 
-    <section id="ai" class="dark-section">
-      <div class="wrap split">
-        <div class="section-title"><h2>AI Workflow Setup</h2><p>Simple AI help for real business tasks. Not advanced AI consulting. The goal is to save time on repeat work while the owner still reviews anything important.</p></div>
-        <div class="card"><h3>AI drafts. Owner reviews.</h3><span class="price">$150-$500</span><ul><li>Customer reply templates</li><li>Quote and invoice wording</li><li>Job summary prompts</li><li>Product description prompts</li><li>Email/message cleanup workflow</li><li>Simple AI use rules</li></ul></div>
-      </div>
-    </section>
+<!-- ── FOOTER ── -->
+<footer>
+  <strong>RangeRivet Works</strong>
+  <div class="footer-tagline">Practical tools, plans, and systems for garages, shops, and small businesses.</div>
+  <div style="margin-top:1rem; color:#444; font-size:0.8rem;">&copy; 2026 RangeRivet Works. All rights reserved.</div>
+</footer>
 
-    <section id="process">
-      <div class="wrap">
-        <div class="section-title"><h2>Shop Process Improvement</h2><p>Premium add-on services for small shops, CNC/home shops, repair/fabrication businesses, and people considering equipment or automation purchases.</p></div>
-        <div class="cards">
-          <article class="card"><h3>Equipment Quote Review</h3><span class="price">$100-$500</span><p>Review machine, tool, storage, automation, lift, rack, or shop equipment quotes before spending money.</p></article>
-          <article class="card"><h3>Automation Opportunity Review</h3><span class="price">$250-$750+</span><p>Review a process and identify low-cost improvements, automation opportunities, and ROI questions.</p></article>
-          <article class="card"><h3>CNC & Fabrication Workflow Review</h3><span class="price">$300-$1,000+</span><p>Material flow, setup/changeover, tooling organization, fixture/jig concepts, and error-reduction suggestions.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="wrap split">
-        <div class="section-title"><h2>How It Works</h2><p>Start simple. Send what you have. Get a cleaner next step before spending money or building the wrong system.</p></div>
-        <div class="steps">
-          <div class="step"><strong>1. Send photos, notes, or details.</strong><br />Garage layout, job mess, equipment quote, AI task, or shop process problem.</div>
-          <div class="step"><strong>2. Pick the right starting point.</strong><br />Layout review, project plan, job tracker setup, AI workflow setup, or shop process review.</div>
-          <div class="step"><strong>3. Get a practical plan.</strong><br />Written steps, cleanup suggestions, tracking structure, quote review, or prompt templates.</div>
-          <div class="step"><strong>4. Improve from there.</strong><br />Turn repeat work into templates, checklists, products, or a future app workflow.</div>
-        </div>
-      </div>
-    </section>
-
-    <section id="contact">
-      <div class="wrap">
-        <div class="contact-box">
-          <h2>Request Help</h2>
-          <p>For now, use this page as the working public landing page. The request form/email will be connected after the final name and contact email are verified.</p>
-          <p><strong>Best first message:</strong> Send photos, measurements, sketches, job notes, quotes, receipts, or a short explanation of what is messy or costing time.</p>
-          <p><strong>Temporary note:</strong> Add final RangeRivet Works email here before public sharing.</p>
-        </div>
-        <br />
-        <div class="note"><strong>Working-name warning:</strong> RangeRivet Works is the working brand. Do not file the LLC, buy the domain, or permanently rebrand Shopify until Minnesota SOS, USPTO, domain, Google, and social handle checks are complete.</div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="wrap"><span>RangeRivet Works — Practical tools, plans, and systems.</span><span>Garage • Shop • Contractor • Small Business</span></div>
-  </footer>
 </body>
 </html>

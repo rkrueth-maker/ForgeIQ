@@ -4,7 +4,7 @@ from shopify.client import client
 
 COLLECTIONS = {
     "Garage Organization": {
-        "description": "Build a cleaner, more useful garage with practical organization products made for tools, cords, hoses, parts, and everyday shop gear. ForgeIQ Supply focuses on garage storage solutions that help DIYers, mechanics, and homeowners get items off the floor, improve workflow, and make small spaces easier to use. From pegboard systems and wall-mounted tool holders to hooks, bins, and specialty organizers, this collection is built for real garage problems.",
+        "description": "Build a cleaner, more useful garage with practical organization products made for tools, cords, hoses, parts, and everyday shop gear. RangeRivet Works focuses on garage storage solutions that help DIYers, mechanics, and homeowners get items off the floor, improve workflow, and make small spaces easier to use. From pegboard systems and wall-mounted tool holders to hooks, bins, and specialty organizers, this collection is built for real garage problems.",
         "products": [
             "SnapGrip EcoStraps",
             "Garage Storage Hook Straps",
