@@ -1,8 +1,6 @@
-# NEW NAME Launch Assets
+# RangeRivet Works Launch Assets
 
-Status: **Draft only** until the final business name is verified.
-
-Do not change the live website, form title, tracker title, or email wording until the final name is approved.
+Status: **Working launch copy for RangeRivet Works**.
 
 ## Current working system
 
@@ -14,9 +12,12 @@ https://docs.google.com/forms/d/e/1FAIpQLSfVpB7zVAh-F59413ImSK4cECntqSNJjv58ipVZ
 Clean tracker:
 https://docs.google.com/spreadsheets/d/1jPbUbZKzxtjkS2aow_vsXsOsh_R-bolfHt1OUT8xD3M/edit
 
+Master control spreadsheet:
+https://docs.google.com/spreadsheets/d/1oE1QU2WG8J2rByW-DUeuw4Z2t160czRY-46sf9exUTA/edit
+
 ## Public positioning
 
-[NEW NAME] helps turn messy garage, shop, home, and small business projects into practical plans, trackers, quotes, workflows, and next steps.
+RangeRivet Works helps turn messy garage, shop, home, and small business projects into practical plans, trackers, quotes, workflows, and next steps.
 
 Core promise:
 
@@ -26,7 +27,7 @@ Core promise:
 
 ### Soft launch
 
-I’m getting ready to launch **[NEW NAME]**.
+I’m getting ready to launch **RangeRivet Works**.
 
 The idea is simple: practical help for garages, shops, homes, and small businesses that need things organized, planned, quoted, tracked, or automated.
 
@@ -44,13 +45,13 @@ They fail because the details are scattered.
 
 Photos in one place. Measurements somewhere else. Prices not tracked. No clear next step. No simple way to quote it. No system to follow up.
 
-That is what **[NEW NAME]** is being built to help with.
+That is what **RangeRivet Works** is being built to help with.
 
 Practical plans. Simple trackers. Clear next actions. Less confusion.
 
 ### Official launch
 
-**[NEW NAME]** is now open for request submissions.
+**RangeRivet Works** is now open for request submissions.
 
 I help turn messy project details into practical next steps for garages, shops, homes, and small businesses.
 
@@ -67,13 +68,13 @@ Services include:
 
 Submit the basic details here:
 
-**[FORM LINK]**
+https://docs.google.com/forms/d/e/1FAIpQLSfVpB7zVAh-F59413ImSK4cECntqSNJjv58ipVZcdejp9ur-g/viewform
 
 Photos, measurements, notes, product links, and rough ideas are welcome.
 
 ## Direct message draft
 
-Hey, I’m getting ready to launch **[NEW NAME]**.
+Hey, I’m getting ready to launch **RangeRivet Works**.
 
 It is practical help for garage/shop projects, small business systems, quote tracking, layouts, AI workflows, and organizing messy project details.
 
@@ -81,7 +82,7 @@ I’m keeping it simple while I get started. Photos, measurements, notes, produc
 
 Here is the request form:
 
-**[FORM LINK]**
+https://docs.google.com/forms/d/e/1FAIpQLSfVpB7zVAh-F59413ImSK4cECntqSNJjv58ipVZcdejp9ur-g/viewform
 
 ## Best first paid offer
 
@@ -144,9 +145,9 @@ Use safe wording:
 - intake setup
 - next-step checklist
 
-## Tomorrow name verification checklist
+## Remaining verification checklist
 
-Before public launch:
+Before heavy public branding spend:
 
 - Search Minnesota business names.
 - Search federal trademarks.
@@ -154,5 +155,3 @@ Before public launch:
 - Check social handles.
 - Say the name out loud.
 - Make sure it fits garage/shop/home/small business work.
-- Replace all [NEW NAME] placeholders only after approval.
-
