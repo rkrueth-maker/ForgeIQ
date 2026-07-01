@@ -7,9 +7,7 @@
   <meta name="description" content="RangeRivet Works helps homeowners, garage owners, small shops, contractors, side businesses, and small business owners turn messy spaces, scattered job details, confusing tech, repeated paperwork, and disconnected devices into practical plans and simple systems that actually work." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --black:#111; --dark:#1c1c1e; --panel:#242426; --muted:#666; --light:#f4f2ee; --cream:#faf8f4; --accent:#c8622a; --green:#4a7c59; --text:#1c1c1e; --line:#e2ddd5; --radius:10px; --max:1120px;
-    }
+    :root { --black:#111; --dark:#1c1c1e; --panel:#242426; --muted:#666; --light:#f4f2ee; --cream:#faf8f4; --accent:#c8622a; --green:#4a7c59; --text:#1c1c1e; --line:#e2ddd5; --radius:10px; --max:1120px; }
     html { scroll-behavior: smooth; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:var(--cream); color:var(--text); line-height:1.6; }
     a { color: inherit; }
@@ -56,9 +54,10 @@
     .step h3 { font-size:1rem; margin-bottom:.35rem; }
     .step p { font-size:.9rem; color:#555; }
     .notice { background:#fff7ec; border-left:5px solid var(--accent); padding:1rem; border-radius:var(--radius); color:#4a4038; font-size:.9rem; margin-top:1.4rem; }
-    .request-box { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:1.6rem; max-width:760px; margin:0 auto; }
+    .request-box { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:1.6rem; max-width:760px; margin:0 auto; text-align:left; }
     .request-box p { color:#555; margin-bottom:1rem; }
-    .request-list { padding-left:1.2rem; color:#555; }
+    .request-list { padding-left:1.2rem; color:#555; margin-bottom:1.25rem; }
+    .request-action { text-align:center; margin-top:1.35rem; }
     .cta-band { background:var(--accent); color:#fff; text-align:center; padding:3.5rem 1.5rem; }
     .cta-band h2 { font-size:clamp(1.4rem,3vw,2rem); margin-bottom:.7rem; }
     .cta-band p { max-width:620px; margin:0 auto 1.4rem; opacity:.92; }
@@ -93,6 +92,7 @@
         <a href="#ai-workflow" class="btn btn-outline">Set up AI workflows</a>
         <a href="#web-app-setup" class="btn btn-outline">Build a webpage or intake form</a>
         <a href="#smart-home" class="btn btn-outline">Set up smart garage/home devices</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScY9E1ssLgWeCvGKqlqHrghEAd0_UGKZDgsnXHjgCnqkwHFSg/viewform?usp=publish-editor" class="btn btn-primary" target="_blank" rel="noopener">Start a Request</a>
       </div>
     </section>
 
@@ -214,16 +214,19 @@
 
     <section class="section section-alt" id="request-help">
       <div class="container">
-        <div class="section-header"><span class="badge">Request Help</span><h2>Tell us what you are working on</h2><p>The final email or intake form still needs to be connected before public sharing. For now, this section shows what the request form should collect.</p></div>
+        <div class="section-header"><span class="badge">Request Help</span><h2>Start a RangeRivet Works request</h2><p>Use the intake form to send the basics. Photos, measurements, sketches, device lists, job notes, quotes, receipts, and product links all help.</p></div>
         <div class="request-box">
-          <p><strong>Best first message:</strong> Send photos, measurements, sketches, device lists, job notes, quotes, receipts, or a short explanation of what is messy, confusing, or costing time.</p>
+          <p><strong>Use this form for any service:</strong> garage/shop planning, job tracking, AI workflow setup, web/app setup, smart home and garage automation, product picks, or shop process improvement.</p>
           <ul class="request-list">
             <li>Your name and preferred contact method</li>
             <li>What kind of help you need</li>
             <li>Photos, sketches, dimensions, product links, quotes, or device/app list</li>
             <li>What outcome you want: plan, layout, form, tracker, AI workflow, smart setup, or shop/process review</li>
           </ul>
-          <p class="small" style="margin-top:1rem;">Connect this section to a final email, Google Form, Tally, Fillout, or Jotform before public launch.</p>
+          <div class="request-action">
+            <a class="btn btn-primary" href="https://docs.google.com/forms/d/e/1FAIpQLScY9E1ssLgWeCvGKqlqHrghEAd0_UGKZDgsnXHjgCnqkwHFSg/viewform?usp=publish-editor" target="_blank" rel="noopener">Start a Request</a>
+          </div>
+          <p class="small" style="margin-top:1rem; text-align:center;">After you submit the form, the next step is reviewing the details and deciding whether this is a layout, tracker, AI, web/app, smart setup, product, or process-improvement job.</p>
         </div>
       </div>
     </section>
@@ -232,6 +235,7 @@
       <h2>Best first services to test</h2>
       <p>Start with Garage / Shop Layout Review, Landing Page + Intake Form, AI Intake Form + Job Tracker Setup, or Smart Garage / Camera Setup Plan.</p>
       <div class="hero-buttons">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScY9E1ssLgWeCvGKqlqHrghEAd0_UGKZDgsnXHjgCnqkwHFSg/viewform?usp=publish-editor" class="btn btn-outline" target="_blank" rel="noopener">Start a Request</a>
         <a href="#plans-layout" class="btn btn-outline">Layout review</a>
         <a href="#web-app-setup" class="btn btn-outline">Web intake setup</a>
         <a href="#ai-workflow" class="btn btn-outline">AI workflow</a>
