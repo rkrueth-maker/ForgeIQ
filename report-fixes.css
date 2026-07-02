@@ -170,6 +170,39 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.desk-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.desk-card {
+  color: inherit;
+  min-height: 250px;
+  overflow: hidden;
+  position: relative;
+  text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.desk-card::after {
+  background: linear-gradient(90deg, rgba(200, 95, 40, .78), rgba(85, 120, 95, .22));
+  bottom: 0;
+  content: "";
+  height: 5px;
+  left: 0;
+  position: absolute;
+  right: 0;
+}
+
+.desk-card:hover {
+  border-color: rgba(200, 95, 40, .62);
+  box-shadow: 0 18px 44px rgba(34, 27, 20, .12);
+  transform: translateY(-4px);
+}
+
+.desk-card h3 {
+  color: #171717;
+}
+
 .case-card small,
 .static-group small {
   color: var(--accent-dark);
@@ -202,6 +235,12 @@
   opacity: .75;
 }
 
+@media (max-width: 1180px) {
+  .desk-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 900px) {
   .custom-work-panel,
   .case-grid,
@@ -229,7 +268,8 @@
     justify-content: flex-start;
   }
 
-  .quick-jump a {
+  .quick-jump a,
+  .desk-card {
     width: 100%;
   }
 
