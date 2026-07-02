@@ -20,12 +20,24 @@
 .hero-positioning strong {
   color: #171717;
   flex: 0 0 auto;
+  font-size: 0;
   font-weight: 950;
+}
+
+.hero-positioning strong::before {
+  content: "Organized first.";
+  font-size: 1rem;
 }
 
 .hero-positioning span {
   color: var(--muted);
+  font-size: 0;
   line-height: 1.4;
+}
+
+.hero-positioning span::before {
+  content: "ForgeIQ cleans up the mess first. Then you choose the level: document, spreadsheet, form, dashboard, simple system, or app later if it actually makes sense.";
+  font-size: .96rem;
 }
 
 .start-grid,
