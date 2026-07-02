@@ -14,7 +14,7 @@ if (typeof products !== "undefined") {
       summary: "A customer request form connected to a simple lead and job tracking sheet."
     },
     "customer-job-system-cleanup": {
-      title: "Customer & Job Cleanup",
+      title: "Customer & Job Tracker",
       summary: "A cleanup of an existing customer list, job sheet, file pile, or work tracker."
     },
     "quote-estimate-sheet": {
@@ -76,6 +76,22 @@ const deeperProducts = [
     scale: "Customer Follow-Up Tracker, Contractor Job Tracker, or Local Service Operating System."
   },
   {
+    cat: "Business",
+    tag: "Invoices + payments",
+    title: "Invoice & Payment Setup Pack",
+    id: "invoice-payment-setup-pack",
+    price: "$99-$299",
+    summary: "Invoice wording, payment instructions, reminder timing, and a simple paid/unpaid tracking flow.",
+    best: "Owners who quote work but still send inconsistent invoices, payment notes, or reminders.",
+    problem: "The owner can quote the job, but invoicing, payment instructions, deposits, reminders, and paid/unpaid status are not organized.",
+    sends: "Current invoice examples, payment methods, deposit rules, reminder wording, payment terms, quote examples, and customer questions.",
+    builds: ["Invoice template wording", "Payment instruction block", "Deposit/final payment rules", "Reminder message pack", "Paid/unpaid tracker fields"],
+    steps: [["Review", "Look at the current quote-to-payment flow."], ["Write", "Create clear invoice and payment wording."], ["Track", "Add paid, unpaid, deposit, and reminder statuses."], ["Deliver", "Send the setup pack ready to copy into the chosen tool."]],
+    out: [["Item", "Rule", "Message", "Next"], ["Deposit", "Before scheduling", "Deposit request", "Mark paid"], ["Final", "After job", "Invoice sent", "Set reminder"], ["Late", "After due date", "Friendly reminder", "Follow up"]],
+    done: "The owner has a cleaner quote-to-invoice-to-payment routine without needing full accounting software setup.",
+    scale: "Quote Sheet Builder, Contractor Job Tracker, or Local Service Operating System."
+  },
+  {
     cat: "Systems",
     tag: "Price book",
     title: "Price Book Starter",
@@ -125,6 +141,22 @@ const deeperProducts = [
   },
   {
     cat: "Systems",
+    tag: "Customer history",
+    title: "Simple CRM / Customer History Setup",
+    id: "simple-crm-customer-history-setup",
+    price: "$149-$399",
+    summary: "A simple customer-history structure for contacts, jobs, equipment, notes, files, and follow-ups.",
+    best: "Owners who remember customers by text thread, notebook, memory, or scattered old jobs.",
+    problem: "Customer information exists, but past jobs, notes, files, equipment, quotes, and follow-ups are not connected in one usable view.",
+    sends: "Customer list, job notes, old trackers, service history, equipment/property notes, file links, statuses, and follow-up needs.",
+    builds: ["Customer record fields", "Job history layout", "Tag/status rules", "File/photo links", "Follow-up and review fields"],
+    steps: [["Collect", "Gather customer and job-history details."], ["Structure", "Choose fields that matter for repeat work."], ["Link", "Connect jobs, files, notes, and follow-ups."], ["Use", "Deliver a simple weekly customer-history view."]],
+    out: [["Customer", "History", "Files", "Next"], ["Demo A", "2 jobs", "Photos linked", "Review ask"], ["Demo B", "Quote open", "Estimate linked", "Follow up"], ["Demo C", "Equipment note", "Receipt linked", "Service reminder"]],
+    done: "The owner can look up a customer and see the useful history without digging through messages and memory.",
+    scale: "Contractor Job Tracker, Customer Portal Prep, or Local Service Operating System."
+  },
+  {
+    cat: "Systems",
     tag: "Portal prep",
     title: "Customer Portal Prep",
     id: "customer-portal-prep",
@@ -154,6 +186,22 @@ const deeperProducts = [
     out: [["Step", "Check", "Who", "Done?"], ["Before job", "Photos/dims", "Owner", "□"], ["During job", "Materials verified", "Worker", "□"], ["After job", "Photos/review", "Owner", "□"]],
     done: "Repeat work has a simple checklist that can be followed, shared, printed, or improved.",
     scale: "Shop Bottleneck Review, Simple Internal Tool, or Local Service Operating System."
+  },
+  {
+    cat: "Operating System",
+    tag: "Recurring plans",
+    title: "Recurring Service Plan Setup",
+    id: "recurring-service-plan-setup",
+    price: "$199-$499",
+    summary: "A simple recurring-service offer with plan levels, renewal timing, reminders, and customer wording.",
+    best: "Service businesses that want repeat work, seasonal check-ins, maintenance plans, inspection plans, or scheduled cleanups.",
+    problem: "The owner wants recurring work, but the plan, price, schedule, renewal language, and reminder process are not clear enough to sell.",
+    sends: "Repeat service ideas, service intervals, price ideas, customer examples, current reminders, seasonal notes, and what is included/excluded.",
+    builds: ["Plan menu", "Included/excluded scope", "Recurring price logic", "Reminder and renewal schedule", "Customer-facing plan wording"],
+    steps: [["Define", "Choose which work should repeat."], ["Package", "Build simple plan levels and scope boundaries."], ["Schedule", "Set reminders, renewal timing, and follow-up rhythm."], ["Deliver", "Send the plan setup and customer wording."]],
+    out: [["Plan", "Includes", "Interval", "Next"], ["Basic", "Inspection", "Quarterly", "Reminder"], ["Standard", "Service + report", "Monthly", "Schedule"], ["Seasonal", "Startup/shutdown", "Spring/Fall", "Renew"]],
+    done: "The owner has a sellable recurring-service setup before buying service-agreement software.",
+    scale: "Monthly System Tune-Up, Invoice & Payment Setup Pack, or Local Service Operating System."
   },
   {
     cat: "Operating System",
