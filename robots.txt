@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rkrueth-maker.github.io/ForgeIQ/sitemap.xml
