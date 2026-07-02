@@ -1,3 +1,47 @@
+if (typeof products !== "undefined") {
+  const productNamePolish = {
+    "business-cleanup-snapshot": {
+      title: "Business Mess Cleanup Snapshot",
+      summary: "A cleaned-up first offer and action path for a scattered business idea.",
+      scale: "Service Menu Builder, One-Page Service Website, or Local Business Launch Kit."
+    },
+    "photo-file-receipt-cleanup": {
+      title: "Job File Cleanup",
+      summary: "A clean index for job photos, receipts, files, notes, and proof."
+    },
+    "google-form-tracker": {
+      title: "Request Form + Lead Tracker",
+      summary: "A customer request form connected to a simple lead and job tracking sheet."
+    },
+    "customer-job-system-cleanup": {
+      title: "Customer & Job Cleanup",
+      summary: "A cleanup of an existing customer list, job sheet, file pile, or work tracker."
+    },
+    "quote-estimate-sheet": {
+      title: "Quote Sheet Builder",
+      summary: "A reusable quote sheet for consistent pricing."
+    },
+    "simple-app-internal-tool": {
+      title: "Simple Internal Tool",
+      summary: "A simple dashboard-style tool for a repeating internal workflow."
+    },
+    "shop-process-improvement-review": {
+      title: "Shop Bottleneck Review",
+      summary: "A practical review of bottlenecks in quoting, files, materials, workflow, and follow-up."
+    },
+    "local-service-os": {
+      title: "Local Service Operating System",
+      summary: "A connected owner dashboard for page, form, tracker, quote sheet, files, reviews, and follow-up."
+    }
+  };
+
+  products.forEach(product => {
+    if (productNamePolish[product.id]) {
+      Object.assign(product, productNamePolish[product.id]);
+    }
+  });
+}
+
 const deeperProducts = [
   {
     cat: "Business",
@@ -13,7 +57,7 @@ const deeperProducts = [
     steps: [["Map", "Pick when reviews should be requested."], ["Write", "Create short review request and reply templates."], ["Track", "Add review status and follow-up fields."], ["Use", "Deliver copy/paste wording and a review routine."]],
     out: [["Situation", "Message", "Timing", "Next"], ["Job complete", "Thanks + review link", "Same day", "Send"], ["No response", "Soft reminder", "3 days", "Follow up"], ["Review posted", "Reply template", "Same week", "Respond"]],
     done: "The owner knows when to ask, what to send, and how to respond without rewriting messages every time.",
-    scale: "Customer Follow-Up Tracker, Google Business Profile Setup Pack, or Local Service Business OS."
+    scale: "Customer Follow-Up Tracker, Google Business Profile Setup Pack, or Local Service Operating System."
   },
   {
     cat: "Business",
@@ -29,7 +73,7 @@ const deeperProducts = [
     steps: [["Collect", "Gather old leads into one list."], ["Sort", "Mark hot, warm, cold, closed, and unknown leads."], ["Write", "Create recovery messages by situation."], ["Follow up", "Deliver a simple recovery tracker."]],
     out: [["Lead", "Age", "Status", "Next"], ["Deck repair", "12 days", "Warm", "Send check-in"], ["Garage quote", "45 days", "Cold", "One final follow-up"], ["Camera job", "3 days", "Hot", "Request photos"]],
     done: "Old leads become a clear follow-up list instead of a pile of forgotten messages.",
-    scale: "Customer Follow-Up Tracker, Contractor Job Tracker, or Local Service Business OS."
+    scale: "Customer Follow-Up Tracker, Contractor Job Tracker, or Local Service Operating System."
   },
   {
     cat: "Systems",
@@ -45,7 +89,7 @@ const deeperProducts = [
     steps: [["List", "Capture repeat services and common add-ons."], ["Price", "Group labor, material, markup, and minimums."], ["Standardize", "Create repeatable price rules."], ["Deliver", "Build the starter price book and quote inputs."]],
     out: [["Service", "Base", "Add-ons", "Notes"], ["Camera install", "$___", "Extra camera", "Verify Wi-Fi"], ["Garage layout", "$___", "Material list", "Needs dimensions"], ["Trip/setup", "$___", "Distance", "Set minimum"]],
     done: "The owner has a starter pricing structure they can reuse and improve instead of guessing every time.",
-    scale: "Quote & Estimate Sheet, Job Profit Snapshot, or Local Service Business OS."
+    scale: "Quote Sheet Builder, Job Profit Snapshot, or Local Service Operating System."
   },
   {
     cat: "Systems",
@@ -61,7 +105,7 @@ const deeperProducts = [
     steps: [["Collect", "Gather job price, cost, and time information."], ["Compare", "Separate revenue from actual cost."], ["Flag", "Find low-profit jobs and repeat issues."], ["Improve", "Recommend price book or quoting changes."]],
     out: [["Job", "Revenue", "Cost issue", "Lesson"], ["Garage job", "$850", "Extra trip", "Add trip rule"], ["Install", "$420", "Labor high", "Raise base"], ["Repair", "$180", "Good margin", "Keep"]],
     done: "The owner can see which work is worth repeating and what pricing needs to change.",
-    scale: "Price Book Starter, Quote & Estimate Sheet, or Shop Bottleneck Review."
+    scale: "Price Book Starter, Quote Sheet Builder, or Shop Bottleneck Review."
   },
   {
     cat: "Systems",
@@ -77,7 +121,7 @@ const deeperProducts = [
     steps: [["Define", "Choose which services can be requested or booked."], ["Limit", "Set timing, location, and job-type rules."], ["Ask", "Create intake questions before the appointment."], ["Prepare", "Deliver a booking setup packet."]],
     out: [["Service", "Bookable?", "Questions", "Rule"], ["Layout review", "Request only", "Photos/dims", "Review first"], ["Repair", "Maybe", "Issue/photo", "Confirm parts"], ["Install", "Yes", "Location", "Set window"]],
     done: "The business has booking rules ready before using a booking app, form, or website scheduler.",
-    scale: "Request Form & Tracker, One-Page Service Website, or Local Service Business OS."
+    scale: "Request Form + Lead Tracker, One-Page Service Website, or Local Service Operating System."
   },
   {
     cat: "Systems",
@@ -93,7 +137,7 @@ const deeperProducts = [
     steps: [["Map", "Identify what customers need to see."], ["Separate", "Split owner-only details from customer-facing details."], ["Design", "Plan screens, statuses, and file areas."], ["Deliver", "Send a portal prep packet or lightweight build plan."]],
     out: [["Customer sees", "Owner sees", "When", "Action"], ["Quote", "Cost notes", "Before approval", "Approve"], ["Job status", "Schedule notes", "During job", "Update"], ["Photos", "All files", "After job", "Share"]],
     done: "The owner knows what a customer portal should contain before building or buying one.",
-    scale: "Internal Dashboard / Simple App, Local Service Business OS, or customer portal build."
+    scale: "Simple Internal Tool, Local Service Operating System, or customer portal build."
   },
   {
     cat: "Planning",
@@ -109,7 +153,7 @@ const deeperProducts = [
     steps: [["Observe", "List how the work actually gets done."], ["Standardize", "Turn repeat steps into a clear order."], ["Check", "Add quality and missing-info checks."], ["Use", "Deliver print/share-ready checklists."]],
     out: [["Step", "Check", "Who", "Done?"], ["Before job", "Photos/dims", "Owner", "□"], ["During job", "Materials verified", "Worker", "□"], ["After job", "Photos/review", "Owner", "□"]],
     done: "Repeat work has a simple checklist that can be followed, shared, printed, or improved.",
-    scale: "Shop Bottleneck Review, Internal Dashboard / Simple App, or Local Service Business OS."
+    scale: "Shop Bottleneck Review, Simple Internal Tool, or Local Service Operating System."
   },
   {
     cat: "Operating System",
