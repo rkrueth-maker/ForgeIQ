@@ -19,18 +19,28 @@ function addCardClarity() {
   });
 }
 
-function applyNorthwoodsWorkbenchBrand() {
+function applyHighway38Brand() {
   const replacements = [
-    [/ForgeIQ by Northwoods Problem Solvers/g, "Northwoods Problem Solvers"],
-    [/ForgeIQ by Northwoods/g, "Northwoods Problem Solvers"],
-    [/ForgeIQ Product Ladder/g, "Northwoods Workbench Product Ladder"],
-    [/ForgeIQ 36-product ladder/g, "Northwoods Workbench 36-product ladder"],
-    [/ForgeIQ proof/g, "Northwoods proof"],
-    [/ForgeIQ keeps/g, "Northwoods Workbench keeps"],
-    [/ForgeIQ sorts/g, "Northwoods Workbench sorts"],
-    [/ForgeIQ returns/g, "Northwoods Workbench returns"],
-    [/ForgeIQ product card/g, "Northwoods Workbench product card"],
-    [/ForgeIQ/g, "Northwoods Workbench"]
+    [/ForgeIQ by Northwoods Problem Solvers/g, "Highway 38 Solutions"],
+    [/ForgeIQ by Northwoods/g, "Highway 38 Solutions"],
+    [/Northwoods Problem Solvers/g, "Highway 38 Solutions"],
+    [/Northwoods Workbench/g, "Highway 38 Solutions"],
+    [/Northwoods Project Desk/g, "Highway 38 Project Desk"],
+    [/Northwoods Shop Desk/g, "Highway 38 Shop Desk"],
+    [/Northwoods Business Desk/g, "Highway 38 Business Desk"],
+    [/Northwoods Digital Desk/g, "Highway 38 Digital Desk"],
+    [/Northwoods Cleanup Desk/g, "Highway 38 Cleanup Desk"],
+    [/ForgeIQ Product Ladder/g, "Highway 38 Solutions Product Ladder"],
+    [/ForgeIQ 36-product ladder/g, "Highway 38 Solutions 36-product ladder"],
+    [/ForgeIQ proof/g, "Highway 38 proof"],
+    [/ForgeIQ keeps/g, "Highway 38 Solutions keeps"],
+    [/ForgeIQ sorts/g, "Highway 38 Solutions sorts"],
+    [/ForgeIQ returns/g, "Highway 38 Solutions returns"],
+    [/ForgeIQ product card/g, "Highway 38 Solutions product card"],
+    [/ForgeIQ/g, "Highway 38 Solutions"],
+    [/Industrial Logic Solutions/g, "Highway 38 Solutions"],
+    [/GarageOS/g, "Highway 38 Solutions"],
+    [/WrenchIQ/g, "Highway 38 Solutions"]
   ];
 
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -45,7 +55,9 @@ function applyNorthwoodsWorkbenchBrand() {
     node.nodeValue = text;
   });
 
-  document.title = document.title.replace(/ForgeIQ/g, "Northwoods Workbench");
+  replacements.forEach(([pattern, value]) => {
+    document.title = document.title.replace(pattern, value);
+  });
 
   document.querySelectorAll('meta[content]').forEach((meta) => {
     let content = meta.getAttribute('content');
@@ -57,7 +69,7 @@ function applyNorthwoodsWorkbenchBrand() {
 }
 
 function bootClarity() {
-  applyNorthwoodsWorkbenchBrand();
+  applyHighway38Brand();
   addCardClarity();
 }
 
