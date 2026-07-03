@@ -32,6 +32,28 @@ Current GitHub Pages base URL:
 6. Updated `404.html` redirects from `/ForgeIQ/` to `/highway-38-solutions/`.
 7. Updated `sitemap.xml` to the renamed public URLs.
 8. Updated `robots.txt` sitemap reference to the renamed URL.
+9. Verified the active repo metadata: public repo, default branch `main`, admin/write access available.
+10. Updated `README.md` so the live site and GitHub Pages setup point to `/highway-38-solutions/`, not `/ForgeIQ/`.
+11. Converted these old public product pages into Highway 38 redirect pages:
+   - `custom-work-build.html` -> `packages.html#custom-work`
+   - `weekly-owner-dashboard.html` -> `packages.html#business-cleanup`
+   - `approval-deposit-pack.html` -> `packages.html#business-cleanup`
+   - `customer-history-setup.html` -> `packages.html#business-cleanup`
+   - `project-action-snapshot.html` -> `packages.html#problem-snapshot`
+   - `request-form-lead-tracker.html` -> `packages.html#business-cleanup`
+   - `local-service-operating-system.html` -> `packages.html#custom-work`
+
+## Fetch / verification results from this pass
+
+Direct file fetch confirmed:
+
+- `README.md` now points to the current GitHub Pages URL.
+- `index.html` uses Highway 38 Solutions title, canonical URL, Open Graph URL, and current request form.
+- `robots.txt` points to the renamed sitemap URL.
+- `sitemap.xml` lists the current `/highway-38-solutions/` page paths.
+- `404.html` routes old/missing paths into the current package system.
+- `about.html`, `faq.html`, `pricing.html`, and `sample-library.html` use Highway 38 Solutions branding and current canonical URLs.
+- Legacy product pages listed above no longer expose ForgeIQ/Northwoods page branding when fetched directly.
 
 ## Deep scan results
 
@@ -52,7 +74,7 @@ Do not use ForgeIQ, RangeRivet Works, Northwoods Problem Solvers, Industrial Log
 ## Next cleanup pass recommended
 
 1. Rename or archive old ForgeIQ Shopify helper scripts if the codebase is still active.
-2. Update README and archive notices so old names are clearly marked historical.
+2. Update archive notices so old names are clearly marked historical.
 3. Move old Drive ForgeIQ docs into Archive if not already there.
 4. Add the new repo URL to the Drive Sync Index.
 5. Verify the new GitHub Pages URL in a browser after Pages refreshes.
