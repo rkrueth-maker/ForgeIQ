@@ -1,0 +1,8 @@
+Date,Machine or Area,Job or Part,Planned Run Time,Actual Run Time,Idle Reason,Minutes Lost,Notes,Next Action
+,,,,Waiting for material,,,
+,,,,Setup delay,,,
+,,,,Inspection delay,,,
+,,,,Operator away,,,
+,,,,Tooling issue,,,
+,,,,Machine fault,,,
+,,,,Unknown,,,
