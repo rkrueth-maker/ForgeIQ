@@ -2,7 +2,7 @@
 
 **Big problems. Clear plans.**
 
-**Live site:** https://rkrueth-maker.github.io/ForgeIQ/
+**Live site:** https://rkrueth-maker.github.io/highway-38-solutions/
 
 Highway 38 Solutions helps homeowners, garages, small shops, and small businesses turn messy ideas into clear plans, layouts, quotes, systems, and next steps.
 
@@ -15,8 +15,8 @@ Highway 38 Solutions helps homeowners, garages, small shops, and small businesse
 ## Current Version
 
 **Version label:** Highway 38 brand build  
-**Current date marker:** 2026-07-02  
-**Public site path:** `/ForgeIQ/` remains only because GitHub Pages is already published at that repo URL. The customer-facing site should not use ForgeIQ as a brand.
+**Current date marker:** 2026-07-03  
+**Public site path:** `/highway-38-solutions/` is the current GitHub Pages path after the repo rename. The old `/ForgeIQ/` path is legacy only and should not be used as the public customer-facing URL.
 
 ---
 
@@ -25,13 +25,11 @@ Highway 38 Solutions helps homeowners, garages, small shops, and small businesse
 Primary menu:
 
 - Home
-- Project Desk
-- Shop Desk
-- Business Desk
-- Digital Desk
-- Cleanup Desk
-- Pricing
-- Contact
+- Packages
+- Shop / CNC
+- Examples
+- Backend
+- Start Request
 
 ---
 
@@ -133,9 +131,12 @@ Scoped custom output when the standard packages are close but not exact.
 ## Current Public Files
 
 - `index.html` — Highway 38 Solutions homepage.
-- `products.html` — package/pricing/product ladder page.
+- `packages.html` — current package and service ladder page.
+- `shop-automation.html` — Shop / CNC concept track.
+- `examples.html` — finished examples and proof path.
+- `about.html`, `faq.html`, `pricing.html`, `sample-library.html` — launch support pages.
 - `style.css`, `clarity.css`, `research.css`, `report-fixes.css` — visual styling layers.
-- `site.js`, `product-addons.js`, `clarity.js` — product card rendering and legacy brand cleanup.
+- `site.js`, `product-addons.js`, `clarity.js` — product card rendering and navigation/footer support.
 - `sitemap.xml`, `robots.txt`, `404.html` — publishing/search/fallback support.
 
 ---
@@ -168,6 +169,6 @@ To publish the site:
 
 The site will be live at:
 
-`https://rkrueth-maker.github.io/ForgeIQ/`
+`https://rkrueth-maker.github.io/highway-38-solutions/`
 
 The `.nojekyll` file at the root disables Jekyll processing so the plain HTML/CSS site loads correctly.
