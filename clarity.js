@@ -69,6 +69,7 @@ function addLaunchNavigation() {
   const links = [
     ["packages.html#packages", "Packages"],
     ["shop-automation.html#main", "Shop / CNC"],
+    ["ai-workflow.html#main", "AI Workflow"],
     ["examples.html#examples", "Examples"],
     ["test-plan.html#main", "Test Plan"],
     ["launch-plan.html#main", "Launch Plan"]
@@ -133,7 +134,7 @@ function addLaunchReadinessBanner() {
   if (!main || location.pathname.includes("launch-plan") || location.pathname.includes("test-plan")) return;
   const banner = document.createElement("section");
   banner.className = "section launch-readiness-banner";
-  banner.innerHTML = `<div class="container"><div class="section-title"><span class="badge">Launch-ready path</span><h2>Ready to test before public launch.</h2><p>Use the launch checklist and test plan to run one normal package and one Shop / CNC concept request end-to-end before sharing the final URL.</p></div><div class="buttons"><a class="btn btn-outline" href="test-plan.html#main">Open Test Plan</a><a class="btn btn-outline" href="launch-plan.html#main">Open Launch Checklist</a></div></div>`;
+  banner.innerHTML = `<div class="container"><div class="section-title"><span class="badge">Launch-ready path</span><h2>Ready to test before public launch.</h2><p>Use the launch checklist and test plan to run one normal package, one Shop / CNC concept request, and one AI workflow request end-to-end before sharing the final URL.</p></div><div class="buttons"><a class="btn btn-outline" href="test-plan.html#main">Open Test Plan</a><a class="btn btn-outline" href="launch-plan.html#main">Open Launch Checklist</a></div></div>`;
   const firstSection = main.querySelector("section");
   main.insertBefore(banner, firstSection ? firstSection.nextSibling : null);
 }
