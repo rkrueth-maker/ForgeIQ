@@ -68,9 +68,12 @@ function addLaunchNavigation() {
   const beforeCta = navLinks.querySelector(".nav-cta")?.closest("li");
   const links = [
     ["packages.html#packages", "Packages"],
+    ["pricing.html#main", "Pricing"],
     ["shop-automation.html#main", "Shop / CNC"],
     ["ai-workflow.html#main", "AI Workflow"],
-    ["examples.html#examples", "Examples"],
+    ["sample-library.html#main", "Samples"],
+    ["faq.html#main", "FAQ"],
+    ["about.html#main", "About"],
     ["test-plan.html#main", "Test Plan"],
     ["launch-plan.html#main", "Launch Plan"]
   ];
@@ -109,7 +112,7 @@ function addLaunchFooterLinks() {
   const footer = document.querySelector("footer");
   if (!footer || footer.querySelector('a[href="privacy.html"]')) return;
   const span = document.createElement("span");
-  span.innerHTML = '<a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="launch-plan.html#main">Launch Plan</a> · <a href="test-plan.html#main">Test Plan</a>';
+  span.innerHTML = '<a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="pricing.html#main">Pricing</a> · <a href="sample-library.html#main">Samples</a> · <a href="faq.html#main">FAQ</a>';
   footer.appendChild(span);
 }
 
