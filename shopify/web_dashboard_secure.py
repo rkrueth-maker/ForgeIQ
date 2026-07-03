@@ -7,32 +7,21 @@ It adds:
 - Confirmation prompts on destructive/write actions, especially Shopify apply.
 - Visible focus states.
 - Mobile table wrappers so dense tables scroll instead of breaking the viewport.
-- Live-mode refresh warning and a manual refresh note.
+- Live-mode warning while disabling auto-refresh in hardened mode.
 """
 
 from __future__ import annotations
 
+import re
 import secrets
-from html import escape
 from typing import Iterable
 
 from flask import abort, request, session
 
 from shopify.web_dashboard import create_app as _create_dashboard_app
-from shopify.web_dashboard import run as _legacy_run
 
 CSRF_SESSION_KEY = "dashboard_csrf_token"
 CSRF_FIELD_NAME = "csrf_token"
-
-WRITE_PATHS = {
-    "/apply-approved",
-    "/agent/apply-review",
-    "/approve-bulk",
-}
-
-DESTRUCTIVE_PATHS = {
-    "/agent/discard-review",
-}
 
 
 def _ensure_csrf_token() -> str:
@@ -60,14 +49,20 @@ def _validate_csrf() -> None:
         abort(400, "Invalid CSRF token")
 
 
-def _inject_csrf_inputs(html: str, token: str) -> str:
-    hidden = f'<input type="hidden" name="{CSRF_FIELD_NAME}" value="{escape(token)}" />'
-    return html.replace('<form ', f'<form ').replace('method="post"', f'method="post">{hidden}').replace(f'>{hidden} action=', ' action=')
+def _remove_meta_refresh(html: str) -> str:
+    return re.sub(
+        r"\s*<meta\s+http-equiv=[\"']refresh[\"']\s+content=[\"'][^\"']+[\"']\s*/?>",
+        "",
+        html,
+        flags=re.IGNORECASE,
+    )
 
 
 def _inject_dashboard_hardening(html: str, token: str) -> str:
     if "</body>" not in html:
         return html
+
+    html = _remove_meta_refresh(html)
 
     style = """
 <style id="dashboard-hardening-styles">
@@ -135,7 +130,7 @@ def _inject_dashboard_hardening(html: str, token: str) -> str:
     if (liveBadge && !document.querySelector('.dashboard-safety-note')) {{
       const note = document.createElement('div');
       note.className = 'dashboard-safety-note';
-      note.innerHTML = '<strong>Live refresh is on.</strong> Avoid typing into forms while live mode is enabled. Use normal refresh mode for review or editing.';
+      note.innerHTML = '<strong>Live refresh requested.</strong> Hardened mode disables automatic meta refresh so it does not interrupt reading, forms, or assistive technology. Use Refresh Dashboard when ready.';
       const firstPanel = document.querySelector('.panel');
       if (firstPanel) firstPanel.parentNode.insertBefore(note, firstPanel);
     }}
