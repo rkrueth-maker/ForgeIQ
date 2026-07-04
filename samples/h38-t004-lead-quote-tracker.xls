@@ -1,1 +1,26 @@
-<html><head><meta charset="utf-8"><title>H38-T004 Lead Tracker</title></head><body><table border="1"><tr><th colspan="7">Highway 38 Solutions - Lead Tracker Sample</th></tr><tr><th>Lead ID</th><th>Sample request</th><th>Package</th><th>Status</th><th>Amount</th><th>Next action</th><th>Notes</th></tr><tr><td>L-001</td><td>Garage layout</td><td>Project Packet</td><td>Need Info</td><td></td><td>Ask for measurements</td><td>Photos received</td></tr><tr><td>L-002</td><td>Small shop layout</td><td>Shop Flow Review</td><td>Quote Sent</td><td>150</td><td>Follow up</td><td>Waiting on reply</td></tr><tr><td>L-003</td><td>Quote cleanup</td><td>Business Cleanup</td><td>Ready</td><td>325</td><td>Build tracker</td><td>Scope confirmed</td></tr><tr><td>L-004</td><td>Request form setup</td><td>Digital Setup</td><td>In Build</td><td>500</td><td>Draft handoff</td><td>Fields confirmed</td></tr><tr><td>L-005</td><td>Simple tool</td><td>Custom Work</td><td>Delivered</td><td>750</td><td>Check in later</td><td>Version one complete</td></tr></table></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>H38-T004 Lead Tracker</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11pt;margin:14px;background:#fff;color:#111827}
+  table{border-collapse:collapse;width:1220px;table-layout:fixed}
+  th,td{border:1px solid #b7c3d0;padding:8px 10px;vertical-align:top;white-space:normal;word-wrap:break-word;line-height:1.35;mso-number-format:"\@"}
+  th{background:#dbeafe;font-weight:700;color:#0f172a}.title{background:#1f2937;color:#fff;font-size:16pt;text-align:left;padding:12px}.sub{background:#f8fafc;color:#475569;font-style:italic}.narrow{text-align:center}.money{text-align:right}
+</style>
+</head>
+<body>
+<table>
+<colgroup><col style="width:95px"><col style="width:210px"><col style="width:180px"><col style="width:125px"><col style="width:100px"><col style="width:235px"><col style="width:275px"></colgroup>
+<tr><th class="title" colspan="7">Highway 38 Solutions - H38-T004 Lead Tracker Sample</th></tr>
+<tr><td class="sub" colspan="7">Use this tracker to keep every lead tied to a package, status, amount, next action, and notes.</td></tr>
+<tr><th>Lead ID</th><th>Sample Request</th><th>Package</th><th>Status</th><th>Amount</th><th>Next Action</th><th>Notes</th></tr>
+<tr><td class="narrow">L-001</td><td>Garage layout</td><td>Project Packet</td><td class="narrow">Need Info</td><td class="money"></td><td>Ask for measurements</td><td>Photos received; wall length still missing.</td></tr>
+<tr><td class="narrow">L-002</td><td>Small shop layout</td><td>Shop Flow Review</td><td class="narrow">Quote Sent</td><td class="money">150</td><td>Follow up</td><td>Waiting on reply.</td></tr>
+<tr><td class="narrow">L-003</td><td>Quote cleanup</td><td>Business Cleanup</td><td class="narrow">Ready</td><td class="money">325</td><td>Build tracker</td><td>Scope confirmed.</td></tr>
+<tr><td class="narrow">L-004</td><td>Request form setup</td><td>Digital Setup</td><td class="narrow">In Build</td><td class="money">500</td><td>Draft handoff</td><td>Fields confirmed.</td></tr>
+<tr><td class="narrow">L-005</td><td>Simple tool</td><td>Custom Work</td><td class="narrow">Delivered</td><td class="money">750</td><td>Check in later</td><td>Version one complete.</td></tr>
+</table>
+</body>
+</html>
