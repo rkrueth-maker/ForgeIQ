@@ -6,28 +6,35 @@
   <title>Pricing | Highway 38 Solutions</title>
   <meta name="description" content="Simple starting price ranges for Highway 38 Solutions planning packets, shop reviews, business cleanup, AI workflows, and custom work.">
   <link rel="canonical" href="https://rkrueth-maker.github.io/highway-38-solutions/pricing.html">
-  <link rel="stylesheet" href="style.css?v=20260703-price2">
-  <link rel="stylesheet" href="clarity.css?v=20260703-price2">
-  <link rel="stylesheet" href="research.css?v=20260703-price2">
-  <link rel="stylesheet" href="report-fixes.css?v=20260703-price2">
-  <script defer src="clarity.js?v=20260703-price2"></script>
+  <link rel="stylesheet" href="style.css?v=20260703-price3">
+  <link rel="stylesheet" href="clarity.css?v=20260703-price3">
+  <link rel="stylesheet" href="research.css?v=20260703-price3">
+  <link rel="stylesheet" href="report-fixes.css?v=20260703-price3">
+  <script defer src="clarity.js?v=20260703-price3"></script>
   <style>
     .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-    .price-card,.note-card{border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:1.15rem;background:rgba(255,255,255,.045)}
+    .price-card,.note-card,.start-box{border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:1.15rem;background:rgba(255,255,255,.045)}
     .price{font-size:1.35rem;font-weight:900;margin:.35rem 0 .65rem}
     .price-card ul,.note-card ul{margin:.75rem 0 0 1.1rem}.price-card li,.note-card li{margin:.35rem 0}
-    .start-box{border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:1.25rem;background:rgba(255,255,255,.06);margin-bottom:1.25rem}
+    .start-box{background:rgba(255,255,255,.06);margin-bottom:1.25rem}
     .note-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem}
-    @media(max-width:950px){.price-grid,.note-grid{grid-template-columns:1fr}}
+    .route-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1rem 0 1.25rem}
+    .route-strip div{border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:1rem;background:rgba(255,255,255,.04)}
+    .route-strip strong{display:block;margin-bottom:.25rem}
+    .muted-note{opacity:.88;font-size:.95rem;line-height:1.55}
+    @media(max-width:950px){.price-grid,.note-grid,.route-strip{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <a class="skip" href="#main">Skip to pricing</a>
+
   <nav aria-label="Main navigation">
     <a class="brand" href="./#top"><span>Highway 38</span> Solutions</a>
     <ul class="navlinks">
       <li><a href="packages.html#packages">Packages</a></li>
       <li><a href="pricing.html#main">Pricing</a></li>
+      <li><a href="shop-automation.html#main">Shop / CNC</a></li>
+      <li><a href="ai-workflow.html#main">AI Workflow</a></li>
       <li><a href="sample-library.html#main">Samples</a></li>
       <li><a href="faq.html#main">FAQ</a></li>
       <li><a class="nav-cta" href="https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform" target="_blank" rel="noopener">Start Request</a></li>
@@ -51,10 +58,18 @@
           <span class="badge">Best first move</span>
           <h2>Not sure what to buy?</h2>
           <p>Start with a <strong>Problem Snapshot</strong>. Send the messy version first: photos, notes, screenshots, measurements, shop problems, customer messages, receipts, or rough ideas. Highway 38 sorts the information and tells you the smallest useful next step.</p>
+          <p class="muted-note">The Snapshot protects you from buying a larger packet before the problem is clear.</p>
+        </div>
+
+        <div class="route-strip" aria-label="Pricing route guide">
+          <div><strong>Unclear problem</strong><span>Start with a Problem Snapshot.</span></div>
+          <div><strong>Known project</strong><span>Choose a Project, Shop, Business, Digital, Cleanup, or AI packet.</span></div>
+          <div><strong>Custom build</strong><span>Use a quoted scope when the output becomes a tracker, dashboard, SOP, or working template.</span></div>
         </div>
 
         <div class="price-grid">
           <article class="price-card">
+            <span class="badge">Start here</span>
             <h2>Problem Snapshot</h2>
             <p class="price">$79 intro / $99 normal</p>
             <p>Fast clarity when the problem is messy or unclear.</p>
@@ -62,6 +77,7 @@
               <li>Best first action</li>
               <li>Missing-info list</li>
               <li>Risks and next steps</li>
+              <li>Upgrade path only if useful</li>
             </ul>
           </article>
 
@@ -117,6 +133,7 @@
               <li>Concept brief</li>
               <li>ROI or bottleneck worksheet</li>
               <li>Vendor questions</li>
+              <li>Planning-only safety boundaries</li>
             </ul>
           </article>
 
