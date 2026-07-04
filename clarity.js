@@ -1,4 +1,4 @@
-const HIGHWAY38_FORM_LINK = "start-request.html";
+const HIGHWAY38_FORM_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSc95gkyGyLQrATHfVhluOPStPp4VALYf9dYoc0cTYcUm5eolA/viewform?usp=publish-editor";
 
 function repairRequestLinks() {
   document.querySelectorAll('a[href*="docs.google.com/forms"]').forEach((link) => {

@@ -4,7 +4,7 @@ import sys
 
 ROOT = Path.cwd()
 
-GOOD_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSc95gkyGyLQrATHfVhluOPStPp4VALYf9dYoc0cTYcUm5eolA/viewform?usp=header"
+GOOD_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSc95gkyGyLQrATHfVhluOPStPp4VALYf9dYoc0cTYcUm5eolA/viewform?usp=publish-editor"
 
 BAD_FORM_IDS = [
     "1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ",
