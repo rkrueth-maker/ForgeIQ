@@ -1,94 +1,10 @@
-const HIGHWAY38_FORM_LINK = "https://docs.google.com/forms/d/122E4VFOClZ90HoiWjWz-7VWLHC0HH0aN4jvxPIXJq9w/viewform";
-const HIGHWAY38_BACKEND_LINK = "backend-system.html#backend";
-
-function addCardClarity() {
-  if (typeof products === "undefined") return;
-  const cards = document.querySelectorAll(".product-card");
-  cards.forEach((card, index) => {
-    const product = products[index];
-    if (!product || card.querySelector(".card-best")) return;
-    const bestFor = document.createElement("div");
-    bestFor.className = "card-best";
-    bestFor.innerHTML = `<b>Best for:</b> ${product.best || "messy details that need a clear finished output"}`;
-    const action = card.querySelector("em");
-    if (action) card.insertBefore(bestFor, action); else card.appendChild(bestFor);
-  });
-}
-
-function applyHighway38Brand() {
-  const replacements = [
-    [/ForgeIQ by Northwoods Problem Solvers/g, "Highway 38 Solutions"],
-    [/ForgeIQ by Northwoods/g, "Highway 38 Solutions"],
-    [/Northwoods Problem Solvers/g, "Highway 38 Solutions"],
-    [/Northwoods Workbench/g, "Highway 38 Solutions"],
-    [/Northwoods Project Desk/g, "Highway 38 Project Desk"],
-    [/Northwoods Shop Desk/g, "Highway 38 Shop Desk"],
-    [/Northwoods Business Desk/g, "Highway 38 Business Desk"],
-    [/Northwoods Digital Desk/g, "Highway 38 Digital Desk"],
-    [/Northwoods Cleanup Desk/g, "Highway 38 Cleanup Desk"],
-    [/ForgeIQ Product Ladder/g, "Highway 38 Solutions Product Ladder"],
-    [/ForgeIQ 36-product ladder/g, "Highway 38 Solutions 36-product ladder"],
-    [/ForgeIQ proof/g, "Highway 38 proof"],
-    [/ForgeIQ keeps/g, "Highway 38 Solutions keeps"],
-    [/ForgeIQ sorts/g, "Highway 38 Solutions sorts"],
-    [/ForgeIQ returns/g, "Highway 38 Solutions returns"],
-    [/ForgeIQ product card/g, "Highway 38 Solutions product card"],
-    [/ForgeIQ/g, "Highway 38 Solutions"],
-    [/Industrial Logic Solutions/g, "Highway 38 Solutions"],
-    [/RangeRivet Works/g, "Highway 38 Solutions"],
-    [/RangeRivet/g, "Highway 38 Solutions"],
-    [/GarageOS/g, "Highway 38 Solutions"],
-    [/WrenchIQ/g, "Highway 38 Solutions"]
-  ];
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach((node) => {
-    let text = node.nodeValue;
-    replacements.forEach(([pattern, value]) => { text = text.replace(pattern, value); });
-    node.nodeValue = text;
-  });
-  replacements.forEach(([pattern, value]) => { document.title = document.title.replace(pattern, value); });
-  document.querySelectorAll('meta[content]').forEach((meta) => {
-    let content = meta.getAttribute('content');
-    replacements.forEach(([pattern, value]) => { content = content.replace(pattern, value); });
-    meta.setAttribute('content', content);
-  });
-}
+const HIGHWAY38_FORM_LINK = "https://docs.google.com/forms/d/e/1FAIpQLSc95gkyGyLQrATHfVhluOPStPp4VALYf9dYoc0cTYcUm5eolA/viewform?usp=header";
 
 function repairRequestLinks() {
   document.querySelectorAll('a[href*="docs.google.com/forms"]').forEach((link) => {
     link.href = HIGHWAY38_FORM_LINK;
     link.target = "_blank";
     link.rel = "noopener";
-  });
-}
-
-function addLaunchNavigation() {
-  const navLinks = document.querySelector(".navlinks");
-  if (!navLinks) return;
-  const beforeCta = navLinks.querySelector(".nav-cta")?.closest("li");
-  const existingHome = navLinks.querySelector('a[href="./#top"], a[href="index.html"], a[href="./"]');
-  if (!existingHome) {
-    const homeLi = document.createElement("li");
-    homeLi.innerHTML = '<a href="./#top">Home</a>';
-    navLinks.insertBefore(homeLi, navLinks.firstElementChild || beforeCta || null);
-  }
-  const links = [
-    ["packages.html#packages", "Packages"],
-    ["pricing.html#main", "Pricing"],
-    ["shop-automation.html#main", "Shop / CNC"],
-    ["ai-workflow.html#main", "AI Workflow"],
-    ["sample-library.html#main", "Samples"],
-    ["faq.html#main", "FAQ"],
-    ["about.html#main", "About"]
-  ];
-  links.forEach(([href, label]) => {
-    if (!navLinks.querySelector(`a[href*="${href.split('#')[0]}"]`)) {
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="${href}">${label}</a>`;
-      navLinks.insertBefore(li, beforeCta || null);
-    }
   });
 }
 
@@ -132,53 +48,20 @@ function addGlobalPolishStyles() {
     .nav-toggle{display:none;border:1px solid rgba(255,255,255,.22);border-radius:12px;background:rgba(255,255,255,.08);color:inherit;padding:.65rem .8rem;font-weight:800}
     .hamburger{display:inline-block;width:1.15rem;height:.85rem;position:relative;margin-right:.35rem;vertical-align:-.1rem}.hamburger:before,.hamburger:after,.hamburger span{content:"";position:absolute;left:0;right:0;height:2px;background:currentColor;border-radius:2px}.hamburger:before{top:0}.hamburger span{top:50%;transform:translateY(-50%)}.hamburger:after{bottom:0}
     footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}
-    .sample-block{scroll-margin-top:105px}
-    .workbook-ux-guide{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:1rem 0 1.25rem}
-    .workbook-ux-guide div{border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:.9rem;background:rgba(255,255,255,.045)}
-    .workbook-ux-guide strong{display:block;margin-bottom:.3rem;color:inherit}.workbook-ux-guide span{display:block;opacity:.86;line-height:1.45}
-    .table-hint{font-size:.88rem;opacity:.82;margin:.35rem 0 .55rem}.tracker-scroll{box-shadow:inset -14px 0 20px rgba(15,23,42,.05)}
-    .tracker-table th{font-size:.92rem}.tracker-table td{font-size:.94rem}.packet-card h3,.tracker-card h3{margin-top:0}
-    .sample-head h2{letter-spacing:-.025em}.meta-line span{white-space:nowrap}
-    @media(min-width:821px){.navlinks{flex-wrap:wrap}.navlinks a{white-space:nowrap}}
-    @media(max-width:820px){nav{align-items:center}.nav-toggle{display:inline-flex;align-items:center}.navlinks{display:none;position:absolute;top:100%;left:1rem;right:1rem;z-index:30;background:rgba(15,23,42,.98);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:1rem;box-shadow:0 18px 55px rgba(0,0,0,.35)}.navlinks.is-open{display:grid;gap:.5rem}.navlinks li{width:100%}.navlinks a{display:block;padding:.75rem .85rem;border-radius:12px}.navlinks .nav-cta{display:block;text-align:center}.buttons a{width:100%;text-align:center}.workbook-ux-guide{grid-template-columns:1fr}.tracker-scroll{border:2px solid rgba(251,191,36,.35)}}
+    @media(max-width:820px){nav{align-items:center}.nav-toggle{display:inline-flex;align-items:center}.navlinks{display:none;position:absolute;top:100%;left:1rem;right:1rem;z-index:30;background:rgba(15,23,42,.98);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:1rem;box-shadow:0 18px 55px rgba(0,0,0,.35)}.navlinks.is-open{display:grid;gap:.5rem}.navlinks li{width:100%}.navlinks a{display:block;padding:.75rem .85rem;border-radius:12px}.navlinks .nav-cta{display:block;text-align:center}.buttons a{width:100%;text-align:center}}
   `;
   document.head.appendChild(style);
 }
 
-function addWorkbookUXEnhancements() {
-  if (!document.querySelector(".sample-block") || !document.querySelector(".tracker-scroll")) return;
-  const printNote = document.querySelector(".print-note");
-  if (printNote && !document.querySelector(".workbook-ux-guide")) {
-    const guide = document.createElement("div");
-    guide.className = "workbook-ux-guide";
-    guide.innerHTML = '<div><strong>1. Pick the closest sample</strong><span>Use the chips at the top or scroll the page.</span></div><div><strong>2. Review the packet and tracker</strong><span>The left side explains the customer handoff; the right side shows the worksheet preview.</span></div><div><strong>3. Start a request</strong><span>Use the Start Request button when the customer understands what they can send.</span></div>';
-    printNote.insertAdjacentElement("afterend", guide);
-  }
-  document.querySelectorAll(".tracker-card").forEach((card) => {
-    if (!card.querySelector(".table-hint")) {
-      const hint = document.createElement("p");
-      hint.className = "table-hint";
-      hint.textContent = "Tracker preview: scroll sideways if the table is wider than your screen.";
-      const scroll = card.querySelector(".tracker-scroll");
-      if (scroll) card.insertBefore(hint, scroll);
-    }
-  });
-}
-
-function addLaunchReadinessBanner() {
-  return;
-}
-
 function bootClarity() {
   addGlobalPolishStyles();
-  applyHighway38Brand();
   repairRequestLinks();
-  addLaunchNavigation();
   addMobileNavSupport();
   addLaunchFooterLinks();
-  addWorkbookUXEnhancements();
-  addLaunchReadinessBanner();
-  addCardClarity();
 }
 
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bootClarity); else bootClarity();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootClarity);
+} else {
+  bootClarity();
+}
