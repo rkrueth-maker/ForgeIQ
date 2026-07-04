@@ -316,7 +316,7 @@ def print_summary(rows):
     no_meta = sum(1 for row in rows if not row["Meta Description"])
 
     print("")
-    print("ForgeIQ SEO Audit Complete")
+    print("Highway 38 Supply Co. SEO Audit Complete")
     print("--------------------------")
     print(f"Products checked: {total}")
     print(f"Products needing work: {needs_work}")
@@ -331,7 +331,7 @@ def print_summary(rows):
 
 
 def main():
-    print("Starting ForgeIQ SEO Auditor...")
+    print("Starting Highway 38 Supply Co. SEO Auditor...")
     print(f"Store: {SHOPIFY_STORE}")
 
     validate_shopify_credentials()

@@ -179,7 +179,7 @@ def update_image_alt_text(product_id, image_id, alt_text):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="ForgeIQ Shopify Alt Text Updater")
+    parser = argparse.ArgumentParser(description="Highway 38 Supply Co. Shopify Alt Text Updater")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -192,7 +192,7 @@ def main():
     args = parse_args()
     dry_run = args.dry_run
 
-    print("Starting ForgeIQ Shopify Alt Text Updater...")
+    print("Starting Highway 38 Supply Co. Shopify Alt Text Updater...")
     print(f"Store: {SHOPIFY_STORE}")
     print(f"Dry run: {dry_run}")
     print("")

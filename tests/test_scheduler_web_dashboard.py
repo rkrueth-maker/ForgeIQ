@@ -325,7 +325,7 @@ def test_stage_top3_lock_message_displays_missing_items(monkeypatch):
             "connected_label": "Connected",
             "connected_class": "success",
             "message": "Read-only Shopify connection verified successfully.",
-            "store_name": "ForgeIQ Supply",
+            "store_name": "Highway 38 Supply Co.",
             "product_count": 1,
             "write_permissions_label": "Available",
             "write_permissions_class": "success",
@@ -362,7 +362,7 @@ def test_stage_top3_lock_message_displays_missing_items(monkeypatch):
     app = wd.create_app()
     client = app.test_client()
 
-    response = client.get("/?stage_status=locked&missing=Tests+passed|Local+dashboard+verified")
+    response = client.get("/dashboard?stage_status=locked&missing=Tests+passed|Local+dashboard+verified")
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     assert "Stage Top 3 is locked until the one-product safety test is complete." in html
@@ -423,7 +423,7 @@ def test_web_dashboard_apply_approved_feedback_banner(monkeypatch):
             "connected_label": "Connected",
             "connected_class": "success",
             "message": "Read-only Shopify connection verified successfully.",
-            "store_name": "ForgeIQ Supply",
+            "store_name": "Highway 38 Supply Co.",
             "product_count": 1,
             "write_permissions_label": "Available",
             "write_permissions_class": "success",
@@ -458,7 +458,7 @@ def test_web_dashboard_apply_approved_feedback_banner(monkeypatch):
     app = wd.create_app()
     client = app.test_client()
 
-    response = client.get("/?apply_status=success&applied_count=1&updated_products=1&updated_alt_images=0&failures=0")
+    response = client.get("/dashboard?apply_status=success&applied_count=1&updated_products=1&updated_alt_images=0&failures=0")
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
@@ -482,7 +482,7 @@ def test_web_dashboard_apply_stale_feedback_banner(monkeypatch):
             "connected_label": "Connected",
             "connected_class": "success",
             "message": "Read-only Shopify connection verified successfully.",
-            "store_name": "ForgeIQ Supply",
+            "store_name": "Highway 38 Supply Co.",
             "product_count": 1,
             "write_permissions_label": "Available",
             "write_permissions_class": "success",
@@ -517,7 +517,7 @@ def test_web_dashboard_apply_stale_feedback_banner(monkeypatch):
     app = wd.create_app()
     client = app.test_client()
 
-    response = client.get("/?apply_status=stale&stale_count=2")
+    response = client.get("/dashboard?apply_status=stale&stale_count=2")
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
@@ -541,7 +541,7 @@ def test_web_dashboard_launch_sections_and_apply_visibility(monkeypatch):
             "connected_label": "Connected",
             "connected_class": "success",
             "message": "Read-only Shopify connection verified successfully.",
-            "store_name": "ForgeIQ Supply",
+            "store_name": "Highway 38 Supply Co.",
             "product_count": 4,
             "write_permissions_label": "Available",
             "write_permissions_class": "success",
@@ -575,7 +575,7 @@ def test_web_dashboard_launch_sections_and_apply_visibility(monkeypatch):
 
     app = wd.create_app()
     client = app.test_client()
-    response = client.get("/")
+    response = client.get("/dashboard")
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
@@ -613,7 +613,7 @@ def test_web_dashboard_live_refresh_mode(monkeypatch):
     app = wd.create_app()
     client = app.test_client()
 
-    response = client.get("/?live=1")
+    response = client.get("/dashboard?live=1")
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     assert '<meta http-equiv="refresh" content="45" />' in html
@@ -636,7 +636,7 @@ def test_web_dashboard_shows_successful_shopify_connection_status(monkeypatch):
             "connected_label": "Connected",
             "connected_class": "success",
             "message": "Read-only Shopify connection verified successfully.",
-            "store_name": "ForgeIQ Supply",
+            "store_name": "Highway 38 Supply Co.",
             "product_count": 16,
             "write_permissions_label": "Available",
             "write_permissions_class": "success",
@@ -670,13 +670,13 @@ def test_web_dashboard_shows_successful_shopify_connection_status(monkeypatch):
 
     app = wd.create_app()
     client = app.test_client()
-    response = client.get("/")
+    response = client.get("/dashboard")
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)
     assert "Shopify Connection Status" in html
     assert "Connected" in html
-    assert "ForgeIQ Supply" in html
+    assert "Highway 38 Supply Co." in html
     assert "Product write scope detected." in html
 
 
@@ -730,7 +730,7 @@ def test_web_dashboard_shows_failed_shopify_connection_status(monkeypatch):
 
     app = wd.create_app()
     client = app.test_client()
-    response = client.get("/")
+    response = client.get("/dashboard")
 
     assert response.status_code == 200
     html = response.get_data(as_text=True)

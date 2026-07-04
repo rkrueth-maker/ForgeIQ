@@ -443,7 +443,7 @@ def write_competitive_intelligence_report(data):
         json.dump(data, handle, indent=2)
 
     lines = [
-        "# ForgeIQ Competitive Intelligence Report",
+        "# Highway 38 Supply Co. Competitive Intelligence Report",
         f"Generated: {data['generated_at']}",
         "",
         "## Executive Snapshot",
@@ -580,7 +580,7 @@ def write_competitive_intelligence_report(data):
 def run():
     data = build_competitive_intelligence_data()
     markdown_file, json_file = write_competitive_intelligence_report(data)
-    print("ForgeIQ Competitive Intelligence report generated.")
+    print("Highway 38 Supply Co. Competitive Intelligence report generated.")
     print(f"Markdown: {markdown_file}")
     print(f"JSON: {json_file}")
     return data

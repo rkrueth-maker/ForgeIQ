@@ -17,20 +17,20 @@ def _sample_product():
         "title": "Power Tool Organizer",
         "handle": "power-tool-organizer",
         "productType": "Garage Storage",
-        "vendor": "ForgeIQ Supply",
+        "vendor": "Highway 38 Supply Co.",
         "seo": {"description": ""},
     }
 
 
 def test_blog_generation_contains_structure_and_url():
-    text = generate_blog_post(_sample_product(), tone="professional", brand="ForgeIQ Supply")
+    text = generate_blog_post(_sample_product(), tone="professional", brand="Highway 38 Supply Co.")
     assert "Blog Draft" in text
     assert "/products/power-tool-organizer" in text
 
 
 def test_social_copy_generation_for_pinterest_and_facebook():
-    pin = generate_pinterest_copy(_sample_product(), tone="friendly", brand="ForgeIQ")
-    fb = generate_facebook_post(_sample_product(), tone="bold", brand="ForgeIQ")
+    pin = generate_pinterest_copy(_sample_product(), tone="friendly", brand="Highway 38 Supply Co.")
+    fb = generate_facebook_post(_sample_product(), tone="bold", brand="Highway 38 Supply Co.")
 
     assert "Pinterest" in pin
     assert "Destination URL" in pin
@@ -39,6 +39,6 @@ def test_social_copy_generation_for_pinterest_and_facebook():
 
 
 def test_email_newsletter_contains_subject_and_products():
-    text = generate_email_newsletter([_sample_product()], tone="balanced", brand="ForgeIQ")
+    text = generate_email_newsletter([_sample_product()], tone="balanced", brand="Highway 38 Supply Co.")
     assert "Subject:" in text
     assert "Power Tool Organizer" in text

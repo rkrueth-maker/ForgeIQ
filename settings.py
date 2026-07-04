@@ -26,7 +26,7 @@ class SettingsManager:
             "SHOPIFY_ADMIN_TOKEN": os.getenv("SHOPIFY_ADMIN_TOKEN", "").strip(),
             "SHOPIFY_API_VERSION": os.getenv("SHOPIFY_API_VERSION", "2026-04").strip(),
             "DRY_RUN_DEFAULT": os.getenv("DRY_RUN_DEFAULT", "true").strip().lower() in {"1", "true", "yes", "on"},
-            "CONTENT_BRAND_NAME": os.getenv("CONTENT_BRAND_NAME", "RangeRivet Works").strip(),
+            "CONTENT_BRAND_NAME": os.getenv("CONTENT_BRAND_NAME", "Highway 38 Supply Co.").strip(),
             "CONTENT_TONE_DEFAULT": os.getenv("CONTENT_TONE_DEFAULT", "balanced").strip(),
             "GA_EXPORT_CSV": os.getenv("GA_EXPORT_CSV", "").strip(),
             "GSC_EXPORT_CSV": os.getenv("GSC_EXPORT_CSV", "").strip(),

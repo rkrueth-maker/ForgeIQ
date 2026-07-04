@@ -13,7 +13,7 @@ from shopify import connection_check
 
 
 def test_connection_check_reports_missing_scopes(monkeypatch):
-    monkeypatch.setattr(connection_check.client, "validate_connection", lambda: "ForgeIQ Supply")
+    monkeypatch.setattr(connection_check.client, "validate_connection", lambda: "Highway 38 Supply Co.")
     monkeypatch.setattr(
         connection_check,
         "_fetch_granted_scopes",
@@ -23,7 +23,7 @@ def test_connection_check_reports_missing_scopes(monkeypatch):
     result = connection_check.run()
 
     assert result["status"] == "warning"
-    assert result["store"] == "ForgeIQ Supply"
+    assert result["store"] == "Highway 38 Supply Co."
     assert "read_inventory" in result["missing_scopes"]
     assert "write_content" in result["missing_scopes"]
 

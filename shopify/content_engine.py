@@ -149,11 +149,11 @@ def build_channel_sections(products, channels, tone, brand):
 
 def generate_preview(channels=None, tone="balanced", brand=None, limit=5):
   channels = channels or DEFAULT_CHANNELS
-  brand = brand or settings.get("CONTENT_BRAND_NAME", "ForgeIQ Supply")
+  brand = brand or settings.get("CONTENT_BRAND_NAME", "Highway 38 Supply Co.")
   products = fetch_products(limit=limit)
 
   lines = [
-    "# ForgeIQ Content Engine Output",
+    "# Highway 38 Supply Co. Content Engine Output",
     f"Generated: {datetime.utcnow().isoformat()}Z",
     f"Brand: {brand}",
     f"Tone: {tone}",
@@ -188,7 +188,7 @@ def run(channels=None, tone=None, brand=None):
 
 
 def main():
-  parser = argparse.ArgumentParser(description="ForgeIQ Content Engine")
+  parser = argparse.ArgumentParser(description="Highway 38 Supply Co. Content Engine")
   parser.add_argument(
     "--channels",
     default=",".join(DEFAULT_CHANNELS),

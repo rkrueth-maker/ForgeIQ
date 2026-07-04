@@ -29,7 +29,7 @@ def test_web_dashboard_smoke_loads_index(monkeypatch):
                 "connected_label": "Connected",
                 "connected_class": "success",
                 "message": "Read-only Shopify connection verified successfully.",
-                "store_name": "ForgeIQ Supply",
+                "store_name": "Highway 38 Supply Co.",
                 "product_count": 1,
                 "write_permissions_label": "Available",
                 "write_permissions_class": "success",
@@ -76,11 +76,18 @@ def test_web_dashboard_smoke_loads_index(monkeypatch):
 
     assert response.status_code == 200
     page = response.get_data(as_text=True)
-    assert "ForgeIQ" in page or "Control Center" in page
-    assert "Launch Control" in page
-    assert "First-Run Checklist" in page
-    assert "Controlled Rollout (Phases 2-5)" in page
-    assert "Apply Staged Changes" in page
+    assert "Highway 38 Solutions" in page
+    assert "Request Help" in page
+    assert "Practical systems that actually work." in page
+
+    dashboard_response = client.get("/dashboard")
+
+    assert dashboard_response.status_code == 200
+    dashboard_page = dashboard_response.get_data(as_text=True)
+    assert "Launch Control" in dashboard_page
+    assert "First-Run Checklist" in dashboard_page
+    assert "Controlled Rollout (Phases 2-5)" in dashboard_page
+    assert "Apply Staged Changes" in dashboard_page
 
 
 def test_web_dashboard_health_endpoint(monkeypatch):
@@ -123,7 +130,7 @@ def test_web_dashboard_health_endpoint(monkeypatch):
                 "connected_label": "Connected",
                 "connected_class": "success",
                 "message": "Read-only Shopify connection verified successfully.",
-                "store_name": "ForgeIQ Supply",
+                "store_name": "Highway 38 Supply Co.",
                 "product_count": 1,
                 "write_permissions_label": "Available",
                 "write_permissions_class": "success",

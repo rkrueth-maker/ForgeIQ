@@ -293,7 +293,7 @@ def write_dashboard(data):
         json.dump(data, handle, indent=2)
 
     lines = [
-        "# ForgeIQ Unified Analytics Dashboard",
+        "# Highway 38 Supply Co. Unified Analytics Dashboard",
         f"Generated: {data['generated_at']}",
         "",
         "## Executive Snapshot",
@@ -346,6 +346,6 @@ def write_dashboard(data):
 def run():
     data = build_dashboard_data()
     markdown_file, json_file = write_dashboard(data)
-    print("ForgeIQ Unified Analytics Dashboard generated.")
+    print("Highway 38 Supply Co. Unified Analytics Dashboard generated.")
     print(f"Markdown: {markdown_file}")
     print(f"JSON: {json_file}")

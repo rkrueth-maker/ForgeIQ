@@ -468,8 +468,8 @@ def print_summary(rows, recommendations):
     average_confidence = round(mean(row["Confidence"] for row in rows), 2) if rows else 0
 
     print("")
-    print("ForgeIQ Product Intelligence Engine")
-    print("----------------------------------")
+    print("Highway 38 Supply Co. Product Intelligence Engine")
+    print("-------------------------------------------------")
     print(f"Products analyzed: {len(rows)}")
     print(f"Products needing updates: {len(recommendations)}")
     print(f"Low-score products (<85): {low_score}")
@@ -514,7 +514,7 @@ def run(apply=False, preset=DEFAULT_PRESET):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ForgeIQ Product Intelligence Engine")
+    parser = argparse.ArgumentParser(description="Highway 38 Supply Co. Product Intelligence Engine")
     parser.add_argument(
         "--apply",
         action="store_true",

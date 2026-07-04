@@ -121,7 +121,7 @@ def plan_actions(top_recommendations, dashboard, inventory_recommendations=None)
 
 def generate_daily_summary(top_recommendations, actions, dashboard, trends, opportunities, inventory, campaigns, forecast):
     lines = [
-        "# ForgeIQ Orchestrator Daily Summary",
+        "# Highway 38 Solutions Orchestrator Daily Summary",
         f"Generated: {datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')}",
         "",
         "## Executive Snapshot",
@@ -268,6 +268,6 @@ def run():
     )
     _save_state(state)
 
-    print("ForgeIQ Orchestrator run complete.")
+    print("Highway 38 Solutions orchestrator run complete.")
     print(f"Summary: {summary_file}")
     print(f"State: {STATE_FILE}")

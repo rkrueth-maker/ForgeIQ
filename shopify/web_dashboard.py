@@ -146,7 +146,7 @@ TEMPLATE = """
   {% if live_refresh %}
   <meta http-equiv="refresh" content="45" />
   {% endif %}
-  <title>ForgeIQ Control Center</title>
+  <title>Highway 38 Solutions Control Center</title>
   <style>
     :root {
       --bg: #071a25;
@@ -379,8 +379,8 @@ TEMPLATE = """
         <div class="stat">
           <div class="k">Quick Actions</div>
           <div class="v">
-            <a class="btn" href="{{ url_for('index') }}">Refresh Dashboard</a>
-            <a class="btn" href="{{ url_for('index') }}?live=1">Live Mode</a>
+            <a class="btn" href="{{ url_for('dashboard') }}">Refresh Dashboard</a>
+            <a class="btn" href="{{ url_for('dashboard') }}?live=1">Live Mode</a>
           </div>
         </div>
       </div>
@@ -904,7 +904,7 @@ def _append_agent_history(entry):
 def _write_agent_report(entry):
   os.makedirs(REPORTS_DIR, exist_ok=True)
   lines = [
-    "# ForgeIQ Agent Response",
+    "# Highway 38 Solutions Agent Response",
     f"Generated: {entry['timestamp']}",
     f"Prompt: {entry['prompt']}",
     f"Intent: {entry['intent']}",
@@ -1086,14 +1086,14 @@ def _generate_blog_posts_for_topic(prompt):
       intent="generate_blog_posts",
     )
 
-  brand = settings.get("CONTENT_BRAND_NAME", "ForgeIQ Supply")
+  brand = settings.get("CONTENT_BRAND_NAME", "Highway 38 Supply Co.")
   tone = settings.get("CONTENT_TONE_DEFAULT", "balanced")
   drafts = [generate_blog_post(product, tone=tone, brand=brand) for product in products]
 
   os.makedirs(REPORTS_DIR, exist_ok=True)
   report_path = os.path.join(REPORTS_DIR, "forgeiq_agent_blog_drafts.md")
   with open(report_path, "w", encoding="utf-8") as handle:
-    handle.write("# ForgeIQ Agent Blog Drafts\n\n")
+    handle.write("# Highway 38 Supply Co. Agent Blog Drafts\n\n")
     handle.write(f"Topic: {topic}\n\n")
     handle.write("\n\n".join(drafts))
     handle.write("\n")
@@ -1390,7 +1390,7 @@ def _build_scheduler_rows():
 
 def _refresh_content_preview():
     tone = settings.get("CONTENT_TONE_DEFAULT", "balanced")
-    brand = settings.get("CONTENT_BRAND_NAME", "ForgeIQ Supply")
+    brand = settings.get("CONTENT_BRAND_NAME", "Highway 38 Supply Co.")
     generate_preview(channels=["blog", "pinterest", "facebook", "email"], tone=tone, brand=brand)
 
 
@@ -1733,7 +1733,11 @@ def create_app():
         )
 
     @app.get("/")
-    def index():
+    def landing_page():
+      return send_from_directory(PROJECT_ROOT, "index.html")
+
+    @app.get("/dashboard")
+    def dashboard():
         refresh_content = request.args.get("refresh_content") in {"1", "true", "yes"}
         live_refresh = request.args.get("live") in {"1", "true", "yes"}
         context = build_dashboard_context(refresh_content=refresh_content, live_refresh=live_refresh)
@@ -1773,7 +1777,7 @@ def create_app():
         _save_approvals(state)
 
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.post("/reject/<path:product_id>")
     def reject(product_id):
@@ -1784,7 +1788,7 @@ def create_app():
         state["reviewed_recommendations"] = True
         _save_approvals(state)
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.post("/approve-bulk")
     def approve_bulk():
@@ -1797,7 +1801,7 @@ def create_app():
             if not safety_gate["complete"]:
                 scroll_y = request.form.get("scroll_y", "0")
                 missing = "|".join(safety_gate["missing_labels"])
-                return redirect(url_for("index", scroll_y=scroll_y, stage_status="locked", missing=missing))
+                return redirect(url_for("dashboard", scroll_y=scroll_y, stage_status="locked", missing=missing))
 
         if count_raw == "all":
             selected = queue
@@ -1812,7 +1816,7 @@ def create_app():
         stage_approved_product_ids(selected_ids)
 
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.post("/apply-approved")
     def apply_approved():
@@ -1838,7 +1842,7 @@ def create_app():
             scroll_y = request.form.get("scroll_y", "0")
             return redirect(
                 url_for(
-                    "index",
+                    "dashboard",
                     scroll_y=scroll_y,
                     apply_status="success",
                     applied_count=len(selected),
@@ -1857,9 +1861,9 @@ def create_app():
                 }
             )
             scroll_y = request.form.get("scroll_y", "0")
-            return redirect(url_for("index", scroll_y=scroll_y, apply_status="stale", stale_count=len(approved_ids)))
+            return redirect(url_for("dashboard", scroll_y=scroll_y, apply_status="stale", stale_count=len(approved_ids)))
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y, apply_status="empty"))
+        return redirect(url_for("dashboard", scroll_y=scroll_y, apply_status="empty"))
 
     @app.post("/rollout/check")
     def rollout_check():
@@ -1877,30 +1881,30 @@ def create_app():
         _save_approvals(state)
 
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.post("/refresh-content")
     def refresh_content():
         _refresh_content_preview()
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", refresh_content="1", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", refresh_content="1", scroll_y=scroll_y))
 
     @app.get("/live")
     def live():
-        return redirect(url_for("index", live="1"))
+        return redirect(url_for("dashboard", live="1"))
 
     @app.post("/agent")
     def agent():
         prompt = (request.form.get("prompt") or "").strip()
         _handle_agent_prompt(prompt)
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.post("/agent/apply-review")
     def apply_agent_review():
       _apply_pending_agent_review()
       scroll_y = request.form.get("scroll_y", "0")
-      return redirect(url_for("index", scroll_y=scroll_y))
+      return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.post("/agent/discard-review")
     def discard_agent_review():
@@ -1912,13 +1916,13 @@ def create_app():
             intent="discard_review",
         )
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.post("/refresh-orchestrator")
     def refresh_orchestrator():
         orchestrator_run()
         scroll_y = request.form.get("scroll_y", "0")
-        return redirect(url_for("index", scroll_y=scroll_y))
+        return redirect(url_for("dashboard", scroll_y=scroll_y))
 
     @app.get("/reports/<path:filename>")
     def download_report(filename):
@@ -1942,7 +1946,7 @@ def create_app():
             title=f"Report: {filename}",
             subtitle=f"Rendered from {html.escape(filename)}",
             content=content,
-            back_url=url_for("index") + "#reports",
+            back_url=url_for("dashboard") + "#reports",
             raw_url=url_for("download_report", filename=filename),
         )
 
@@ -1956,7 +1960,7 @@ def create_app():
             title=f"Log: {filename}",
             subtitle=f"Rendered from {html.escape(filename)}",
             content=content,
-            back_url=url_for("index") + "#logs",
+            back_url=url_for("dashboard") + "#logs",
             raw_url=url_for("download_log", filename=filename),
         )
 
@@ -1979,7 +1983,7 @@ def run(host="127.0.0.1", port=5050, open_browser=True):
 
     if open_browser:
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
-    print(f"Starting ForgeIQ web dashboard at {url}")
+    print(f"Starting Highway 38 Solutions web dashboard at {url}")
     print(f"Health check endpoint: {health_url}")
     print(f"Local check: curl -s {health_url}")
     app.run(host=host, port=port, debug=False, use_reloader=False)

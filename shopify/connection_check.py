@@ -29,8 +29,8 @@ def _fetch_granted_scopes():
 
 def run():
     print("")
-    print("ForgeIQ Shopify Connection Check")
-    print("-------------------------------")
+    print("Highway 38 Supply Co. Shopify Connection Check")
+    print("----------------------------------------------")
 
     try:
         shop_name = client.validate_connection()
@@ -44,7 +44,7 @@ def run():
             print("Action: Set SHOPIFY_STORE and a new SHOPIFY_ADMIN_TOKEN, then re-run.")
         elif "HTTP 401" in message:
             print("Reason: Token is invalid or was revoked (common after uninstall).")
-            print("Action: Reinstall ForgeIQ app in Shopify Admin and generate a new Admin API token.")
+            print("Action: Reinstall the Highway 38 Supply Co. app in Shopify Admin and generate a new Admin API token.")
         elif "HTTP 403" in message:
             print("Reason: App is installed but lacks permission for this API call.")
             print("Action: Update app scopes in Shopify Admin, reinstall app, and refresh token.")

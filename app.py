@@ -51,7 +51,7 @@ def run_choice(choice):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="ForgeIQ launcher")
+    parser = argparse.ArgumentParser(description="Highway 38 Solutions launcher")
     parser.add_argument(
         "--option",
         help="Run a specific module key without entering the interactive menu.",

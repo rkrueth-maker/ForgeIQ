@@ -50,7 +50,7 @@ HEADERS = {
 
 COLLECTIONS = {
     "Garage Organization": {
-        "description": "Build a cleaner, more useful garage with practical organization products made for tools, cords, hoses, parts, and everyday shop gear. ForgeIQ Supply focuses on garage storage solutions that help DIYers, mechanics, and homeowners get items off the floor, improve workflow, and make small spaces easier to use. From pegboard systems and wall-mounted tool holders to hooks, bins, and specialty organizers, this collection is built for real garage problems.",
+        "description": "Build a cleaner, more useful garage with practical organization products made for tools, cords, hoses, parts, and everyday shop gear. Highway 38 Supply Co. focuses on garage storage solutions that help DIYers, mechanics, and homeowners get items off the floor, improve workflow, and make small spaces easier to use. From pegboard systems and wall-mounted tool holders to hooks, bins, and specialty organizers, this collection is built for real garage problems.",
         "products": [
             "SnapGrip EcoStraps",
             "Garage Storage Hook Straps",
@@ -71,7 +71,7 @@ COLLECTIONS = {
         "products": ["Heavy Duty 72-inch Garage Storage Shelves"],
     },
     "Workshop Tools": {
-        "description": "The right workshop tools make garage projects faster, cleaner, and more reliable. ForgeIQ Supply curates practical tools and accessories for DIY repairs, wiring, setup work, organization, and general shop use. This collection is built for people who want useful tools without wasting time sorting through random products that do not fit a garage or workshop workflow.",
+        "description": "The right workshop tools make garage projects faster, cleaner, and more reliable. Highway 38 Supply Co. curates practical tools and accessories for DIY repairs, wiring, setup work, organization, and general shop use. This collection is built for people who want useful tools without wasting time sorting through random products that do not fit a garage or workshop workflow.",
         "products": ["HSC86-4A Terminal Crimping Tool"],
     },
     "Automotive Essentials": {
@@ -202,7 +202,7 @@ def add_products_to_collection(collection_id, product_ids):
 
 
 def main():
-    print("Starting ForgeIQ Shopify setup...")
+    print("Starting Highway 38 Supply Co. Shopify setup...")
     print(f"Store: {SHOPIFY_STORE}")
     print("")
 

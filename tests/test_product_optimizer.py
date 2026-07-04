@@ -31,7 +31,7 @@ def _sample_product(**overrides):
     product = {
         "id": "gid://shopify/Product/1",
         "title": "Utility Hook",
-        "vendor": "ForgeIQ Supply",
+        "vendor": "Highway 38 Supply Co.",
         "productType": "Garage Storage",
         "tags": ["Storage"],
         "seo": {"title": "", "description": ""},
@@ -175,7 +175,7 @@ def test_run_stages_instead_of_applying(monkeypatch, tmp_path):
         "priority": 80,
     }
 
-    monkeypatch.setattr("shopify.product_optimizer.client.validate_connection", lambda: "ForgeIQ Supply")
+    monkeypatch.setattr("shopify.product_optimizer.client.validate_connection", lambda: "Highway 38 Supply Co.")
     monkeypatch.setattr("shopify.product_optimizer.fetch_products", lambda: [{"id": "gid://shopify/Product/1"}])
     monkeypatch.setattr("shopify.product_optimizer.analyze_products", lambda products: ([{"Current Title": "Live Product", "Score": 80, "Confidence": 0.9, "Priority": 80, "Issues": "Missing meta description", "Missing Alt Images": 0}], [recommendation]))
     monkeypatch.setattr("shopify.product_optimizer.write_report", lambda rows: None)

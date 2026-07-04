@@ -66,8 +66,8 @@ def test_agent_generates_blog_posts_for_matching_topic(monkeypatch):
     import shopify.web_dashboard as wd
 
     products = [
-        {"title": "Garage Storage Hook", "handle": "garage-storage-hook", "productType": "Storage", "vendor": "ForgeIQ", "tags": ["garage", "storage"]},
-        {"title": "Kitchen Shelf", "handle": "kitchen-shelf", "productType": "Kitchen", "vendor": "ForgeIQ", "tags": ["kitchen"]},
+        {"title": "Garage Storage Hook", "handle": "garage-storage-hook", "productType": "Storage", "vendor": "Highway 38 Supply Co.", "tags": ["garage", "storage"]},
+        {"title": "Kitchen Shelf", "handle": "kitchen-shelf", "productType": "Kitchen", "vendor": "Highway 38 Supply Co.", "tags": ["kitchen"]},
     ]
     generated_titles = []
 
