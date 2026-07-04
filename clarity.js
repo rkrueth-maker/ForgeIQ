@@ -68,6 +68,12 @@ function addLaunchNavigation() {
   const navLinks = document.querySelector(".navlinks");
   if (!navLinks) return;
   const beforeCta = navLinks.querySelector(".nav-cta")?.closest("li");
+  const existingHome = navLinks.querySelector('a[href="./#top"], a[href="index.html"], a[href="./"]');
+  if (!existingHome) {
+    const homeLi = document.createElement("li");
+    homeLi.innerHTML = '<a href="./#top">Home</a>';
+    navLinks.insertBefore(homeLi, navLinks.firstElementChild || beforeCta || null);
+  }
   const links = [
     ["packages.html#packages", "Packages"],
     ["pricing.html#main", "Pricing"],
@@ -112,7 +118,7 @@ function addLaunchFooterLinks() {
   const footer = document.querySelector("footer");
   if (!footer || footer.querySelector('a[href="privacy.html"]')) return;
   const span = document.createElement("span");
-  span.innerHTML = '<a href="pricing.html#main">Pricing</a> · <a href="sample-library.html#main">Samples</a> · <a href="faq.html#main">FAQ</a> · <a href="about.html#main">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>';
+  span.innerHTML = '<a href="./#top">Home</a> · <a href="pricing.html#main">Pricing</a> · <a href="sample-library.html#main">Samples</a> · <a href="faq.html#main">FAQ</a> · <a href="about.html#main">About</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a>';
   footer.appendChild(span);
 }
 
