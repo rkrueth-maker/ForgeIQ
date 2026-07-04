@@ -6,27 +6,35 @@
   <title>Sample Library | Highway 38 Solutions</title>
   <meta name="description" content="Sample deliverables and starter downloads for Highway 38 Solutions planning packets, shop reviews, AI workflows, and cleanup systems.">
   <link rel="canonical" href="https://rkrueth-maker.github.io/highway-38-solutions/sample-library.html">
-  <link rel="stylesheet" href="style.css?v=20260703-samples3">
-  <link rel="stylesheet" href="clarity.css?v=20260703-samples3">
-  <link rel="stylesheet" href="research.css?v=20260703-samples3">
-  <link rel="stylesheet" href="report-fixes.css?v=20260703-samples3">
-  <script defer src="clarity.js?v=20260703-samples3"></script>
+  <link rel="stylesheet" href="style.css?v=20260703-samples4">
+  <link rel="stylesheet" href="clarity.css?v=20260703-samples4">
+  <link rel="stylesheet" href="research.css?v=20260703-samples4">
+  <link rel="stylesheet" href="report-fixes.css?v=20260703-samples4">
+  <script defer src="clarity.js?v=20260703-samples4"></script>
   <style>
     .sample-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
-    .sample-card,.proof-note{border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:1.15rem;background:rgba(255,255,255,.045)}
+    .sample-card,.proof-note,.route-note{border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:1.15rem;background:rgba(255,255,255,.045)}
     .sample-card a{font-weight:850}.sample-card p{margin:.45rem 0}.sample-card small{display:block;opacity:.85;margin-top:.2rem;line-height:1.45}
     .proof-note{margin-bottom:1.25rem;background:rgba(255,255,255,.06)}
+    .route-note{margin-top:1rem;background:rgba(255,255,255,.05)}
     .file-list{display:grid;gap:.8rem;margin-top:.9rem}.file-item{border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:.85rem;background:rgba(255,255,255,.035)}
-    @media(max-width:900px){.sample-grid{grid-template-columns:1fr}}
+    .file-item a{display:inline-block;margin-bottom:.1rem}
+    .library-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1rem}
+    .library-steps div{border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:.85rem;background:rgba(255,255,255,.035)}
+    .library-steps strong{display:block;margin-bottom:.2rem}
+    @media(max-width:900px){.sample-grid,.library-steps{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <a class="skip" href="#main">Skip to samples</a>
+
   <nav aria-label="Main navigation">
     <a class="brand" href="./#top"><span>Highway 38</span> Solutions</a>
     <ul class="navlinks">
       <li><a href="packages.html#packages">Packages</a></li>
       <li><a href="pricing.html#main">Pricing</a></li>
+      <li><a href="shop-automation.html#main">Shop / CNC</a></li>
+      <li><a href="ai-workflow.html#main">AI Workflow</a></li>
       <li><a href="sample-library.html#main">Samples</a></li>
       <li><a href="faq.html#main">FAQ</a></li>
       <li><a class="nav-cta" href="https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform" target="_blank" rel="noopener">Start Request</a></li>
@@ -36,7 +44,7 @@
   <header class="hero product-hero">
     <span class="eyebrow">Sample Library</span>
     <h1>See what “messy details in” can turn into.</h1>
-    <p class="hero-lead">These sample files show the kind of finished output Highway 38 can build from photos, notes, measurements, shop problems, customer messages, or rough ideas.</p>
+    <p class="hero-lead">These sample files show the kind of finished output Highway 38 can build from photos, notes, measurements, shop problems, customer messages, screenshots, or rough ideas.</p>
     <div class="buttons">
       <a class="btn primary-cta" href="https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform" target="_blank" rel="noopener">Start Request</a>
       <a class="btn btn-outline" href="packages.html#packages">Compare Packages</a>
@@ -50,30 +58,46 @@
           <span class="badge">Starter examples</span>
           <h2>Use these to understand the output before you order.</h2>
           <p>These examples show the format and level of detail customers can expect. Real customer-approved examples can replace or expand this library over time.</p>
+          <div class="library-steps" aria-label="Sample library guide">
+            <div><strong>1. Review a sample</strong><span>See the shape of a finished packet.</span></div>
+            <div><strong>2. Download a starter</strong><span>Use a checklist, tracker, or worksheet.</span></div>
+            <div><strong>3. Send your version</strong><span>Highway 38 turns your rough details into a usable output.</span></div>
+          </div>
         </div>
 
         <div class="sample-grid">
           <article class="sample-card">
             <h2>Sample deliverables</h2>
+            <p>These are example outputs for paid planning work.</p>
             <div class="file-list">
-              <div class="file-item"><a href="sample-problem-snapshot.md">Problem Snapshot</a><small>Fast first-action plan for a messy or unclear problem.</small></div>
-              <div class="file-item"><a href="sample-project-packet.md">Project Packet</a><small>Layout, material groups, build order, risks, and next steps.</small></div>
-              <div class="file-item"><a href="sample-shop-cnc-concept.md">Shop / CNC Concept</a><small>Concept-level review for shop flow, fixture ideas, ROI, and vendor quote prep.</small></div>
-              <div class="file-item"><a href="sample-business-cleanup.md">Business Cleanup</a><small>Simple service, quote, lead, and follow-up organization.</small></div>
-              <div class="file-item"><a href="sample-ai-workflow.md">AI Workflow Snapshot</a><small>Workflow map for turning repeated office or shop work into templates and routines.</small></div>
+              <div class="file-item"><a href="sample-problem-snapshot.md">Open Problem Snapshot sample</a><small>Fast first-action plan for a messy or unclear problem.</small></div>
+              <div class="file-item"><a href="sample-project-packet.md">Open Project Packet sample</a><small>Layout, material groups, build order, risks, and next steps.</small></div>
+              <div class="file-item"><a href="sample-shop-cnc-concept.md">Open Shop / CNC Concept sample</a><small>Concept-level review for shop flow, fixture ideas, ROI, and vendor quote prep.</small></div>
+              <div class="file-item"><a href="sample-business-cleanup.md">Open Business Cleanup sample</a><small>Simple service, quote, lead, and follow-up organization.</small></div>
+              <div class="file-item"><a href="sample-ai-workflow.md">Open AI Workflow Snapshot sample</a><small>Workflow map for turning repeated office or shop work into templates and routines.</small></div>
             </div>
           </article>
 
           <article class="sample-card">
             <h2>Starter downloads</h2>
+            <p>These are simple tools visitors can use before ordering.</p>
             <div class="file-list">
-              <div class="file-item"><a href="lead-magnet-machine-idle-tracker.csv">Machine Idle Reason Tracker</a><small>CSV starter for logging downtime reasons and bottlenecks.</small></div>
-              <div class="file-item"><a href="lead-magnet-project-planning-checklist.md">Project Planning Checklist</a><small>Basic checklist before buying material or starting a build.</small></div>
-              <div class="file-item"><a href="lead-magnet-garage-shop-photo-checklist.md">Garage / Shop Photo Checklist</a><small>Photo list that helps Highway 38 review a space without a call.</small></div>
-              <div class="file-item"><a href="lead-magnet-quote-follow-up-scripts.md">Quote Follow-Up Script Pack</a><small>Email/text wording for following up without sounding pushy.</small></div>
-              <div class="file-item"><a href="lead-magnet-automation-roi-worksheet.csv">Automation ROI Worksheet</a><small>Simple worksheet for early automation opportunity review.</small></div>
+              <div class="file-item"><a href="lead-magnet-machine-idle-tracker.csv">Download Machine Idle Reason Tracker</a><small>CSV starter for logging downtime reasons and bottlenecks.</small></div>
+              <div class="file-item"><a href="lead-magnet-project-planning-checklist.md">Open Project Planning Checklist</a><small>Basic checklist before buying material or starting a build.</small></div>
+              <div class="file-item"><a href="lead-magnet-garage-shop-photo-checklist.md">Open Garage / Shop Photo Checklist</a><small>Photo list that helps Highway 38 review a space without a call.</small></div>
+              <div class="file-item"><a href="lead-magnet-quote-follow-up-scripts.md">Open Quote Follow-Up Script Pack</a><small>Email/text wording for following up without sounding pushy.</small></div>
+              <div class="file-item"><a href="lead-magnet-automation-roi-worksheet.csv">Download Automation ROI Worksheet</a><small>Simple worksheet for early automation opportunity review.</small></div>
             </div>
           </article>
+        </div>
+
+        <div class="route-note">
+          <h2>Not sure which example matches your problem?</h2>
+          <p>Use the Problem Snapshot sample first. It is the lowest-risk entry point when the request crosses categories or still feels messy.</p>
+          <div class="buttons">
+            <a class="btn primary-cta" href="https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform" target="_blank" rel="noopener">Start With a Snapshot</a>
+            <a class="btn btn-outline" href="pricing.html#main">See Pricing</a>
+          </div>
         </div>
       </div>
     </section>
