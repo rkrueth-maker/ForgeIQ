@@ -1,1 +1,31 @@
-<html><head><meta charset="utf-8"><title>H38-T001 Garage Snapshot Tracker</title></head><body><table border="1"><tr><th colspan="6">Highway 38 Solutions - H38-T001 Garage Snapshot Tracker</th></tr><tr><th>Category</th><th>Item</th><th>Status</th><th>Priority</th><th>Owner action</th><th>Notes</th></tr><tr><td>Goal</td><td>Park one vehicle again</td><td>Defined</td><td>High</td><td>Protect vehicle lane</td><td>Do this before storage purchase</td></tr><tr><td>Measurement</td><td>Wall length</td><td>Missing</td><td>High</td><td>Measure long wall</td><td>Needed for shelving/rail choice</td></tr><tr><td>Measurement</td><td>Ceiling height</td><td>Missing</td><td>High</td><td>Measure height and door track clearance</td><td>Needed before overhead storage</td></tr><tr><td>Sort</td><td>Daily tools</td><td>Unsorted</td><td>High</td><td>Move to daily-use zone</td><td>Keep near bench</td></tr><tr><td>Sort</td><td>Seasonal storage</td><td>Unsorted</td><td>Medium</td><td>Move high/back wall</td><td>Do not keep in vehicle lane</td></tr><tr><td>Risk</td><td>Buying cabinets too early</td><td>Open</td><td>High</td><td>Delay purchase</td><td>Measure first</td></tr><tr><td>First action</td><td>Clear vehicle lane</td><td>Next</td><td>High</td><td>Mark 10 ft lane with tape</td><td>Then sort everything inside lane</td></tr></table></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>H38-T001 Garage Snapshot Tracker</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11pt;margin:14px;background:#fff;color:#111827}
+  table{border-collapse:collapse;width:1120px;table-layout:fixed}
+  th,td{border:1px solid #b7c3d0;padding:8px 10px;vertical-align:top;white-space:normal;word-wrap:break-word;line-height:1.35;mso-number-format:"\@"}
+  th{background:#dbeafe;font-weight:700;color:#0f172a}
+  .title{background:#1f2937;color:#fff;font-size:16pt;text-align:left;padding:12px}
+  .sub{background:#f8fafc;color:#475569;font-style:italic}
+  .narrow{text-align:center}
+</style>
+</head>
+<body>
+<table>
+<colgroup><col style="width:140px"><col style="width:210px"><col style="width:110px"><col style="width:105px"><col style="width:250px"><col style="width:305px"></colgroup>
+<tr><th class="title" colspan="6">Highway 38 Solutions - H38-T001 Garage Snapshot Tracker</th></tr>
+<tr><td class="sub" colspan="6">Use this sheet to separate facts, missing measurements, risks, and first actions before buying storage or starting the work.</td></tr>
+<tr><th>Category</th><th>Item</th><th>Status</th><th>Priority</th><th>Owner Action</th><th>Notes</th></tr>
+<tr><td>Goal</td><td>Park one vehicle again</td><td class="narrow">Defined</td><td class="narrow">High</td><td>Protect vehicle lane</td><td>Do this before any storage purchase.</td></tr>
+<tr><td>Measurement</td><td>Wall length</td><td class="narrow">Missing</td><td class="narrow">High</td><td>Measure long wall</td><td>Needed for shelving or wall-rail choice.</td></tr>
+<tr><td>Measurement</td><td>Ceiling height</td><td class="narrow">Missing</td><td class="narrow">High</td><td>Measure height and door-track clearance</td><td>Needed before overhead storage.</td></tr>
+<tr><td>Sort</td><td>Daily tools</td><td class="narrow">Unsorted</td><td class="narrow">High</td><td>Move to daily-use zone</td><td>Keep near bench and active bay.</td></tr>
+<tr><td>Sort</td><td>Seasonal storage</td><td class="narrow">Unsorted</td><td class="narrow">Medium</td><td>Move high or to back wall</td><td>Do not keep in vehicle lane.</td></tr>
+<tr><td>Risk</td><td>Buying cabinets too early</td><td class="narrow">Open</td><td class="narrow">High</td><td>Delay purchase</td><td>Measure first and prove the layout before spending.</td></tr>
+<tr><td>First action</td><td>Clear vehicle lane</td><td class="narrow">Next</td><td class="narrow">High</td><td>Mark 10 ft lane with tape</td><td>Then sort everything currently inside that lane.</td></tr>
+</table>
+</body>
+</html>
