@@ -1,1 +1,27 @@
-<html><head><meta charset="utf-8"><title>H38-T006 Digital Setup Map</title></head><body><table border="1"><tr><th colspan="6">Highway 38 Solutions - Digital Setup Map</th></tr><tr><th>Layer</th><th>Field or asset</th><th>Purpose</th><th>Status</th><th>Owner action</th><th>Notes</th></tr><tr><td>Page</td><td>Headline</td><td>Explain offer</td><td>Draft</td><td>Approve wording</td><td>Plain language</td></tr><tr><td>Page</td><td>Service sections</td><td>Show what is sold</td><td>Draft</td><td>Choose packages</td><td>Keep simple</td></tr><tr><td>Form</td><td>Customer goal</td><td>Understand request</td><td>Ready</td><td>Use required field</td><td>Open text</td></tr><tr><td>Form</td><td>Photos or links</td><td>Collect proof</td><td>Ready</td><td>Allow upload/link</td><td>Photos help most</td></tr><tr><td>Tracker</td><td>Status</td><td>Prevent lost leads</td><td>Ready</td><td>Review daily</td><td>New, Need Info, Quoted</td></tr><tr><td>Email</td><td>Confirmation</td><td>Reply fast</td><td>Draft</td><td>Test email</td><td>Friendly and short</td></tr></table></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>H38-T006 Digital Setup Map</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11pt;margin:14px;background:#fff;color:#111827}
+  table{border-collapse:collapse;width:1180px;table-layout:fixed}
+  th,td{border:1px solid #b7c3d0;padding:8px 10px;vertical-align:top;white-space:normal;word-wrap:break-word;line-height:1.35;mso-number-format:"\@"}
+  th{background:#dbeafe;font-weight:700;color:#0f172a}.title{background:#1f2937;color:#fff;font-size:16pt;text-align:left;padding:12px}.sub{background:#f8fafc;color:#475569;font-style:italic}.narrow{text-align:center}
+</style>
+</head>
+<body>
+<table>
+<colgroup><col style="width:130px"><col style="width:210px"><col style="width:255px"><col style="width:120px"><col style="width:225px"><col style="width:240px"></colgroup>
+<tr><th class="title" colspan="6">Highway 38 Solutions - H38-T006 Digital Setup Map</th></tr>
+<tr><td class="sub" colspan="6">Use this map to connect page copy, request form fields, tracker statuses, and customer replies.</td></tr>
+<tr><th>Layer</th><th>Field or Asset</th><th>Purpose</th><th>Status</th><th>Owner Action</th><th>Notes</th></tr>
+<tr><td>Page</td><td>Headline</td><td>Explain the offer quickly.</td><td class="narrow">Draft</td><td>Approve wording</td><td>Plain language only.</td></tr>
+<tr><td>Page</td><td>Service sections</td><td>Show what is sold.</td><td class="narrow">Draft</td><td>Choose packages</td><td>Keep the list simple.</td></tr>
+<tr><td>Form</td><td>Customer goal</td><td>Understand the request.</td><td class="narrow">Ready</td><td>Use required field</td><td>Open text field.</td></tr>
+<tr><td>Form</td><td>Photos or links</td><td>Collect proof and context.</td><td class="narrow">Ready</td><td>Allow upload or link</td><td>Photos help most.</td></tr>
+<tr><td>Tracker</td><td>Status</td><td>Prevent lost leads.</td><td class="narrow">Ready</td><td>Review daily</td><td>New, Need Info, Quoted, Approved.</td></tr>
+<tr><td>Email</td><td>Confirmation</td><td>Reply fast and set expectations.</td><td class="narrow">Draft</td><td>Test email</td><td>Friendly and short.</td></tr>
+</table>
+</body>
+</html>
