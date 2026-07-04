@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Sample Library | Highway 38 Solutions</title>
-  <meta name="description" content="Sample deliverables and starter downloads for Highway 38 Solutions planning packets, shop reviews, AI workflows, and cleanup systems.">
+  <meta name="description" content="Sample deliverables, visual snapshots, and starter downloads for Highway 38 Solutions planning packets, shop reviews, AI workflows, and cleanup systems.">
   <link rel="canonical" href="https://rkrueth-maker.github.io/highway-38-solutions/sample-library.html">
-  <link rel="stylesheet" href="style.css?v=20260703-samples4">
-  <link rel="stylesheet" href="clarity.css?v=20260703-samples4">
-  <link rel="stylesheet" href="research.css?v=20260703-samples4">
-  <link rel="stylesheet" href="report-fixes.css?v=20260703-samples4">
-  <script defer src="clarity.js?v=20260703-samples4"></script>
+  <link rel="stylesheet" href="style.css?v=20260703-samples5">
+  <link rel="stylesheet" href="clarity.css?v=20260703-samples5">
+  <link rel="stylesheet" href="research.css?v=20260703-samples5">
+  <link rel="stylesheet" href="report-fixes.css?v=20260703-samples5">
+  <script defer src="clarity.js?v=20260703-samples5"></script>
   <style>
     .sample-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
-    .sample-card,.proof-note,.route-note{border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:1.15rem;background:rgba(255,255,255,.045)}
+    .sample-card,.proof-note,.route-note,.snapshot-card{border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:1.15rem;background:rgba(255,255,255,.045)}
     .sample-card a{font-weight:850}.sample-card p{margin:.45rem 0}.sample-card small{display:block;opacity:.85;margin-top:.2rem;line-height:1.45}
     .proof-note{margin-bottom:1.25rem;background:rgba(255,255,255,.06)}
     .route-note{margin-top:1rem;background:rgba(255,255,255,.05)}
@@ -22,7 +22,12 @@
     .library-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-top:1rem}
     .library-steps div{border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:.85rem;background:rgba(255,255,255,.035)}
     .library-steps strong{display:block;margin-bottom:.2rem}
-    @media(max-width:900px){.sample-grid,.library-steps{grid-template-columns:1fr}}
+    .snapshot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1rem 0 1.25rem}
+    .snapshot-card{display:block;color:inherit;text-decoration:none;overflow:hidden}
+    .snapshot-card img{display:block;width:100%;height:auto;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:#0f172a;margin-bottom:.85rem}
+    .snapshot-card span{display:block;font-weight:900;font-size:1.05rem;margin-bottom:.25rem}
+    .snapshot-card small{display:block;opacity:.85;line-height:1.45}
+    @media(max-width:900px){.sample-grid,.library-steps,.snapshot-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -31,6 +36,7 @@
   <nav aria-label="Main navigation">
     <a class="brand" href="./#top"><span>Highway 38</span> Solutions</a>
     <ul class="navlinks">
+      <li><a href="./#top">Home</a></li>
       <li><a href="packages.html#packages">Packages</a></li>
       <li><a href="pricing.html#main">Pricing</a></li>
       <li><a href="shop-automation.html#main">Shop / CNC</a></li>
@@ -44,7 +50,7 @@
   <header class="hero product-hero">
     <span class="eyebrow">Sample Library</span>
     <h1>See what “messy details in” can turn into.</h1>
-    <p class="hero-lead">These sample files show the kind of finished output Highway 38 can build from photos, notes, measurements, shop problems, customer messages, screenshots, or rough ideas.</p>
+    <p class="hero-lead">These sample files and snapshots show the kind of finished output Highway 38 can build from photos, notes, measurements, shop problems, customer messages, screenshots, or rough ideas.</p>
     <div class="buttons">
       <a class="btn primary-cta" href="https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform" target="_blank" rel="noopener">Start Request</a>
       <a class="btn btn-outline" href="packages.html#packages">Compare Packages</a>
@@ -57,12 +63,30 @@
         <div class="proof-note">
           <span class="badge">Starter examples</span>
           <h2>Use these to understand the output before you order.</h2>
-          <p>These examples show the format and level of detail customers can expect. Real customer-approved examples can replace or expand this library over time.</p>
+          <p>These examples show the format and level of detail customers can expect. The visual snapshots below are local files stored inside this site, so they do not depend on outside image links loading.</p>
           <div class="library-steps" aria-label="Sample library guide">
             <div><strong>1. Review a sample</strong><span>See the shape of a finished packet.</span></div>
             <div><strong>2. Download a starter</strong><span>Use a checklist, tracker, or worksheet.</span></div>
             <div><strong>3. Send your version</strong><span>Highway 38 turns your rough details into a usable output.</span></div>
           </div>
+        </div>
+
+        <div class="snapshot-grid" aria-label="Visual sample snapshots">
+          <a class="snapshot-card" href="sample-project-packet.md">
+            <img src="assets/snapshot-project-packet.svg" alt="Visual snapshot of a Highway 38 Project Packet deliverable">
+            <span>Project Packet preview</span>
+            <small>Photos, rough measurements, layout zones, material groups, build order, risks, and next steps.</small>
+          </a>
+          <a class="snapshot-card" href="sample-shop-cnc-concept.md">
+            <img src="assets/snapshot-shop-cnc.svg" alt="Visual snapshot of a Highway 38 Shop and CNC concept packet">
+            <span>Shop / CNC preview</span>
+            <small>Bottleneck notes, fixture ideas, ROI questions, and vendor quote-prep items.</small>
+          </a>
+          <a class="snapshot-card" href="sample-ai-workflow.md">
+            <img src="assets/snapshot-ai-workflow.svg" alt="Visual snapshot of a Highway 38 AI Workflow Snapshot deliverable">
+            <span>AI Workflow preview</span>
+            <small>Repeated office/shop work mapped into templates, dashboards, prompts, and handoff steps.</small>
+          </a>
         </div>
 
         <div class="sample-grid">
