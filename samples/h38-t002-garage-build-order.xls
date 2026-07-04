@@ -1,1 +1,28 @@
-<html><head><meta charset="utf-8"><title>H38-T002 Garage Build Order</title></head><body><table border="1"><tr><th colspan="6">Highway 38 Solutions - Garage Build Order</th></tr><tr><th>Phase</th><th>Task</th><th>Reason</th><th>Priority</th><th>Status</th><th>Notes</th></tr><tr><td>1</td><td>Measure wall length</td><td>Size storage correctly</td><td>High</td><td>Open</td><td>Long wall and back wall</td></tr><tr><td>1</td><td>Measure ceiling height</td><td>Check clearances</td><td>High</td><td>Open</td><td>Include door track area</td></tr><tr><td>2</td><td>Mark vehicle lane</td><td>Protect parking goal</td><td>High</td><td>Open</td><td>Use tape or chalk</td></tr><tr><td>2</td><td>Create sort zone</td><td>Keep work organized</td><td>High</td><td>Open</td><td>Keep, trash, unknown</td></tr><tr><td>3</td><td>Add wall storage</td><td>Move items off floor</td><td>Medium</td><td>Waiting</td><td>After measurements</td></tr><tr><td>3</td><td>Set daily tool zone</td><td>Reduce walking</td><td>Medium</td><td>Waiting</td><td>Near bench and power</td></tr><tr><td>4</td><td>Plan lighting or cabinets</td><td>Later upgrade</td><td>Low</td><td>Later</td><td>After layout works</td></tr></table></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>H38-T002 Garage Build Order</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11pt;margin:14px;background:#fff;color:#111827}
+  table{border-collapse:collapse;width:1120px;table-layout:fixed}
+  th,td{border:1px solid #b7c3d0;padding:8px 10px;vertical-align:top;white-space:normal;word-wrap:break-word;line-height:1.35;mso-number-format:"\@"}
+  th{background:#dbeafe;font-weight:700;color:#0f172a}.title{background:#1f2937;color:#fff;font-size:16pt;text-align:left;padding:12px}.sub{background:#f8fafc;color:#475569;font-style:italic}.narrow{text-align:center}
+</style>
+</head>
+<body>
+<table>
+<colgroup><col style="width:90px"><col style="width:250px"><col style="width:260px"><col style="width:105px"><col style="width:120px"><col style="width:295px"></colgroup>
+<tr><th class="title" colspan="6">Highway 38 Solutions - H38-T002 Garage Build Order</th></tr>
+<tr><td class="sub" colspan="6">Use this build order to stop buying ahead of measurements and keep the first project phase practical.</td></tr>
+<tr><th>Phase</th><th>Task</th><th>Reason</th><th>Priority</th><th>Status</th><th>Notes</th></tr>
+<tr><td class="narrow">1</td><td>Measure wall length</td><td>Size storage correctly.</td><td class="narrow">High</td><td class="narrow">Open</td><td>Measure long wall and back wall.</td></tr>
+<tr><td class="narrow">1</td><td>Measure ceiling height</td><td>Check overhead and door clearances.</td><td class="narrow">High</td><td class="narrow">Open</td><td>Include door track and opener area.</td></tr>
+<tr><td class="narrow">2</td><td>Mark vehicle lane</td><td>Protect the main parking goal.</td><td class="narrow">High</td><td class="narrow">Open</td><td>Use tape or chalk.</td></tr>
+<tr><td class="narrow">2</td><td>Create sort zone</td><td>Keep the cleanup from turning into reshuffling.</td><td class="narrow">High</td><td class="narrow">Open</td><td>Keep, trash, unknown, daily-use.</td></tr>
+<tr><td class="narrow">3</td><td>Add wall storage</td><td>Move items off the floor.</td><td class="narrow">Medium</td><td class="narrow">Waiting</td><td>Do after measurements are confirmed.</td></tr>
+<tr><td class="narrow">3</td><td>Set daily tool zone</td><td>Reduce walking and tool searching.</td><td class="narrow">Medium</td><td class="narrow">Waiting</td><td>Place near bench and power.</td></tr>
+<tr><td class="narrow">4</td><td>Plan lighting or cabinets</td><td>Later upgrade after layout works.</td><td class="narrow">Low</td><td class="narrow">Later</td><td>Do not make this the first spend.</td></tr>
+</table>
+</body>
+</html>
