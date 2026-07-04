@@ -1,1 +1,26 @@
-<html><head><meta charset="utf-8"><title>H38-T003 Shop Flow Fix List</title></head><body><table border="1"><tr><th colspan="6">Highway 38 Solutions - Shop Flow Fix List</th></tr><tr><th>Fix</th><th>Area</th><th>Reason</th><th>Priority</th><th>Status</th><th>Notes</th></tr><tr><td>Clear active bay lane</td><td>Work bay</td><td>Vehicle access</td><td>High</td><td>Next</td><td>No storage in lane</td></tr><tr><td>Move daily tools close</td><td>Tool zone</td><td>Reduce walking</td><td>High</td><td>Open</td><td>Wrenches, sockets, impacts</td></tr><tr><td>Add job parts shelf</td><td>Parts staging</td><td>Stop lost parts</td><td>High</td><td>Open</td><td>One bin per job</td></tr><tr><td>Separate dirty work</td><td>Bench</td><td>Protect clean items</td><td>Medium</td><td>Open</td><td>Grind/cut away from storage</td></tr><tr><td>Move low-use items</td><td>Overflow</td><td>Free work zone</td><td>Medium</td><td>Open</td><td>Seasonal and rare tools</td></tr></table></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>H38-T003 Shop Flow Fix List</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:11pt;margin:14px;background:#fff;color:#111827}
+  table{border-collapse:collapse;width:1120px;table-layout:fixed}
+  th,td{border:1px solid #b7c3d0;padding:8px 10px;vertical-align:top;white-space:normal;word-wrap:break-word;line-height:1.35;mso-number-format:"\@"}
+  th{background:#dbeafe;font-weight:700;color:#0f172a}.title{background:#1f2937;color:#fff;font-size:16pt;text-align:left;padding:12px}.sub{background:#f8fafc;color:#475569;font-style:italic}.narrow{text-align:center}
+</style>
+</head>
+<body>
+<table>
+<colgroup><col style="width:230px"><col style="width:160px"><col style="width:260px"><col style="width:105px"><col style="width:110px"><col style="width:255px"></colgroup>
+<tr><th class="title" colspan="6">Highway 38 Solutions - H38-T003 Shop Flow Fix List</th></tr>
+<tr><td class="sub" colspan="6">Use this list to turn a cluttered repair bay into clear zones, staged parts, and repeatable first fixes.</td></tr>
+<tr><th>Fix</th><th>Area</th><th>Reason</th><th>Priority</th><th>Status</th><th>Notes</th></tr>
+<tr><td>Clear active bay lane</td><td>Work bay</td><td>Restore vehicle access and stop storage creep.</td><td class="narrow">High</td><td class="narrow">Next</td><td>No storage in the active lane.</td></tr>
+<tr><td>Move daily tools close</td><td>Tool zone</td><td>Reduce walking and searching.</td><td class="narrow">High</td><td class="narrow">Open</td><td>Wrenches, sockets, impacts, lights, common fluids.</td></tr>
+<tr><td>Add job parts shelf</td><td>Parts staging</td><td>Stop lost parts and mixed customer jobs.</td><td class="narrow">High</td><td class="narrow">Open</td><td>One bin or shelf zone per active job.</td></tr>
+<tr><td>Separate dirty work</td><td>Bench</td><td>Protect clean parts and storage.</td><td class="narrow">Medium</td><td class="narrow">Open</td><td>Grind, cut, and dirty repair away from clean storage.</td></tr>
+<tr><td>Move low-use items</td><td>Overflow</td><td>Free the work zone for daily work.</td><td class="narrow">Medium</td><td class="narrow">Open</td><td>Seasonal items and rare tools move out of the bay.</td></tr>
+</table>
+</body>
+</html>
