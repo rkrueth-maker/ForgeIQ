@@ -1,0 +1,116 @@
+name: Verify live Highway 38 site
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy Highway 38 site to GitHub Pages
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verify-live-site:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    env:
+      SITE_URL: https://rkrueth-maker.github.io/highway-38-solutions/index.html
+      FORM_URL: https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform
+
+    steps:
+      - name: Wait briefly for GitHub Pages propagation
+        run: sleep 30
+
+      - name: Fetch live homepage with retries
+        run: |
+          set -e
+          for i in {1..10}; do
+            echo "Attempt $i: fetching $SITE_URL"
+            STATUS=$(curl -L -s -o live-homepage.html -w "%{http_code}" "$SITE_URL?v=auto-live-verify-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")
+            echo "HTTP status: $STATUS"
+
+            if [ "$STATUS" = "200" ]; then
+              echo "Live homepage fetched successfully."
+              exit 0
+            fi
+
+            sleep 15
+          done
+
+          echo "Failed to fetch live homepage with HTTP 200."
+          exit 1
+
+      - name: Verify required live homepage text
+        run: |
+          set -e
+          REPORT=live-site-verification-report.txt
+
+          echo "Highway 38 live-site verification" > "$REPORT"
+          echo "Checked URL: $SITE_URL" >> "$REPORT"
+          echo "Run ID: $GITHUB_RUN_ID" >> "$REPORT"
+          echo "Run attempt: $GITHUB_RUN_ATTEMPT" >> "$REPORT"
+          echo "" >> "$REPORT"
+
+          check_text () {
+            LABEL="$1"
+            TEXT="$2"
+
+            if grep -Fq -- "$TEXT" live-homepage.html; then
+              echo "PASS: $LABEL" | tee -a "$REPORT"
+            else
+              echo "FAIL: $LABEL" | tee -a "$REPORT"
+              exit 1
+            fi
+          }
+
+          reject_text () {
+            LABEL="$1"
+            TEXT="$2"
+
+            if grep -Fq -- "$TEXT" live-homepage.html; then
+              echo "FAIL: $LABEL" | tee -a "$REPORT"
+              exit 1
+            else
+              echo "PASS: $LABEL" | tee -a "$REPORT"
+            fi
+          }
+
+          check_text "Problem Snapshot CTA" "Start With a Problem Snapshot"
+          check_text "Request form link" "$FORM_URL"
+          check_text "Pricing clarity" '$79 intro / $99 normal'
+          check_text "Featured service" "Messy Details In → Finished Document Out"
+          check_text "Clarity card" "Start here: Problem Snapshot"
+          check_text "Under-250 section" "Under-$250 draft-ready products"
+          check_text "Product automation guardrail" "Draft prepared automatically. Final output requires Rick approval before delivery."
+          check_text "Approval gate" "Rick Review Required / Owner Approval Required"
+          check_text "AI example label" "AI-generated example / not customer work"
+          check_text "No instant delivery promise" "No instant-delivery promise"
+          reject_text "No obvious GitHub Pages 404" "404: File not found"
+
+          echo "" >> "$REPORT"
+          echo "Live verification completed successfully." >> "$REPORT"
+
+      - name: Add pass/fail summary
+        if: always()
+        run: |
+          echo "## Highway 38 live-site verification" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -f live-site-verification-report.txt ]; then
+            cat live-site-verification-report.txt >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Verification report was not created." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: highway-38-live-site-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            live-site-verification-report.txt
+            live-homepage.html
