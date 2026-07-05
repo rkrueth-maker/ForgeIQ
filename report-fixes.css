@@ -235,6 +235,49 @@
   opacity: .75;
 }
 
+/* Compact staged-demo safety badges */
+.sample-card > .safe-labels,
+.sample-block > .safe-labels,
+.case-card > .safe-labels {
+  align-items: center !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  gap: .28rem !important;
+  line-height: 1 !important;
+  margin: 0 0 .55rem !important;
+  max-width: 100% !important;
+}
+
+.sample-card > .safe-labels span,
+.sample-block > .safe-labels span,
+.case-card > .safe-labels span {
+  align-items: center !important;
+  background: rgba(200, 95, 40, .08) !important;
+  border: 1px solid rgba(200, 95, 40, .18) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  color: #8a3a18 !important;
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  font-size: .64rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .01em !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+  max-width: max-content !important;
+  padding: .18rem .42rem !important;
+  text-transform: none !important;
+  white-space: nowrap !important;
+  width: auto !important;
+}
+
+.sample-card > .sample-preview,
+.sample-block .mock-screen,
+.case-card .mock-screen {
+  margin-top: .15rem !important;
+}
+
 @media (max-width: 1180px) {
   .desk-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
