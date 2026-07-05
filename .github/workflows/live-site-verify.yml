@@ -19,47 +19,63 @@ jobs:
 
     env:
       SITE_URL: https://rkrueth-maker.github.io/highway-38-solutions/index.html
+      SAMPLE_LIBRARY_URL: https://rkrueth-maker.github.io/highway-38-solutions/sample-library.html
+      SAMPLE_RESULTS_URL: https://rkrueth-maker.github.io/highway-38-solutions/sample-workbooks.html
       FORM_URL: https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform
 
     steps:
       - name: Wait briefly for GitHub Pages propagation
         run: sleep 30
 
-      - name: Fetch live homepage with retries
+      - name: Fetch live pages with retries
         run: |
           set -e
-          for i in {1..10}; do
-            echo "Attempt $i: fetching $SITE_URL"
-            STATUS=$(curl -L -s -o live-homepage.html -w "%{http_code}" "$SITE_URL?v=auto-live-verify-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")
-            echo "HTTP status: $STATUS"
 
-            if [ "$STATUS" = "200" ]; then
-              echo "Live homepage fetched successfully."
-              exit 0
-            fi
+          fetch_page () {
+            LABEL="$1"
+            URL="$2"
+            OUT="$3"
 
-            sleep 15
-          done
+            for i in {1..10}; do
+              echo "Attempt $i: fetching $LABEL at $URL"
+              STATUS=$(curl -L -s -o "$OUT" -w "%{http_code}" "$URL?v=auto-live-verify-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")
+              echo "$LABEL HTTP status: $STATUS"
 
-          echo "Failed to fetch live homepage with HTTP 200."
-          exit 1
+              if [ "$STATUS" = "200" ]; then
+                echo "$LABEL fetched successfully."
+                return 0
+              fi
 
-      - name: Verify required live homepage text
+              sleep 15
+            done
+
+            echo "Failed to fetch $LABEL with HTTP 200."
+            exit 1
+          }
+
+          fetch_page "home" "$SITE_URL" live-homepage.html
+          fetch_page "sample library" "$SAMPLE_LIBRARY_URL" live-sample-library.html
+          fetch_page "sample results" "$SAMPLE_RESULTS_URL" live-sample-results.html
+
+      - name: Verify required live page text
         run: |
           set -e
           REPORT=live-site-verification-report.txt
 
           echo "Highway 38 live-site verification" > "$REPORT"
           echo "Checked URL: $SITE_URL" >> "$REPORT"
+          echo "Checked URL: $SAMPLE_LIBRARY_URL" >> "$REPORT"
+          echo "Checked URL: $SAMPLE_RESULTS_URL" >> "$REPORT"
           echo "Run ID: $GITHUB_RUN_ID" >> "$REPORT"
           echo "Run attempt: $GITHUB_RUN_ATTEMPT" >> "$REPORT"
           echo "" >> "$REPORT"
 
           check_text () {
-            LABEL="$1"
-            TEXT="$2"
+            FILE="$1"
+            LABEL="$2"
+            TEXT="$3"
 
-            if grep -Fq -- "$TEXT" live-homepage.html; then
+            if grep -Fq -- "$TEXT" "$FILE"; then
               echo "PASS: $LABEL" | tee -a "$REPORT"
             else
               echo "FAIL: $LABEL" | tee -a "$REPORT"
@@ -68,10 +84,11 @@ jobs:
           }
 
           reject_text () {
-            LABEL="$1"
-            TEXT="$2"
+            FILE="$1"
+            LABEL="$2"
+            TEXT="$3"
 
-            if grep -Fq -- "$TEXT" live-homepage.html; then
+            if grep -Fq -- "$TEXT" "$FILE"; then
               echo "FAIL: $LABEL" | tee -a "$REPORT"
               exit 1
             else
@@ -79,17 +96,47 @@ jobs:
             fi
           }
 
-          check_text "Problem Snapshot CTA" "Start With a Problem Snapshot"
-          check_text "Request form link" "$FORM_URL"
-          check_text "Pricing clarity" '$79 intro / $99 normal'
-          check_text "Featured service" "Messy Details In → Finished Document Out"
-          check_text "Clarity card" "Start here: Problem Snapshot"
-          check_text "Under-250 section" 'Under-$250 draft-ready products'
-          check_text "Product automation guardrail" "Draft prepared automatically. Final output requires Rick approval before delivery."
-          check_text "Approval gate" "Rick Review Required / Owner Approval Required"
-          check_text "AI example label" "AI-generated example / not customer work"
-          check_text "No instant delivery promise" "No instant-delivery promise"
-          reject_text "No obvious GitHub Pages 404" "404: File not found"
+          check_text live-homepage.html "Problem Snapshot CTA" "Start With a Problem Snapshot"
+          check_text live-homepage.html "Request form link" "$FORM_URL"
+          check_text live-homepage.html "Pricing clarity" '$79 intro / $99 normal'
+          check_text live-homepage.html "Featured service" "Messy Details In → Finished Document Out"
+          check_text live-homepage.html "Under-250 section" 'Under-$250 draft-ready products'
+          check_text live-homepage.html "Basic Layout Snapshot" "Basic Layout Snapshot"
+          check_text live-homepage.html "Project Packet Lite" "Project Packet Lite"
+          check_text live-homepage.html "Business Cleanup Starter" "Business Cleanup Starter"
+          check_text live-homepage.html "Cleanup Rescue Pack" "Cleanup Rescue Pack"
+          check_text live-homepage.html "Workflow Opportunity Snapshot" "Workflow Opportunity Snapshot"
+          check_text live-homepage.html "Approval gate" "Rick Review Required / Owner Approval Required"
+          check_text live-homepage.html "No instant delivery promise" "No instant-delivery promise"
+          check_text live-homepage.html "Safe sample label" "Sample output — not customer work"
+          reject_text live-homepage.html "No obvious GitHub Pages 404 on home" "404: File not found"
+
+          check_text live-sample-library.html "Sample library safe label" "Sample output — not customer work"
+          check_text live-sample-library.html "Sample library hypothetical label" "Hypothetical example"
+          check_text live-sample-library.html "Sample library staged label" "Staged demo using sample information"
+          check_text live-sample-library.html "Sample library Basic Layout Snapshot" "Basic Layout Snapshot"
+          check_text live-sample-library.html "Sample library Project Packet Lite" "Project Packet Lite"
+          check_text live-sample-library.html "Sample library Business Cleanup Starter" "Business Cleanup Starter"
+          check_text live-sample-library.html "Sample library Cleanup Rescue Pack" "Cleanup Rescue Pack"
+          check_text live-sample-library.html "Sample library Workflow Opportunity Snapshot" "Workflow Opportunity Snapshot"
+          reject_text live-sample-library.html "Removed sample card: Shop / CNC Concept" "Shop / CNC Concept"
+          reject_text live-sample-library.html "Removed sample card: Digital Setup" "Digital Setup"
+          reject_text live-sample-library.html "Removed sample card: Custom Work Build" "Custom Work Build"
+          reject_text live-sample-library.html "Old exact Project Packet heading removed" "<h2>Project Packet</h2>"
+          reject_text live-sample-library.html "Old exact Business Cleanup heading removed" "<h2>Business Cleanup</h2>"
+          reject_text live-sample-library.html "Old exact Cleanup Rescue heading removed" "<h2>Cleanup Rescue</h2>"
+          reject_text live-sample-library.html "Old exact AI Workflow heading removed" "<h2>AI Workflow</h2>"
+          reject_text live-sample-library.html "No obvious GitHub Pages 404 on sample library" "404: File not found"
+
+          check_text live-sample-results.html "Sample results visible directly" "Product samples and results show directly on the page."
+          check_text live-sample-results.html "Sample results approval language" "Rick Review Required / Owner Approval Required"
+          check_text live-sample-results.html "Sample results Basic Layout Snapshot" "Basic Layout Snapshot"
+          check_text live-sample-results.html "Sample results Workflow Opportunity Snapshot" "Workflow Opportunity Snapshot"
+          reject_text live-sample-results.html "Removed result: Shop / CNC Concept" "Shop / CNC Concept"
+          reject_text live-sample-results.html "Removed result: Digital Setup" "Digital Setup"
+          reject_text live-sample-results.html "Removed result: Custom Work Build" "Custom Work Build"
+          reject_text live-sample-results.html "Old exact AI Workflow heading removed from results" "<span>AI Workflow</span>"
+          reject_text live-sample-results.html "No obvious GitHub Pages 404 on sample results" "404: File not found"
 
           echo "" >> "$REPORT"
           echo "Live verification completed successfully." >> "$REPORT"
@@ -114,3 +161,5 @@ jobs:
           path: |
             live-site-verification-report.txt
             live-homepage.html
+            live-sample-library.html
+            live-sample-results.html
