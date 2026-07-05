@@ -41,6 +41,20 @@ AGENT_HISTORY_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_history.json")
 AGENT_REPORT_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_response.md")
 AGENT_REVIEW_FILE = os.path.join(REPORTS_DIR, "forgeiq_agent_review.json")
 
+PUBLIC_ROOT_FILES = {
+  "404.html",
+  "clarity.css",
+  "clarity.js",
+  "product-addons.js",
+  "report-fixes.css",
+  "research.css",
+  "robots.txt",
+  "site.js",
+  "sitemap.xml",
+  "style.css",
+}
+PUBLIC_SUBDIRS = {"assets", "samples"}
+
 ROLLOUT_PHASES = [
   {
     "title": "Phase 2: Stage Top 3",
@@ -1259,6 +1273,24 @@ def _safe_file_path(directory, filename):
     return target
 
 
+def _is_public_site_file(filename):
+    normalized = (filename or "").strip().lstrip("/")
+    if not normalized:
+        return False
+
+    file_path = Path(normalized)
+    parts = file_path.parts
+    if not parts:
+        return False
+
+    # Serve known top-level files used by the public landing page.
+    if len(parts) == 1 and parts[0] in PUBLIC_ROOT_FILES:
+        return True
+
+    # Serve public subdirectories (images and sample downloads).
+    return parts[0] in PUBLIC_SUBDIRS
+
+
 def _render_document_view(title, subtitle, content, back_url, raw_url):
     return render_template_string(
         DOCUMENT_TEMPLATE,
@@ -1892,6 +1924,15 @@ def create_app():
     @app.get("/live")
     def live():
         return redirect(url_for("dashboard", live="1"))
+
+    @app.get("/<path:filename>")
+    def public_site_file(filename):
+        if not _is_public_site_file(filename):
+            abort(404)
+        path = _safe_file_path(str(PROJECT_ROOT), filename)
+        if not path:
+            abort(404)
+        return send_from_directory(str(PROJECT_ROOT), filename)
 
     @app.post("/agent")
     def agent():

@@ -38,6 +38,121 @@ function addLaunchFooterLinks() {
   footer.appendChild(span);
 }
 
+function addSampleLibraryThumbnails() {
+  const pageName = window.location.pathname.split("/").pop().toLowerCase();
+  if (pageName !== "sample-library.html") return;
+
+  const normalizeTitle = (value) =>
+    String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+
+  const resolveAsset = (path) => new URL(path, document.baseURI).href;
+
+  const titleToImageCandidates = {
+    "problem snapshot": [
+      "assets/sample-problem-snapshot.svg",
+      "assets/sample-problem-snapshot-proof.svg",
+      "assets/sample-problem-proof.svg",
+      "assets/sample-garage-proof.svg",
+    ],
+    "basic layout snapshot": [
+      "assets/sample-basic-layout-snapshot.svg",
+      "assets/sample-basic-layout-proof.svg",
+      "assets/sample-layout-proof.svg",
+      "assets/sample-garage-proof.svg",
+    ],
+    "project packet lite": [
+      "assets/sample-project-packet-lite.svg",
+      "assets/sample-project-proof.svg",
+      "assets/sample-project-packet-proof.svg",
+      "assets/sample-garage-proof.svg",
+    ],
+    "shop flow review": [
+      "assets/sample-shop-flow-review.svg",
+      "assets/sample-shop-flow-proof.svg",
+      "assets/sample-shop-proof.svg",
+      "assets/sample-shop-flow-proof.svg",
+    ],
+    "business cleanup starter": [
+      "assets/sample-business-cleanup-starter.svg",
+      "assets/sample-business-proof.svg",
+      "assets/sample-business-cleanup-proof.svg",
+      "assets/sample-business-proof.svg",
+    ],
+    "cleanup rescue pack": [
+      "assets/sample-cleanup-rescue-pack.svg",
+      "assets/sample-cleanup-proof.svg",
+      "assets/sample-cleanup-rescue-proof.svg",
+      "assets/sample-cleanup-proof.svg",
+    ],
+    "workflow opportunity snapshot": [
+      "assets/sample-workflow-opportunity-snapshot.svg",
+      "assets/sample-workflow-proof.svg",
+      "assets/sample-ai-proof.svg",
+      "assets/sample-ai-proof.svg",
+    ],
+  };
+
+  document.querySelectorAll(".sample-card").forEach((card) => {
+    if (card.querySelector("img")) return;
+    if (card.querySelector('[data-h38-sample-thumb="true"]')) return;
+
+    const titleElement = card.querySelector("h2");
+    if (!titleElement) return;
+
+    const title = titleElement.textContent.trim();
+    const normalizedTitle = normalizeTitle(title);
+    const candidates = titleToImageCandidates[normalizedTitle];
+    if (!candidates || !candidates.length) return;
+
+    const fallbackPreview = card.querySelector(".sample-preview");
+    const img = document.createElement("img");
+    img.className = "h38-sample-thumb";
+    img.dataset.h38SampleThumb = "true";
+    img.alt = `${title} - sample output thumbnail`;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.hidden = true;
+
+    let candidateIndex = 0;
+
+    const tryNextImage = () => {
+      if (candidateIndex >= candidates.length) {
+        img.remove();
+        if (fallbackPreview) {
+          fallbackPreview.hidden = false;
+          fallbackPreview.removeAttribute("aria-hidden");
+        }
+        return;
+      }
+
+      img.src = resolveAsset(candidates[candidateIndex]);
+      candidateIndex += 1;
+    };
+
+    img.addEventListener("load", () => {
+      if (!img.naturalWidth) {
+        tryNextImage();
+        return;
+      }
+
+      img.hidden = false;
+      card.classList.add("h38-sample-thumb-loaded");
+      if (fallbackPreview) {
+        fallbackPreview.hidden = true;
+        fallbackPreview.setAttribute("aria-hidden", "true");
+      }
+    });
+
+    img.addEventListener("error", tryNextImage);
+
+    titleElement.parentNode.insertBefore(img, titleElement);
+    tryNextImage();
+  });
+}
+
 function addGlobalPolishStyles() {
   if (document.querySelector("#highway38-launch-polish")) return;
   const style = document.createElement("style");
@@ -58,6 +173,7 @@ function bootClarity() {
   repairRequestLinks();
   addMobileNavSupport();
   addLaunchFooterLinks();
+  addSampleLibraryThumbnails();
 }
 
 if (document.readyState === "loading") {
