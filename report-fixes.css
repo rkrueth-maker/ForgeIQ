@@ -158,7 +158,7 @@
 }
 .proof-card .dashboard-card::before {
   background-color: #020617;
-  background-image: url("assets/h38-demo-overview-v1.svg?v=chat-review-v1");
+  background-image: url("assets/h38-demo-overview-chat-photo-v1.jpg?v=chat-photo-v1");
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
