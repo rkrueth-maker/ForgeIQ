@@ -40,7 +40,8 @@ function addLaunchFooterLinks() {
 
 function addSampleLibraryThumbnails() {
   const pageName = window.location.pathname.split("/").pop().toLowerCase();
-  if (pageName !== "sample-library.html") return;
+  const samplePages = ["sample-library.html", "sample-library-now.html"];
+  if (!samplePages.includes(pageName)) return;
 
   const normalizeTitle = (value) =>
     String(value || "")
@@ -49,6 +50,42 @@ function addSampleLibraryThumbnails() {
       .replace(/\s+/g, " ");
 
   const resolveAsset = (path) => new URL(path, document.baseURI).href;
+
+  const hideFallbackPreview = (card, img) => {
+    const fallbackPreview = card.querySelector(".sample-preview");
+    if (!fallbackPreview || !img || !img.naturalWidth) return;
+
+    img.hidden = false;
+    card.classList.add("h38-sample-thumb-loaded");
+    fallbackPreview.hidden = true;
+    fallbackPreview.setAttribute("aria-hidden", "true");
+    fallbackPreview.style.display = "none";
+  };
+
+  const showFallbackPreview = (card) => {
+    const fallbackPreview = card.querySelector(".sample-preview");
+    if (!fallbackPreview) return;
+
+    card.classList.remove("h38-sample-thumb-loaded");
+    fallbackPreview.hidden = false;
+    fallbackPreview.removeAttribute("aria-hidden");
+    fallbackPreview.style.display = "";
+  };
+
+  const wireExistingImage = (card, img) => {
+    if (!img || img.dataset.h38ExistingThumbWired === "true") return;
+    img.dataset.h38ExistingThumbWired = "true";
+    img.loading = img.loading || "lazy";
+    img.decoding = img.decoding || "async";
+
+    if (img.complete && img.naturalWidth) {
+      hideFallbackPreview(card, img);
+      return;
+    }
+
+    img.addEventListener("load", () => hideFallbackPreview(card, img), { once: true });
+    img.addEventListener("error", () => showFallbackPreview(card), { once: true });
+  };
 
   const titleToImageCandidates = {
     "problem snapshot": [
@@ -96,7 +133,12 @@ function addSampleLibraryThumbnails() {
   };
 
   document.querySelectorAll(".sample-card").forEach((card) => {
-    if (card.querySelector("img")) return;
+    const existingImg = card.querySelector("img");
+    if (existingImg) {
+      wireExistingImage(card, existingImg);
+      return;
+    }
+
     if (card.querySelector('[data-h38-sample-thumb="true"]')) return;
 
     const titleElement = card.querySelector("h2");
@@ -107,7 +149,6 @@ function addSampleLibraryThumbnails() {
     const candidates = titleToImageCandidates[normalizedTitle];
     if (!candidates || !candidates.length) return;
 
-    const fallbackPreview = card.querySelector(".sample-preview");
     const img = document.createElement("img");
     img.className = "h38-sample-thumb";
     img.dataset.h38SampleThumb = "true";
@@ -121,10 +162,7 @@ function addSampleLibraryThumbnails() {
     const tryNextImage = () => {
       if (candidateIndex >= candidates.length) {
         img.remove();
-        if (fallbackPreview) {
-          fallbackPreview.hidden = false;
-          fallbackPreview.removeAttribute("aria-hidden");
-        }
+        showFallbackPreview(card);
         return;
       }
 
@@ -138,12 +176,7 @@ function addSampleLibraryThumbnails() {
         return;
       }
 
-      img.hidden = false;
-      card.classList.add("h38-sample-thumb-loaded");
-      if (fallbackPreview) {
-        fallbackPreview.hidden = true;
-        fallbackPreview.setAttribute("aria-hidden", "true");
-      }
+      hideFallbackPreview(card, img);
     });
 
     img.addEventListener("error", tryNextImage);
@@ -163,6 +196,7 @@ function addGlobalPolishStyles() {
     .nav-toggle{display:none;border:1px solid rgba(255,255,255,.22);border-radius:12px;background:rgba(255,255,255,.08);color:inherit;padding:.65rem .8rem;font-weight:800}
     .hamburger{display:inline-block;width:1.15rem;height:.85rem;position:relative;margin-right:.35rem;vertical-align:-.1rem}.hamburger:before,.hamburger:after,.hamburger span{content:"";position:absolute;left:0;right:0;height:2px;background:currentColor;border-radius:2px}.hamburger:before{top:0}.hamburger span{top:50%;transform:translateY(-50%)}.hamburger:after{bottom:0}
     footer a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+    .sample-card.h38-sample-thumb-loaded .sample-preview{display:none!important}
     @media(max-width:820px){nav{align-items:center}.nav-toggle{display:inline-flex;align-items:center}.navlinks{display:none;position:absolute;top:100%;left:1rem;right:1rem;z-index:30;background:rgba(15,23,42,.98);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:1rem;box-shadow:0 18px 55px rgba(0,0,0,.35)}.navlinks.is-open{display:grid;gap:.5rem}.navlinks li{width:100%}.navlinks a{display:block;padding:.75rem .85rem;border-radius:12px}.navlinks .nav-cta{display:block;text-align:center}.buttons a{width:100%;text-align:center}}
   `;
   document.head.appendChild(style);
