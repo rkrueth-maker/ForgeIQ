@@ -278,6 +278,41 @@
   margin-top: .15rem !important;
 }
 
+/* Final investor proof split: use the approved proof board as seven individual product visuals. */
+.deliverable-section .deliverable-canvas::before {
+  background-image: url("assets/approved-investor-proof-dashboard.png?v=split-7-products");
+  background-repeat: no-repeat;
+  background-size: 300% auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, .10);
+  content: "";
+  display: block;
+  height: clamp(210px, 28vw, 340px);
+  margin: 1rem 1rem .75rem;
+}
+
+#problem-snapshot-run .deliverable-canvas::before { background-position: 0% 0%; }
+#basic-layout-run .deliverable-canvas::before { background-position: 50% 0%; }
+#shop-flow-run .deliverable-canvas::before { background-position: 100% 0%; }
+#project-packet-run .deliverable-canvas::before { background-position: 0% 50%; }
+#business-cleanup-run .deliverable-canvas::before { background-position: 50% 50%; }
+#cleanup-rescue-run .deliverable-canvas::before { background-position: 100% 50%; }
+#workflow-opportunity-run .deliverable-canvas::before { background-position: 0% 100%; }
+
+.deliverable-section .deliverable-canvas::after {
+  background: #fff4ea;
+  border: 1px solid rgba(200, 95, 40, .20);
+  border-radius: 999px;
+  color: #8a3a18;
+  content: "Split from approved proof board — sample output, not customer work";
+  display: inline-flex;
+  font-size: .7rem;
+  font-weight: 900;
+  margin: 0 1rem 1rem;
+  padding: .32rem .6rem;
+}
+
 @media (max-width: 1180px) {
   .desk-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -319,5 +354,10 @@
   .tertiary-link {
     justify-content: center;
     width: 100%;
+  }
+
+  .deliverable-section .deliverable-canvas::before {
+    background-size: 320% auto;
+    height: 220px;
   }
 }
