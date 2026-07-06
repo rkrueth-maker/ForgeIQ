@@ -199,13 +199,13 @@
   margin-bottom: .75rem;
 }
 
-#problem-snapshot-output .visual-frame::before { background-image: url("assets/rick-review-problem-snapshot-v1.png?v=rick-review-v1"); }
-#basic-layout-output .visual-frame::before { background-image: url("assets/rick-review-basic-layout-v1.png?v=rick-review-v1"); }
-#shop-flow-output .visual-frame::before { background-image: url("assets/rick-review-shop-flow-v1.png?v=rick-review-v1"); }
-#project-packet-output .visual-frame::before { background-image: url("assets/rick-review-project-packet-v1.png?v=rick-review-v1"); }
-#business-cleanup-output .visual-frame::before { background-image: url("assets/rick-review-business-cleanup-v1.png?v=rick-review-v1"); }
-#cleanup-rescue-output .visual-frame::before { background-image: url("assets/rick-review-cleanup-rescue-v1.png?v=rick-review-v1"); }
-#workflow-opportunity-output .visual-frame::before { background-image: url("assets/rick-review-workflow-opportunity-v1.png?v=rick-review-v1"); }
+#problem-snapshot-output .visual-frame::before { background-image: url("assets/rick-review-problem-snapshot-v2.svg?v=rick-review-v2"); }
+#basic-layout-output .visual-frame::before { background-image: url("assets/rick-review-basic-layout-v2.svg?v=rick-review-v2"); }
+#shop-flow-output .visual-frame::before { background-image: url("assets/rick-review-shop-flow-v2.svg?v=rick-review-v2"); }
+#project-packet-output .visual-frame::before { background-image: url("assets/rick-review-project-packet-v2.svg?v=rick-review-v2"); }
+#business-cleanup-output .visual-frame::before { background-image: url("assets/rick-review-business-cleanup-v2.svg?v=rick-review-v2"); }
+#cleanup-rescue-output .visual-frame::before { background-image: url("assets/rick-review-cleanup-rescue-v2.svg?v=rick-review-v2"); }
+#workflow-opportunity-output .visual-frame::before { background-image: url("assets/rick-review-workflow-opportunity-v2.svg?v=rick-review-v2"); }
 
 .demo-output .visual-frame::after {
   background: #fff4ea;
