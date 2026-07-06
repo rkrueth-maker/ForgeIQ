@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment_attempt_1.outputs.page_url || steps.deployment_attempt_2.outputs.page_url }}
     steps:
       - name: Checkout current source
         uses: actions/checkout@v4
@@ -72,8 +72,22 @@ jobs:
           path: _site
           name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - name: Deploy current source to Pages
-        id: deployment
+      - name: Deploy current source to Pages (attempt 1)
+        id: deployment_attempt_1
+        continue-on-error: true
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Deploy current source to Pages (retry if attempt 1 fails)
+        if: ${{ always() && steps.deployment_attempt_1.outcome == 'failure' }}
+        id: deployment_attempt_2
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Fail if both deployment attempts fail
+        if: ${{ always() && steps.deployment_attempt_1.outcome == 'failure' && steps.deployment_attempt_2.outcome == 'failure' }}
+        run: |
+          echo "Both GitHub Pages deployment attempts failed."
+          exit 1
