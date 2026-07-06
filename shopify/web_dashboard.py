@@ -1,5 +1,6 @@
 import json
 import html
+import logging
 import os
 import re
 import socket
@@ -149,6 +150,29 @@ ROLLOUT_ITEM_KEYS = {
 }
 
 ALL_CHECK_KEYS = ROLLOUT_ITEM_KEYS | SAFETY_REQUIRED_KEYS
+
+
+class _WerkzeugMalformedRequestNoiseFilter(logging.Filter):
+  """Suppress noisy malformed-request messages from protocol mismatch probes."""
+
+  _NOISY_PATTERNS = (
+    "Bad HTTP/0.9 request type",
+    "Bad request version",
+    "Bad request syntax",
+  )
+
+  def filter(self, record):
+    if record.name != "werkzeug":
+      return True
+    message = record.getMessage()
+    return not any(pattern in message for pattern in self._NOISY_PATTERNS)
+
+
+def _install_werkzeug_noise_filter():
+  werkzeug_logger = logging.getLogger("werkzeug")
+  if any(isinstance(f, _WerkzeugMalformedRequestNoiseFilter) for f in werkzeug_logger.filters):
+    return
+  werkzeug_logger.addFilter(_WerkzeugMalformedRequestNoiseFilter())
 
 
 TEMPLATE = """
@@ -2010,6 +2034,7 @@ def create_app():
 
 def run(host="127.0.0.1", port=5050, open_browser=True):
     app = create_app()
+    _install_werkzeug_noise_filter()
     browser_host = "127.0.0.1" if host in {"0.0.0.0", "::"} else host
     url = f"http://{browser_host}:{port}"
     health_url = f"{url}/health"
