@@ -199,13 +199,13 @@
   margin-bottom: .75rem;
 }
 
-#problem-snapshot-output .visual-frame::before { background-image: url("assets/demo-problem-snapshot-output.svg?v=20260706-product-visuals-2"); }
-#basic-layout-output .visual-frame::before { background-image: url("assets/demo-basic-layout-output.svg?v=20260706-product-visuals-2"); }
-#shop-flow-output .visual-frame::before { background-image: url("assets/demo-shop-flow-output.svg?v=20260706-product-visuals-2"); }
-#project-packet-output .visual-frame::before { background-image: url("assets/demo-project-packet-output.svg?v=20260706-product-visuals-2"); }
-#business-cleanup-output .visual-frame::before { background-image: url("assets/demo-business-cleanup-output.svg?v=20260706-product-visuals-2"); }
-#cleanup-rescue-output .visual-frame::before { background-image: url("assets/demo-cleanup-rescue-output.svg?v=20260706-product-visuals-2"); }
-#workflow-opportunity-output .visual-frame::before { background-image: url("assets/demo-workflow-opportunity-output.svg?v=20260706-product-visuals-2"); }
+#problem-snapshot-output .visual-frame::before { background-image: url("assets/rick-review-problem-snapshot-v1.png?v=rick-review-v1"); }
+#basic-layout-output .visual-frame::before { background-image: url("assets/rick-review-basic-layout-v1.png?v=rick-review-v1"); }
+#shop-flow-output .visual-frame::before { background-image: url("assets/rick-review-shop-flow-v1.png?v=rick-review-v1"); }
+#project-packet-output .visual-frame::before { background-image: url("assets/rick-review-project-packet-v1.png?v=rick-review-v1"); }
+#business-cleanup-output .visual-frame::before { background-image: url("assets/rick-review-business-cleanup-v1.png?v=rick-review-v1"); }
+#cleanup-rescue-output .visual-frame::before { background-image: url("assets/rick-review-cleanup-rescue-v1.png?v=rick-review-v1"); }
+#workflow-opportunity-output .visual-frame::before { background-image: url("assets/rick-review-workflow-opportunity-v1.png?v=rick-review-v1"); }
 
 .demo-output .visual-frame::after {
   background: #fff4ea;
