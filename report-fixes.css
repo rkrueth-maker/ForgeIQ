@@ -171,10 +171,17 @@
   width: 100%;
 }
 
-/* Legacy deliverable canvas support. */
+/* Live V5 image fix pass: force the homepage featured visual away from the old SVG render. */
+#messy-details-service figure img[src*="messy-details-finished-document"] {
+  background: #fff !important;
+  content: url("assets/problem-snapshot-finished.png?v=v5-live-image-fix-pass") !important;
+  object-fit: contain !important;
+}
+
+/* Legacy deliverable canvas support, updated to PNG so no SVG render appears on live review screens. */
 .deliverable-section .deliverable-canvas::before {
   background-color: #fff;
-  background-image: url("assets/final-sample-garage-flow-render.svg?v=garage-cad-flow-20260706b");
+  background-image: url("assets/shop-flow-finished.png?v=v5-live-image-fix-pass");
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
@@ -191,65 +198,10 @@
   border: 1px solid rgba(200, 95, 40, .20);
   border-radius: 999px;
   color: #8a3a18;
-  content: "Rendered flow: messy garage photo input → measurements → CAD layout with storage options";
+  content: "Rendered flow: messy garage photo input → measurements → staged layout with storage options";
   display: inline-flex;
   font-size: .72rem;
   font-weight: 900;
   margin: 0 1rem 1rem;
   padding: .35rem .65rem;
-}
-
-/* Repeatable demo-product page: product-specific finished output visuals. */
-.demo-output .visual-frame > img.flow-render {
-  display: none !important;
-}
-
-.demo-output .visual-frame::before {
-  background-color: #fff;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: contain;
-  border: 1px solid #cbd5e1;
-  border-radius: 18px;
-  box-shadow: 0 16px 36px rgba(15, 23, 42, .12);
-  content: "";
-  display: block;
-  height: clamp(330px, 36vw, 560px);
-  margin-bottom: .75rem;
-}
-
-#problem-snapshot-output .visual-frame::before { background-image: url("assets/rick-review-problem-snapshot-v2.svg?v=rick-review-v2"); }
-#basic-layout-output .visual-frame::before { background-image: url("assets/rick-review-basic-layout-v2.svg?v=rick-review-v2"); }
-#shop-flow-output .visual-frame::before { background-image: url("assets/rick-review-shop-flow-v2.svg?v=rick-review-v2"); }
-#project-packet-output .visual-frame::before { background-image: url("assets/rick-review-project-packet-v2.svg?v=rick-review-v2"); }
-#business-cleanup-output .visual-frame::before { background-image: url("assets/rick-review-business-cleanup-v2.svg?v=rick-review-v2"); }
-#cleanup-rescue-output .visual-frame::before { background-image: url("assets/rick-review-cleanup-rescue-v2.svg?v=rick-review-v2"); }
-#workflow-opportunity-output .visual-frame::before { background-image: url("assets/rick-review-workflow-opportunity-v2.svg?v=rick-review-v2"); }
-
-.demo-output .visual-frame::after {
-  background: #fff4ea;
-  border: 1px solid rgba(200, 95, 40, .20);
-  border-radius: 999px;
-  color: #8a3a18;
-  content: "Finished draft visual — Sample output, not customer work";
-  display: inline-flex;
-  font-size: .72rem;
-  font-weight: 900;
-  margin-bottom: .75rem;
-  padding: .35rem .65rem;
-}
-
-@media (max-width: 1180px) { .desk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 900px) { .custom-work-panel, .case-grid, .faq-grid { grid-template-columns: 1fr; } }
-@media (max-width: 640px) {
-  .home-hero,
-  .product-hero { padding-top: 5.6rem; }
-  .hero-positioning { grid-template-columns: 1fr !important; grid-template-areas: "icon" "title" "copy" !important; max-width: 100% !important; }
-  .quick-jump { justify-content: flex-start; }
-  .quick-jump a,
-  .desk-card { width: 100%; }
-  .tertiary-link { justify-content: center; width: 100%; }
-  .deliverable-section .deliverable-canvas::before,
-  .demo-output .visual-frame::before { height: 300px; }
-  .proof-card .dashboard-card::before { min-height: 260px; }
 }
