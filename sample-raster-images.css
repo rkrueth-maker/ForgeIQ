@@ -20,6 +20,19 @@
   width: 100%;
 }
 
+button.proof-raster-frame {
+  appearance: none;
+  cursor: zoom-in;
+  font: inherit;
+  padding: 0;
+  text-align: inherit;
+}
+
+button.proof-raster-frame:focus-visible {
+  outline: 4px solid #d98a1d;
+  outline-offset: 4px;
+}
+
 .proof-raster-frame--image {
   aspect-ratio: 16 / 10;
   display: flex;
@@ -34,11 +47,59 @@
   width: 100%;
 }
 
+.proof-raster-zoom {
+  background: rgba(6, 42, 68, .92);
+  border-radius: 999px;
+  bottom: .75rem;
+  color: #fff;
+  font-size: .76rem;
+  font-weight: 700;
+  padding: .42rem .7rem;
+  position: absolute;
+  right: .75rem;
+}
+
 .proof-raster figcaption {
   color: #5c6870;
   font-size: .82rem;
   line-height: 1.45;
   margin-top: .55rem;
+}
+
+.proof-dialog {
+  background: #fff;
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, .35);
+  max-height: 94vh;
+  max-width: min(96vw, 1700px);
+  padding: 3rem 1rem 1rem;
+  width: max-content;
+}
+
+.proof-dialog::backdrop {
+  background: rgba(4, 17, 27, .82);
+}
+
+.proof-dialog img {
+  display: block;
+  height: auto;
+  max-height: calc(94vh - 4rem);
+  max-width: calc(96vw - 2rem);
+  width: auto;
+}
+
+.proof-dialog-close {
+  background: #062a44;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  padding: .5rem .85rem;
+  position: absolute;
+  right: .8rem;
+  top: .65rem;
 }
 
 @media (max-width: 620px) {
@@ -49,10 +110,20 @@
   .proof-raster figcaption {
     font-size: .76rem;
   }
+
+  .proof-raster-zoom {
+    bottom: .5rem;
+    right: .5rem;
+  }
 }
 
 @media print {
   .proof-raster-frame {
     box-shadow: none;
+  }
+
+  .proof-raster-zoom,
+  .proof-dialog {
+    display: none !important;
   }
 }

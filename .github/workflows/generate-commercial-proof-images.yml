@@ -1,0 +1,64 @@
+name: Generate Commercial Proof Images
+
+on:
+  push:
+    branches:
+      - revise/product-proof-commercial-review
+    paths:
+      - 'tests/fixtures/commercial-proof-generator.html'
+      - 'tools/render-commercial-proof-images.mjs'
+      - '.github/workflows/generate-commercial-proof-images.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: revise/product-proof-commercial-review
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Render revised PNG proofs
+        run: node tools/render-commercial-proof-images.mjs
+      - name: Verify image dimensions
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          paths = [
+            'assets/rick-review-problem-snapshot-v1.png',
+            'assets/rick-review-basic-layout-v1.png',
+            'assets/rick-review-project-packet-v1.png',
+            'assets/rick-review-shop-flow-v1.png',
+            'assets/rick-review-business-cleanup-v1.png',
+            'assets/rick-review-cleanup-rescue-v1.png',
+            'assets/rick-review-workflow-opportunity-v1.png',
+            'assets/product-proof/automation-opportunity-snapshot.png',
+            'assets/product-proof/fixture-jig-concept-review.png',
+            'assets/product-proof/robot-tending-concept-pack.png',
+          ]
+          for path in paths:
+              with Image.open(path) as image:
+                  assert image.format == 'PNG', (path, image.format)
+                  assert image.size == (1600, 1000), (path, image.size)
+                  print(path, image.size)
+          PY
+      - name: Commit generated proofs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/rick-review-*.png assets/product-proof/*.png
+          if git diff --cached --quiet; then
+            echo 'No generated image changes.'
+            exit 0
+          fi
+          git commit -m 'Generate revised commercial product proof PNGs'
+          git push origin HEAD:revise/product-proof-commercial-review
