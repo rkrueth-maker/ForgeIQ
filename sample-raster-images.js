@@ -2,8 +2,16 @@
   'use strict';
 
   const VERSION = '20260711-real-sample-proof';
-  const BOARD = `assets/h38-investor-demo-approved.png?v=${VERSION}`;
-  const SHOP_PHOTO = `assets/h38-demo-overview-chat-photo-v2.jpg?v=${VERSION}`;
+  const scriptUrl = document.currentScript && document.currentScript.src
+    ? document.currentScript.src
+    : new URL('sample-raster-images.js', document.baseURI).href;
+  const assetRoot = new URL('assets/', scriptUrl);
+  const boardUrl = new URL('h38-investor-demo-approved.png', assetRoot);
+  const shopPhotoUrl = new URL('h38-demo-overview-chat-photo-v2.jpg', assetRoot);
+  boardUrl.searchParams.set('v', VERSION);
+  shopPhotoUrl.searchParams.set('v', VERSION);
+  const BOARD = boardUrl.href;
+  const SHOP_PHOTO = shopPhotoUrl.href;
 
   const proofByProduct = {
     'H38-P001': { type: 'panel', panel: 'panel-1', alt: 'Approved raster proof panel for the Problem Snapshot sample', caption: 'Approved raster proof: rough garage information organized into a clear first-action snapshot.' },
