@@ -2,7 +2,7 @@
 'use strict';
 const fs=require('fs');const path=require('path');const vm=require('vm');
 const root=path.resolve(__dirname,'../apps-script/core-engine/owner-portal-next');
-const required=['appsscript.json','Portal_Config.js','Portal_Repository.js','Portal_Catalog.js','Portal_Services.js','Portal_Actions.js','Portal_Adapters.js','Portal_LogApi.js','Portal_SelfTest.js','Portal_TestFixtures.js','Portal_Index.html','README.md'];
+const required=['appsscript.json','Portal_Config.js','Portal_Environment.js','Portal_Repository.js','Portal_Catalog.js','Portal_Services.js','Portal_Actions.js','Portal_Adapters.js','Portal_LogApi.js','Portal_SelfTest.js','Portal_TestFixtures.js','Portal_Index.html','README.md'];
 const failures=[];const pass=[];
 function check(name,condition,detail=''){if(condition)pass.push({name,detail});else failures.push({name,detail});}
 required.forEach(f=>check('file '+f,fs.existsSync(path.join(root,f))));
@@ -20,11 +20,21 @@ check('no raw card fields',!/cardNumber|cvv|cvc|fullCard/i.test(all));
 check('selected task lock',/LockService\.getDocumentLock/.test(all));
 check('proof writer',/function h38PortalWriteProof_/.test(all));
 check('error writer',/function h38PortalWriteError_/.test(all));
+check('proof reader',/function h38PortalProofLog/.test(all));
+check('error reader',/function h38PortalErrorLog/.test(all));
 check('catalog mismatch hold',/CATALOG MISMATCH HOLD/.test(all));
 check('all modules',['dashboard','tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar','products','reports','proof','errors','settings'].every(x=>all.includes("'"+x+"'")));
-check('public proof and error readers',/function h38PortalProofLog/.test(all)&&/function h38PortalErrorLog/.test(all));
-for(const f of jsFiles){try{new vm.Script(fs.readFileSync(path.join(root,f),'utf8'),{filename:f});pass.push({name:'syntax '+f});}catch(e){failures.push({name:'syntax '+f,detail:e.message});}}
+check('environment property key',/H38_PORTAL_SPREADSHEET_ID/.test(all));
+check('explicit environment confirmation',/CONFIGURE NON-DEPLOYED TEST ENVIRONMENT/.test(all));
+check('no hard-coded live spreadsheet id',!all.includes('1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo'));
 const html=fs.readFileSync(path.join(root,'Portal_Index.html'),'utf8');
-check('mobile viewport',/name="viewport"/.test(html));check('responsive css',/@media\(max-width:800px\)/.test(html));check('global search',/globalSearch/.test(html));check('task workspace',/openTask/.test(html));check('internal create controls',/createInternal/.test(html));
+check('internal create controls',/createInternal/.test(html));
+for(const f of jsFiles){try{new vm.Script(fs.readFileSync(path.join(root,f),'utf8'),{filename:f});pass.push({name:'syntax '+f});}catch(e){failures.push({name:'syntax '+f,detail:e.message});}}
+check('mobile viewport',/name="viewport"/.test(html));check('responsive css',/@media\(max-width:800px\)/.test(html));check('global search',/globalSearch/.test(html));check('task workspace',/openTask/.test(html));
 const script=(html.match(/<script>([\s\S]*)<\/script>/)||[])[1];try{new vm.Script(script,{filename:'Portal_Index.inline.js'});pass.push({name:'syntax Portal_Index inline script'});}catch(e){failures.push({name:'syntax Portal_Index inline script',detail:e.message});}
-const result={status:failures.length?'FAIL':'PASS',passed:pass.length,failed:failures.length,failures};console.log(JSON.stringify(result,null,2));process.exit(failures.length?1:0);
+const names=[];for(const f of jsFiles){const src=fs.readFileSync(path.join(root,f),'utf8');for(const m of src.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g))names.push(m[1]);}
+const duplicates=names.filter((n,i,a)=>a.indexOf(n)!==i).filter((n,i,a)=>a.indexOf(n)===i);
+check('zero duplicate server functions',duplicates.length===0,duplicates.join(','));
+const dangerous=['GmailApp.sendEmail','MailApp.sendEmail','UrlFetchApp.fetch','ScriptApp.newTrigger'];
+check('no dangerous external-action patterns',dangerous.every(p=>!all.includes(p)),dangerous.filter(p=>all.includes(p)).join(','));
+const result={status:failures.length?'FAIL':'PASS',passed:pass.length,failed:failures.length,serverFiles:jsFiles.length,namedFunctions:names.length,duplicateFunctions:duplicates,failures};console.log(JSON.stringify(result,null,2));process.exit(failures.length?1:0);
