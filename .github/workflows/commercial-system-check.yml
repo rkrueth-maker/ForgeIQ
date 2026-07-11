@@ -1,0 +1,29 @@
+name: Commercial System Check
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: JavaScript syntax checks
+        run: |
+          node --check catalog-data.js
+          node --check commercial.js
+          node --check scripts/verify-commercial-system.js
+          cp apps-script/commercial-intake/FormBuilder.gs /tmp/FormBuilder.js
+          node --check /tmp/FormBuilder.js
+      - name: Commercial catalog and public-site verification
+        run: node scripts/verify-commercial-system.js
