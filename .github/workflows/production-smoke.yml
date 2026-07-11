@@ -1,0 +1,47 @@
+name: Production Site Smoke Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/production-smoke.yml'
+      - 'index.html'
+      - 'products.html'
+      - 'sample-library-now.html'
+      - 'start-request.html'
+      - 'catalog-data.js'
+      - 'commercial.js'
+      - 'commercial.css'
+
+permissions:
+  contents: read
+
+jobs:
+  production-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify deployed GitHub Pages site
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://rkrueth-maker.github.io/highway-38-solutions'
+          fetch_until_ready() {
+            local path="$1"
+            local pattern="$2"
+            local out="$3"
+            for attempt in $(seq 1 24); do
+              if curl --fail --location --silent --show-error --max-time 30 "$base/$path?deployment=${GITHUB_SHA}" -o "$out" && grep -Fq "$pattern" "$out"; then
+                return 0
+              fi
+              sleep 10
+            done
+            echo "Production check failed for $path; expected: $pattern" >&2
+            return 1
+          }
+          fetch_until_ready '' 'Big problems.' /tmp/home.html
+          fetch_until_ready 'products.html' 'One controlled catalog' /tmp/products.html
+          fetch_until_ready 'sample-library-now.html' 'Hypothetical examples' /tmp/samples.html
+          fetch_until_ready 'start-request.html' 'What would you like to have when this is finished?' /tmp/request.html
+          grep -Fq 'owner-portal.html' /tmp/samples.html
+          echo 'Production GitHub Pages smoke check passed.'
