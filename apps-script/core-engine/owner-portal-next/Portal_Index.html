@@ -182,8 +182,50 @@ async function submitRecord(event){
   }catch(e){notice(esc(e.message||e),'bad');}
 }
 function renderReports(r){let s=r.summary||{};document.getElementById('view').innerHTML=`<h1>Reporting & Accounting Readiness</h1><div class="notice">Actual values, estimates, and missing data are separated. Generated ${esc(r.generated)}</div><div class="grid">${Object.entries(s).filter(([k])=>k!=='actual').map(([k,v])=>`<div class="card metric"><b>${esc(humanize(k))}</b><strong>${/payments|expenses|cash|profit|spend/i.test(k)?money(v):k==='quoteConversionRate'?esc(v)+'%':esc(v)}</strong></div>`).join('')}</div><div class="toolbar"><button class="btn" onclick="accountingCsv()">Download accounting CSV</button></div><div class="card"><b>Missing-data rule</b><p>${esc(r.labels.missing)}</p></div>`;}
-function renderSettings(){let rows=array(BOOT.integrations).map(a=>`<tr><td>${esc(a.name)}</td><td>${esc(a.mode)}</td><td>${statusPill(a.status)}</td><td>${esc(a.notes)}</td><td><button class="btn" onclick="testAdapter('${a.id}')">Test contract</button></td></tr>`).join('');document.getElementById('view').innerHTML=`<h1>System Settings & Safety</h1><div class="grid"><div class="card"><b>Install</b><pre>${esc(JSON.stringify(BOOT.installed,null,2))}</pre></div><div class="card"><b>Catalog</b><pre>${esc(JSON.stringify(BOOT.catalog,null,2))}</pre></div><div class="card"><b>Safety</b><pre>${esc(JSON.stringify(BOOT.safety,null,2))}</pre></div></div><div class="toolbar"><button class="btn" onclick="selfTest()">Run non-destructive self-test</button><button class="btn" onclick="accountingCsv()">Accounting CSV</button></div><div class="tablewrap"><table><thead><tr><th>Adapter</th><th>Mode</th><th>Status</th><th>Notes</th><th>Test</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
-async function selfTest(){try{let r=await call('h38PortalSelfTest');notice('<pre>'+esc(JSON.stringify(r,null,2))+'</pre>',r.status==='PASS'?'ok':'hold');}catch(e){notice(esc(e.message||e),'bad');}}
+function renderSettings(){let rows=array(BOOT.integrations).map(a=>`<tr><td>${esc(a.name)}</td><td>${esc(a.mode)}</td><td>${statusPill(a.status)}</td><td>${esc(a.notes)}</td><td><button class="btn" onclick="testAdapter('${a.id}')">Test contract</button></td></tr>`).join('');document.getElementById('view').innerHTML=`<h1>System Settings & Safety</h1><div class="grid"><div class="card"><b>Install</b><pre>${esc(JSON.stringify(BOOT.installed,null,2))}</pre></div><div class="card"><b>Catalog</b><pre>${esc(JSON.stringify(BOOT.catalog,null,2))}</pre></div><div class="card"><b>Safety</b><pre>${esc(JSON.stringify(BOOT.safety,null,2))}</pre></div></div><div class="toolbar"><button class="btn" id="selfTestButton" onclick="selfTest()">Run non-destructive self-test</button><button class="btn" onclick="accountingCsv()">Accounting CSV</button></div><div id="selfTestResult" class="card muted">Self-test has not been run.</div><div class="tablewrap"><table><thead><tr><th>Adapter</th><th>Mode</th><th>Status</th><th>Notes</th><th>Test</th></tr></thead><tbody>${rows}</tbody></table></div>`;}
+async function selfTest(){
+  const button=document.getElementById('selfTestButton');
+  const output=document.getElementById('selfTestResult');
+
+  if(button){
+    button.disabled=true;
+    button.textContent='Running self-test…';
+  }
+
+  if(output){
+    output.className='notice hold';
+    output.innerHTML='<b>Running non-destructive self-test…</b>';
+  }
+
+  try{
+    const result=await call('h38PortalSelfTest');
+    const passed=result&&result.status==='PASS';
+    const status=esc(result&&result.status?result.status:'UNKNOWN');
+
+    if(output){
+      output.className='notice '+(passed?'ok':'hold');
+      output.innerHTML='<b>Self-test '+status+'</b><pre>'+esc(JSON.stringify(result,null,2))+'</pre>';
+      output.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+
+    notice('Self-test '+status,passed?'ok':'hold');
+  }catch(error){
+    const message=esc(error&&error.message?error.message:error);
+
+    if(output){
+      output.className='notice bad';
+      output.innerHTML='<b>Self-test failed</b><pre>'+message+'</pre>';
+      output.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+
+    notice('Self-test failed — '+message,'bad');
+  }finally{
+    if(button){
+      button.disabled=false;
+      button.textContent='Run non-destructive self-test';
+    }
+  }
+}
 async function testAdapter(id){try{let r=await call('h38PortalAdapterTest',[id]);notice(esc(r.message),'ok');}catch(e){notice(esc(e.message||e),'bad');}}
 async function accountingCsv(){let csv=await call('h38PortalAccountingCsv'),blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='highway-38-accounting-export.csv';a.click();URL.revokeObjectURL(url);}
 async function globalSearch(){let q=document.getElementById('search').value.trim();if(!q)return;try{SEARCH_RESULTS=await call('h38PortalGlobalSearch',[q]);CURRENT='search';renderNav();document.getElementById('view').innerHTML=`<h1>Search results</h1><div class="muted">${SEARCH_RESULTS.length} matching records</div>${SEARCH_RESULTS.length?plainTable(SEARCH_RESULTS,['entity','id','title'],'openSearchResult'):'<div class="empty">No matches.</div>'}`;}catch(e){notice(esc(e.message||e),'bad');}}
