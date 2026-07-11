@@ -49,6 +49,23 @@ jobs:
           name: commercial-verification-report
           path: commercial-verification-report.txt
 
+      - name: Run rendered browser verification
+        id: browser
+        shell: bash
+        run: |
+          set +e
+          bash scripts/browser-commercial-smoke.sh
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload rendered browser report and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-browser-artifacts
+          path: browser-artifacts
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -81,4 +98,5 @@ jobs:
         shell: bash
         run: |
           test "${{ steps.commercial.outputs.exit_code }}" = "0"
+          test "${{ steps.browser.outputs.exit_code }}" = "0"
           test "${{ steps.pytest.outputs.exit_code }}" = "0"
