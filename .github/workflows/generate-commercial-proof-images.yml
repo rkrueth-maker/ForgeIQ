@@ -31,10 +31,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install Playwright
+      - name: Install Playwright and Pillow
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
+          python -m pip install pillow
       - name: Render revised PNG proofs
         run: node tools/render-commercial-proof-images.mjs
       - name: Verify image dimensions
