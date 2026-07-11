@@ -62,3 +62,5 @@ jobs:
           fi
           git commit -m 'Generate revised commercial product proof PNGs'
           git push origin HEAD:revise/product-proof-commercial-review
+
+# Triggered after PR #21 correction to commit the actual PNG binaries.
