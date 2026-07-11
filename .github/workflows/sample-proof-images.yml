@@ -35,7 +35,7 @@ jobs:
             http://127.0.0.1:8000/sample-library-now.html \
             > raster-proof-artifacts/rendered-samples.html
 
-          raster_count="$(grep -o 'class=\"proof-raster' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
+          raster_count="$(grep -o '<figure class=\"proof-raster' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
           board_count="$(grep -o 'h38-investor-demo-approved.png' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
           photo_count="$(grep -o 'h38-demo-overview-chat-photo-v2.jpg' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
           placeholder_count="$(grep -o '<svg viewBox=\"0 0 760 260\"' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
