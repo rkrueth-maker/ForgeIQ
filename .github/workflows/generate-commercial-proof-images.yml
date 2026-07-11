@@ -60,14 +60,42 @@ jobs:
                   assert image.size == (1600, 1000), (path, image.size)
                   print(path, image.size)
           PY
-      - name: Commit generated proofs
+      - name: Upload verified PNGs to corrective branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: revise/product-proof-commercial-review
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/rick-review-*.png assets/product-proof/*.png
-          if git diff --cached --quiet; then
-            echo 'No generated image changes.'
-            exit 0
-          fi
-          git commit -m 'Generate revised commercial product proof PNGs'
-          git push origin HEAD:revise/product-proof-commercial-review
+          set -euo pipefail
+          files=(
+            assets/rick-review-problem-snapshot-v1.png
+            assets/rick-review-basic-layout-v1.png
+            assets/rick-review-project-packet-v1.png
+            assets/rick-review-shop-flow-v1.png
+            assets/rick-review-business-cleanup-v1.png
+            assets/rick-review-cleanup-rescue-v1.png
+            assets/rick-review-workflow-opportunity-v1.png
+            assets/product-proof/automation-opportunity-snapshot.png
+            assets/product-proof/fixture-jig-concept-review.png
+            assets/product-proof/robot-tending-concept-pack.png
+          )
+          for file in "${files[@]}"; do
+            encoded=$(base64 -w 0 "$file")
+            sha=$(curl -fsSL \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPO/contents/$file?ref=$BRANCH" | jq -r '.sha')
+            jq -n \
+              --arg message "Replace $file with revised commercial proof" \
+              --arg content "$encoded" \
+              --arg sha "$sha" \
+              --arg branch "$BRANCH" \
+              '{message:$message,content:$content,sha:$sha,branch:$branch}' > payload.json
+            curl -fsSL -X PUT \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/$REPO/contents/$file" \
+              --data-binary @payload.json >/dev/null
+            echo "Uploaded $file"
+          done
