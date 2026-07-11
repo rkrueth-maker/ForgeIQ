@@ -27,5 +27,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Verify Owner Portal Next
-        run: node scripts/verify-owner-portal-next.js
+      - name: Run integrated verifier
+        id: verifier
+        shell: bash
+        run: |
+          set +e
+          node scripts/verify-owner-portal-next.js | tee owner-portal-verify-result.json
+          status=${PIPESTATUS[0]}
+          echo "exit_code=${status}" >> "${GITHUB_OUTPUT}"
+          exit 0
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-portal-verify-result
+          path: owner-portal-verify-result.json
+          if-no-files-found: error
+      - name: Enforce verification result
+        shell: bash
+        run: |
+          test "${{ steps.verifier.outputs.exit_code }}" -eq 0
