@@ -6,6 +6,7 @@
     ? document.currentScript.src
     : new URL('sample-raster-images.js', document.baseURI).href;
   const assetRoot = new URL('assets/', scriptUrl);
+  const reviewMode = /raster-proof-review\.html$/.test(window.location.pathname);
 
   const proofByProduct = {
     'H38-P001': { src: 'rick-review-problem-snapshot-v1.png', alt: 'Problem Snapshot finished deliverable preview', caption: 'Finished hypothetical Problem Snapshot showing the organized issue, missing information, risks, and first actions.' },
@@ -40,7 +41,7 @@
     return `
       <figure class="proof-raster proof-raster--image" data-product-proof="${productId}">
         <div class="proof-raster-frame proof-raster-frame--image">
-          <img src="${assetUrl(proof.src)}" alt="${proof.alt}" width="1600" height="1000" loading="lazy" decoding="async">
+          <img src="${assetUrl(proof.src)}" alt="${proof.alt}" width="1600" height="1000" loading="${reviewMode ? 'eager' : 'lazy'}" decoding="async">
         </div>
         <figcaption>${proof.caption}</figcaption>
       </figure>`;
