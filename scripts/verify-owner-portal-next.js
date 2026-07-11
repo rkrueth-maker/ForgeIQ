@@ -63,9 +63,9 @@ check('external lock visible',/External actions locked/.test(html));
 for(const f of jsFiles){try{new vm.Script(fs.readFileSync(path.join(root,f),'utf8'),{filename:f});pass.push({name:'syntax '+f});}catch(e){failures.push({name:'syntax '+f,detail:e.message});}}
 check('mobile viewport',/name="viewport"/.test(html));check('responsive css',/@media\(max-width:800px\)/.test(html));check('global search',/globalSearch/.test(html));check('task workspace',/openTask/.test(html));
 const script=(html.match(/<script>([\s\S]*)<\/script>/)||[])[1];try{new vm.Script(script,{filename:'Portal_Index.inline.js'});pass.push({name:'syntax Portal_Index inline script'});}catch(e){failures.push({name:'syntax Portal_Index inline script',detail:e.message});}
-const names=[];for(const f of jsFiles){const src=fs.readFileSync(path.join(root,f),'utf8');for(const m of src.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g))names.push(m[1]);}
+const names=[];for(const f of jsFiles){const src=fs.readFileSync(path.join(root,f),'utf8');for(const m of src.matchAll(/^function\s+([A-Za-z_$][\w$]*)\s*\(/gm))names.push(m[1]);}
 const duplicates=names.filter((n,i,a)=>a.indexOf(n)!==i).filter((n,i,a)=>a.indexOf(n)===i);
-check('zero duplicate server functions',duplicates.length===0,duplicates.join(','));
+check('zero duplicate top-level server functions',duplicates.length===0,duplicates.join(','));
 const dangerous=['GmailApp.sendEmail','MailApp.sendEmail','UrlFetchApp.fetch','ScriptApp.newTrigger'];
 check('no dangerous external-action patterns',dangerous.every(p=>!all.includes(p)),dangerous.filter(p=>all.includes(p)).join(','));
 if(fs.existsSync(productionDeployScript)){
