@@ -20,7 +20,7 @@ Expected result:
 
 Parts are concatenated in lexical order:
 
-`part00` through `part04`, `part05a`, `part05b`, then `part06` through `part10`.
+`part00` through `part04`, `part05a`, `part05b`, `part06` through `part08`, `part09a`, `part09b`, then `part10`.
 
 ## Archive inventory
 
