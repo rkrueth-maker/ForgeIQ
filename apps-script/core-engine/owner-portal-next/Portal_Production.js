@@ -6,10 +6,8 @@ function h38PortalInstallProduction(options) {
   if (H38_PORTAL_NEXT.ENVIRONMENT !== 'PRODUCTION') throw new Error('INSTALL HOLD — project environment must be PRODUCTION. Reload the execution after configuring production.');
   if (H38_PORTAL_NEXT.TEST_MODE) throw new Error('INSTALL HOLD — production project is still reporting TEST_MODE. Reload and retry.');
   if (H38_PORTAL_NEXT.LIVE_EXTERNAL_ACTIONS_ENABLED) throw new Error('INSTALL HOLD — live external actions must remain disabled during installation.');
-
   var ss = h38PortalSpreadsheet_();
   if (String(ss.getName() || '') !== 'Owner Review Portal — Rick Approval Dashboard') throw new Error('INSTALL HOLD — unexpected production workbook title.');
-
   var created = [];
   var verified = [];
   Object.keys(H38_PORTAL_TABLES).forEach(function(key) {
@@ -27,31 +25,20 @@ function h38PortalInstallProduction(options) {
       verified.push(spec.sheet);
     }
   });
-
   h38PortalSeedProductionSettings_();
   h38PortalWriteProof_({
-    jobId:'SYSTEM',
-    source:'Portal Production Installer',
-    action:'Install owner-only production portal',
-    decision:'INSTALL OWNER-ONLY PRODUCTION PORTAL',
-    result:'PASS',
-    evidence:'Created=' + created.join(', ') + '; Verified=' + verified.join(', '),
-    notes:'Owner-only production data layer installed. External sends, payments, publishing, ad spend, delivery, triggers, and bulk execution remain disabled.'
+    jobId:'SYSTEM',source:'Portal Production Installer',action:'Install integrated owner-only business OS',decision:'INSTALL OWNER-ONLY PRODUCTION PORTAL',result:'PASS',
+    evidence:'Release='+H38_PORTAL_NEXT.RELEASE+'; Created=' + created.join(', ') + '; Verified=' + verified.join(', '),
+    notes:'Existing bound project and deployment updated. External sends, payment requests, publishing, ad spend, delivery, triggers, bulk execution, and website deployment remain disabled.'
   });
-  return {
-    status:'PASS',
-    environment:H38_PORTAL_NEXT.ENVIRONMENT,
-    workbook:ss.getName(),
-    created:created,
-    verified:verified,
-    testMode:H38_PORTAL_NEXT.TEST_MODE,
-    liveExternalActions:H38_PORTAL_NEXT.LIVE_EXTERNAL_ACTIONS_ENABLED
-  };
+  return {status:'PASS',release:H38_PORTAL_NEXT.RELEASE,environment:H38_PORTAL_NEXT.ENVIRONMENT,workbook:ss.getName(),created:created,verified:verified,testMode:H38_PORTAL_NEXT.TEST_MODE,liveExternalActions:H38_PORTAL_NEXT.LIVE_EXTERNAL_ACTIONS_ENABLED};
 }
 
 function h38PortalSeedProductionSettings_() {
+  var catalogStatus = 'MISMATCH_HOLD';
+  try { if (h38PortalCatalogStatus_().status === 'PASS') catalogStatus = 'SYNCHRONIZED'; } catch (e) {}
   var defaults = [
-    ['release',H38_PORTAL_NEXT.RELEASE,'string','system','No','Active','Owner-only production release identifier'],
+    ['release',H38_PORTAL_NEXT.RELEASE,'string','system','No','Active','Integrated owner-only production business OS release'],
     ['environment','PRODUCTION','string','system','No','Active','Live Owner Review Portal workbook'],
     ['timezone',H38_PORTAL_NEXT.TIMEZONE,'string','system','No','Active','Required operating timezone'],
     ['test_mode','false','boolean','safety','No','Active','Production internal workflows enabled'],
@@ -60,7 +47,7 @@ function h38PortalSeedProductionSettings_() {
     ['metricool_mode','DISABLED','string','integration','No','Hold','Credential and release approval required'],
     ['payment_mode','MANUAL','string','integration','No','Active','Manual payment recording only'],
     ['accounting_export','CSV','string','integration','No','Active','Provider-neutral export'],
-    ['catalog_status','MISMATCH_HOLD','string','catalog','No','Hold','Import exact approved catalog snapshot']
+    ['catalog_status',catalogStatus,'string','catalog','No',catalogStatus==='SYNCHRONIZED'?'Active':'Hold',catalogStatus==='SYNCHRONIZED'?'Exact 15-product and 9-bundle catalog verified.':'Import exact approved catalog snapshot']
   ];
   var sh = h38PortalSpreadsheet_().getSheetByName(H38_PORTAL_TABLES.settings.sheet);
   var headers = H38_PORTAL_TABLES.settings.headers;
@@ -90,14 +77,6 @@ function h38PortalProductionReadiness() {
   if (env.liveExternalActions) holds.push('Live external actions must remain disabled.');
   if (!installed.installed) holds.push('Portal tables are incomplete.');
   if (catalog.status !== 'PASS') holds.push('Approved catalog is not synchronized.');
-  return {
-    status:holds.length ? 'HOLD' : 'PASS',
-    holds:holds,
-    environment:env,
-    installed:installed,
-    catalog:catalog,
-    ownerOnly:true,
-    selectedRecordOnly:true,
-    liveExternalActions:false
-  };
+  if (H38_PORTAL_NEXT.RELEASE.indexOf('integrated-business-os') < 0) holds.push('Integrated business OS release is not active.');
+  return {status:holds.length ? 'HOLD' : 'PASS',holds:holds,release:H38_PORTAL_NEXT.RELEASE,environment:env,installed:installed,catalog:catalog,ownerOnly:true,selectedRecordOnly:true,liveExternalActions:false};
 }

@@ -1,12 +1,14 @@
 /**
- * Highway 38 Owner Portal Next — owner-only production-capable configuration.
- * External customer actions remain disabled until separately released.
+ * Highway 38 Owner Portal — integrated business operating system configuration.
+ * Customer-facing and public actions remain locked until separately released.
  */
-var H38_PORTAL_ENVIRONMENT = String(PropertiesService.getScriptProperties().getProperty('H38_PORTAL_ENVIRONMENT') || 'UNCONFIGURED').toUpperCase();
+var H38_PORTAL_ENVIRONMENT = String(
+  PropertiesService.getScriptProperties().getProperty('H38_PORTAL_ENVIRONMENT') || 'UNCONFIGURED'
+).toUpperCase();
 
 var H38_PORTAL_NEXT = Object.freeze({
-  APP_NAME: 'Highway 38 Owner Portal',
-  RELEASE: 'production-2026-07-11-owner-only',
+  APP_NAME: 'Highway 38 Business Operating System',
+  RELEASE: 'production-2026-07-11-integrated-business-os',
   TIMEZONE: 'America/Chicago',
   SPREADSHEET_ID: PropertiesService.getScriptProperties().getProperty('H38_PORTAL_SPREADSHEET_ID') || '',
   ENVIRONMENT: H38_PORTAL_ENVIRONMENT,
@@ -33,19 +35,26 @@ var H38_PORTAL_NEXT = Object.freeze({
     'dashboard','tasks','leads','customers','jobs','quotes','invoices','payments',
     'expenses','communications','social','advertising','website','calendar','products',
     'reports','proof','errors','settings'
+  ],
+  WORKSPACE_SECTIONS: [
+    'task','customer','leads','job','quotes','invoices','payments','expenses',
+    'communications','social','advertising','website','calendar','proof','errors'
   ]
 });
 
 var H38_PORTAL_STATUS = Object.freeze({
-  task: ['Open','Needs review','Approved','In progress','Blocked','On hold','Complete','Cancelled','Archived'],
+  task: ['Open','In progress','Waiting for information','Needs review','Approved','Blocked','On hold','Revision required','Rejected','Complete','Cancelled','Archived'],
   lead: ['New','Needs review','Needs information','Qualified','Product recommended','Quote preparation','Quote awaiting approval','Quote sent','Awaiting customer','Deposit pending','Ready to start','Declined','Closed','Archived'],
+  customer: ['Prospect','Active','Inactive','Closed','Archived'],
   job: ['Intake','Qualification','Scope','Quote','Awaiting payment','Ready to start','In production','Internal QA','Owner review','Needs revision','Approved for delivery','Delivered','Follow-up','Complete','On hold','Cancelled','Archived'],
   quote: ['Draft','Needs review','Needs changes','Approved','Sent','Viewed','Accepted','Declined','Expired','Replaced','Cancelled'],
   invoice: ['Draft','Needs review','Approved','Sent','Partially paid','Paid','Overdue','Refunded','Partially refunded','Failed','Disputed','Written off','Cancelled'],
   payment: ['Not required','Not requested','Invoice draft','Awaiting approval','Invoice sent','Deposit due','Partially paid','Paid','Overdue','Refunded','Partially refunded','Failed','Disputed','Written off'],
+  communication: ['Draft','Needs review','Approved','Sent','Received','Follow-up required','Closed','Archived'],
   social: ['Idea','Draft','Needs assets','Needs review','Needs changes','Approved','Scheduled','Published','Failed','Cancelled','Archived'],
   advertising: ['Idea','Planning','Draft','Needs review','Approved','Ready to launch','Active','Paused','Complete','Rejected','Archived'],
   website: ['Idea','Draft','In build','Testing','Needs review','Approved for merge','Merged','Deploying','Live verification','Complete','Rolled back','Rejected'],
+  expense: ['Needs review','Recorded','Exported','Reconciled','Archived'],
   approval: ['Rick Review Required / Owner Approval Required','Approved by Rick - Action Allowed','HOLD','REVISE','REJECTED','Completed - Proof Logged']
 });
 
@@ -78,6 +87,7 @@ var H38_PORTAL_APPROVAL_MATRIX = Object.freeze({
   SEND_FINAL_DELIVERY: {decision:'APPROVE FINAL DELIVERY', external:true, allowedField:'Delivery Allowed'},
   SCHEDULE_SOCIAL: {decision:'APPROVE SOCIAL SCHEDULE', external:false},
   PUBLISH_SOCIAL: {decision:'APPROVE SOCIAL PUBLISH', external:true, allowedField:'Publish Allowed'},
+  APPROVE_AD_PLAN: {decision:'APPROVE AD PLAN', external:false},
   LAUNCH_AD: {decision:'APPROVE AD LAUNCH', external:true, allowedField:'Publish Allowed'},
   APPROVE_WEBSITE_MERGE: {decision:'APPROVE WEBSITE MERGE', external:false},
   DEPLOY_WEBSITE: {decision:'APPROVE WEBSITE DEPLOY', external:true, allowedField:'Publish Allowed'},
