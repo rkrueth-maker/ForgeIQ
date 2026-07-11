@@ -1,75 +1,59 @@
-# H38 Owner Portal Apps Script — clasp setup
+# Highway 38 Core Engine Apps Script — clasp setup
 
-This folder is the move away from browser copy/paste Apps Script editing.
+This is the file-based workflow for maintaining the Owner Review Portal Apps Script without browser copy/paste.
 
 ## Goal
 
-Use `clasp push` so Version 6 Owner Review Portal code can be edited as files and pushed into Apps Script.
+Use `clasp pull` and `clasp push` so the live Owner Review Portal code can be edited as files and synchronized with Apps Script.
 
-## One-time setup on your computer
-
-Open PowerShell in a folder where you keep projects and run:
+## One-time setup
 
 ```powershell
 npm install -g @google/clasp
 clasp login
-```
-
-Then clone the existing Apps Script project:
-
-```powershell
 mkdir h38-owner-portal-apps-script
 cd h38-owner-portal-apps-script
 clasp clone 13Bes6_rs3LD-Sch4Vi5DKssCnIU_qb4hzZpGpDVfoRELRAk0HtXEJ7o
 ```
 
-After that, future changes are:
+Future changes:
 
 ```powershell
 clasp pull
-# edit files with Copilot / VS Code
+# edit and review files
 clasp push
+```
+
+The maintained selected-row send module is stored at:
+
+```text
+apps-script/core-engine/H38OwnerApprovedEmailSend.gs
 ```
 
 ## Safety rules
 
-Do not enable triggers during setup.
-Do not send test emails during setup.
-Do not change GitHub Pages.
-Do not publish social posts.
-Do not request payment.
-Do not deliver final customer work.
+- Do not enable triggers during setup.
+- Do not send test emails during setup.
+- Do not change GitHub Pages during Apps Script setup.
+- Do not publish social posts.
+- Do not request payment.
+- Do not deliver final customer work.
 
-## First target fix after cloning
+## Function naming
 
-Search the cloned Apps Script files for these names:
-
-```text
-h38OwnerApprovedSendSelectedDraft
-sendApprovedEmailDraftForSelectedRow
-h38ApproveSelectedRow
-h38ApproveSelectedRowForSend
-```
-
-Normalize to one real function name:
-
-```javascript
-function h38OwnerApprovedSendSelectedDraft() {
-  // selected Email Approval Queue row only
-}
-```
-
-The spreadsheet menu must call exactly:
+The spreadsheet menu and Apps Script must use exactly:
 
 ```text
 h38OwnerApprovedSendSelectedDraft
 ```
+
+The function is selected-row only and must remain restricted to `Email Approval Queue` with the required Rick approval fields.
 
 ## Verification
 
 After `clasp push`, refresh the Owner Review Portal spreadsheet and run a blocked-row safety test first.
 
-Expected blocked-row result:
+Expected blocked result:
 
 ```text
 No email sent.
