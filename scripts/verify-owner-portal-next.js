@@ -86,4 +86,4 @@ if(fs.existsSync(testDeployScript)){
 }
 const installDoc=fs.readFileSync(productionRunbook,'utf8');
 check('production runbook bound-only',/existing bound/i.test(installDoc)&&!/creates a separate standalone/i.test(installDoc));
-const result={status:failures.length?'FAIL':'PASS',passed:pass.length,failed:failures.length,serverFiles:jsFiles.length,namedFunctions:names.length,duplicateFunctions:duplicates,failures};console.log(JSON.stringify(result,null,2));process.exit(failures.length?1:0);
+const result={status:failures.length?'FAIL':'PASS',passed:pass.length,failed:failures.length,serverFiles:jsFiles.length,namedFunctions:names.length,duplicateFunctions:duplicates,failures};console.log(JSON.stringify(result));process.exit(failures.length?1:0);
