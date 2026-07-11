@@ -18,6 +18,32 @@ jobs:
       - name: JavaScript syntax
         run: node --check sample-raster-images.js
 
+      - name: Verify product proof files
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            assets/rick-review-problem-snapshot-v1.png
+            assets/rick-review-basic-layout-v1.png
+            assets/rick-review-project-packet-v1.png
+            assets/rick-review-shop-flow-v1.png
+            assets/rick-review-business-cleanup-v1.png
+            assets/rick-review-cleanup-rescue-v1.png
+            assets/rick-review-workflow-opportunity-v1.png
+            assets/product-proof/digital-workflow-build.png
+            assets/product-proof/cleanup-implementation.png
+            assets/product-proof/automation-opportunity-snapshot.png
+            assets/product-proof/shop-bottleneck-roi-audit.png
+            assets/product-proof/automation-vendor-quote-pack.png
+            assets/product-proof/fixture-jig-concept-review.png
+            assets/product-proof/vision-inspection-concept-review.png
+            assets/product-proof/robot-tending-concept-pack.png
+          )
+          for file in "${files[@]}"; do
+            test -s "$file"
+            file "$file" | grep -q 'PNG image data'
+          done
+
       - name: Start local site
         run: |
           python3 -m http.server 8000 --bind 127.0.0.1 > /tmp/h38-raster-server.log 2>&1 &
@@ -36,17 +62,19 @@ jobs:
             > raster-proof-artifacts/rendered-samples.html
 
           raster_count="$(grep -o '<figure class=\"proof-raster' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
-          board_count="$(grep -o 'h38-investor-demo-approved.png' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
-          photo_count="$(grep -o 'h38-demo-overview-chat-photo-v2.jpg' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
+          product_image_count="$(grep -o 'data-product-proof=\"H38-P0[0-1][0-9]\"' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
+          generated_count="$(grep -o 'assets/product-proof/' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
+          reviewed_count="$(grep -o 'assets/rick-review-' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
           placeholder_count="$({ grep -o '<svg viewBox=\"0 0 760 260\"' raster-proof-artifacts/rendered-samples.html || true; } | wc -l | tr -d ' ')"
 
           test "$raster_count" = "15"
-          test "$board_count" = "7"
-          test "$photo_count" = "8"
+          test "$product_image_count" = "15"
+          test "$generated_count" = "8"
+          test "$reviewed_count" = "7"
           test "$placeholder_count" = "0"
 
-          printf 'Raster samples: %s\nApproved proof-board crops: %s\nPhoto/dashboard proofs: %s\nVisible placeholder SVGs: %s\n' \
-            "$raster_count" "$board_count" "$photo_count" "$placeholder_count" \
+          printf 'Raster samples: %s\nDistinct product image records: %s\nGenerated deliverable PNGs: %s\nRick-review PNGs: %s\nVisible placeholder SVGs: %s\n' \
+            "$raster_count" "$product_image_count" "$generated_count" "$reviewed_count" "$placeholder_count" \
             > raster-proof-artifacts/raster-proof-report.txt
 
           "$chrome" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
