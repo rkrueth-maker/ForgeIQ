@@ -38,7 +38,7 @@ jobs:
           raster_count="$(grep -o '<figure class=\"proof-raster' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
           board_count="$(grep -o 'h38-investor-demo-approved.png' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
           photo_count="$(grep -o 'h38-demo-overview-chat-photo-v2.jpg' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
-          placeholder_count="$(grep -o '<svg viewBox=\"0 0 760 260\"' raster-proof-artifacts/rendered-samples.html | wc -l | tr -d ' ')"
+          placeholder_count="$({ grep -o '<svg viewBox=\"0 0 760 260\"' raster-proof-artifacts/rendered-samples.html || true; } | wc -l | tr -d ' ')"
 
           test "$raster_count" = "15"
           test "$board_count" = "7"
