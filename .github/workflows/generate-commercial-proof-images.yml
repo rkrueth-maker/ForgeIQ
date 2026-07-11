@@ -8,6 +8,13 @@ on:
       - 'tests/fixtures/commercial-proof-generator.html'
       - 'tools/render-commercial-proof-images.mjs'
       - '.github/workflows/generate-commercial-proof-images.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'tests/fixtures/commercial-proof-generator.html'
+      - 'tools/render-commercial-proof-images.mjs'
+      - '.github/workflows/generate-commercial-proof-images.yml'
   workflow_dispatch:
 
 permissions:
@@ -15,6 +22,7 @@ permissions:
 
 jobs:
   render:
+    if: github.head_ref == 'revise/product-proof-commercial-review' || github.ref_name == 'revise/product-proof-commercial-review'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,5 +70,3 @@ jobs:
           fi
           git commit -m 'Generate revised commercial product proof PNGs'
           git push origin HEAD:revise/product-proof-commercial-review
-
-# Triggered after PR #21 correction to commit the actual PNG binaries.
