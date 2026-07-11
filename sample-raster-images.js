@@ -1,34 +1,28 @@
 (function () {
   'use strict';
 
-  const VERSION = '20260711-real-sample-proof';
+  const VERSION = '20260711-real-sample-proof-v2';
   const scriptUrl = document.currentScript && document.currentScript.src
     ? document.currentScript.src
     : new URL('sample-raster-images.js', document.baseURI).href;
   const assetRoot = new URL('assets/', scriptUrl);
-  const boardUrl = new URL('h38-investor-demo-approved.png', assetRoot);
-  const shopPhotoUrl = new URL('h38-demo-overview-chat-photo-v2.jpg', assetRoot);
-  boardUrl.searchParams.set('v', VERSION);
-  shopPhotoUrl.searchParams.set('v', VERSION);
-  const BOARD = boardUrl.href;
-  const SHOP_PHOTO = shopPhotoUrl.href;
 
   const proofByProduct = {
-    'H38-P001': { type: 'panel', panel: 'panel-1', alt: 'Approved raster proof panel for the Problem Snapshot sample', caption: 'Approved raster proof: rough garage information organized into a clear first-action snapshot.' },
-    'H38-P002': { type: 'panel', panel: 'panel-2', alt: 'Approved raster proof panel for the Basic Layout Snapshot sample', caption: 'Approved raster proof: before-and-after space planning and layout direction.' },
-    'H38-P003': { type: 'panel', panel: 'panel-3', alt: 'Approved raster proof panel for the Project Planning Packet sample', caption: 'Approved raster proof: project information converted into phases, decisions, and an owner checklist.' },
-    'H38-P004': { type: 'panel', panel: 'panel-4', alt: 'Approved raster proof panel for the Shop Flow Review sample', caption: 'Approved raster proof: shop movement and staging converted into a practical flow plan.' },
-    'H38-P005': { type: 'panel', panel: 'panel-5', alt: 'Approved raster proof panel for the Business Workflow Starter sample', caption: 'Approved raster proof: scattered lead and quote information organized into a controlled workflow.' },
-    'H38-P006': { type: 'panel', panel: 'panel-6', alt: 'Approved raster proof panel for the Cleanup Rescue Plan sample', caption: 'Approved raster proof: mixed records organized into a safe folder and cleanup structure.' },
-    'H38-P007': { type: 'panel', panel: 'panel-7', alt: 'Approved raster proof panel for the Workflow Opportunity Snapshot sample', caption: 'Approved raster proof: repeated work mapped into standardize, track, review, and automate decisions.' },
-    'H38-P008': { type: 'photo', className: 'workflow-screen', alt: 'Actual Highway 38 workflow dashboard proof image', label: 'Working digital workflow', caption: 'Actual Highway 38 proof image used to demonstrate form, tracker, dashboard, test-record, and owner-review structure.' },
-    'H38-P009': { type: 'photo', className: 'cleanup-photo', alt: 'Actual project and shop source photo used for cleanup implementation planning', label: 'Controlled cleanup implementation', caption: 'Actual source-photo proof used to demonstrate inventory, structure, naming, review, and maintenance handoff.' },
-    'H38-P010': { type: 'photo', className: 'automation-photo automation-1', alt: 'Actual shop source photo used for an automation opportunity review', label: 'Automation candidate review', caption: 'Actual shop-photo proof paired with process facts, constraints, risks, and a recommended first test.' },
-    'H38-P011': { type: 'photo', className: 'automation-photo automation-2', alt: 'Actual shop source photo used for a bottleneck and ROI review', label: 'Bottleneck and ROI evidence', caption: 'Actual shop-photo proof paired with cycle, wait, movement, labor, and investment assumptions.' },
-    'H38-P012': { type: 'photo', className: 'automation-photo automation-3', alt: 'Actual shop source photo used for a vendor-ready automation scope', label: 'Vendor-ready scope', caption: 'Actual shop-photo proof paired with requirements, exclusions, vendor questions, and acceptance criteria.' },
-    'H38-P013': { type: 'photo', className: 'automation-photo automation-4', alt: 'Actual shop source photo used for a fixture and jig concept review', label: 'Fixture and jig concept', caption: 'Actual shop-photo proof paired with locating, clamping, loading, tolerance, and operator-access notes.' },
-    'H38-P014': { type: 'photo', className: 'automation-photo automation-5', alt: 'Actual shop source photo used for a vision and inspection concept review', label: 'Vision and inspection concept', caption: 'Actual shop-photo proof paired with good/bad examples, inspection criteria, lighting, and test planning.' },
-    'H38-P015': { type: 'photo', className: 'automation-photo automation-6', alt: 'Actual shop source photo used for a robot tending concept review', label: 'Robot tending sequence', caption: 'Actual shop-photo proof paired with sequence, reach, part presentation, guarding boundaries, and recovery planning.' }
+    'H38-P001': { src: 'rick-review-problem-snapshot-v1.png', alt: 'Problem Snapshot finished deliverable preview', caption: 'Finished hypothetical Problem Snapshot showing the organized issue, missing information, risks, and first actions.' },
+    'H38-P002': { src: 'rick-review-basic-layout-v1.png', alt: 'Basic Layout Snapshot finished deliverable preview', caption: 'Finished hypothetical layout proof showing a bounded space, recommended zones, movement, and setup priorities.' },
+    'H38-P003': { src: 'rick-review-project-packet-v1.png', alt: 'Project Planning Packet finished deliverable preview', caption: 'Finished hypothetical project packet showing scope, phases, decisions, material groups, and owner actions.' },
+    'H38-P004': { src: 'rick-review-shop-flow-v1.png', alt: 'Shop Flow Review finished deliverable preview', caption: 'Finished hypothetical shop-flow proof showing current movement, proposed zones, staging, and first fixes.' },
+    'H38-P005': { src: 'rick-review-business-cleanup-v1.png', alt: 'Business Workflow Starter finished deliverable preview', caption: 'Finished hypothetical business-workflow proof showing lead status, quote control, next actions, and follow-up structure.' },
+    'H38-P006': { src: 'rick-review-cleanup-rescue-v1.png', alt: 'Cleanup Rescue Plan finished deliverable preview', caption: 'Finished hypothetical cleanup plan showing folder structure, naming rules, review holds, and cleanup sequence.' },
+    'H38-P007': { src: 'rick-review-workflow-opportunity-v1.png', alt: 'Workflow Opportunity Snapshot finished deliverable preview', caption: 'Finished hypothetical workflow snapshot showing repeated tasks, tracking fields, approval gates, and the first safe test.' },
+    'H38-P008': { src: 'product-proof/digital-workflow-build.png', alt: 'Digital Workflow Build dashboard and test-record preview', caption: 'Product-specific raster preview of the working form, tracker, dashboard, test records, owner review, SOP, and recovery handoff.' },
+    'H38-P009': { src: 'product-proof/cleanup-implementation.png', alt: 'Cleanup Implementation folder structure and cleanup-index preview', caption: 'Product-specific raster preview of the completed folder structure, cleanup index, hold rules, and maintenance controls.' },
+    'H38-P010': { src: 'product-proof/automation-opportunity-snapshot.png', alt: 'Automation Opportunity Snapshot process and decision preview', caption: 'Product-specific raster preview of current process evidence, timing assumptions, opportunity window, risks, and first data test.' },
+    'H38-P011': { src: 'product-proof/shop-bottleneck-roi-audit.png', alt: 'Shop Bottleneck and ROI Audit worksheet preview', caption: 'Product-specific raster preview of cycle-loss categories, bottleneck evidence, investment range, payback assumptions, and next data step.' },
+    'H38-P012': { src: 'product-proof/automation-vendor-quote-pack.png', alt: 'Automation Vendor Quote Pack RFQ and comparison preview', caption: 'Product-specific raster preview of the RFQ scope, vendor comparison, exclusions, and acceptance-test checklist.' },
+    'H38-P013': { src: 'product-proof/fixture-jig-concept-review.png', alt: 'Fixture and Jig Concept Review layout preview', caption: 'Product-specific raster preview of the locating, clamping, loading, datum, tolerance, and operator-access concept.' },
+    'H38-P014': { src: 'product-proof/vision-inspection-concept-review.png', alt: 'Vision and Inspection Concept Review preview', caption: 'Product-specific raster preview of good/bad samples, lighting approach, measurable criteria, test plan, and capability boundary.' },
+    'H38-P015': { src: 'product-proof/robot-tending-concept-pack.png', alt: 'Robot Tending Concept Pack cell and sequence preview', caption: 'Product-specific raster preview of cell blocks, robot sequence, part presentation, recovery points, and unresolved safety boundaries.' }
   };
 
   function productIdFor(card) {
@@ -36,22 +30,17 @@
     return idLabel ? idLabel.textContent.trim() : '';
   }
 
-  function panelMarkup(proof) {
-    return `
-      <figure class="proof-raster proof-raster--panel">
-        <div class="proof-raster-frame ${proof.panel}">
-          <img src="${BOARD}" alt="${proof.alt}" width="1536" height="1024" loading="lazy" decoding="async">
-        </div>
-        <figcaption>${proof.caption}</figcaption>
-      </figure>`;
+  function assetUrl(path) {
+    const url = new URL(path, assetRoot);
+    url.searchParams.set('v', VERSION);
+    return url.href;
   }
 
-  function photoMarkup(proof) {
+  function proofMarkup(proof, productId) {
     return `
-      <figure class="proof-raster proof-raster--photo ${proof.className}">
-        <div class="proof-raster-frame proof-raster-frame--photo">
-          <img src="${SHOP_PHOTO}" alt="${proof.alt}" width="832" height="533" loading="lazy" decoding="async">
-          <span class="proof-raster-label">${proof.label}</span>
+      <figure class="proof-raster proof-raster--image" data-product-proof="${productId}">
+        <div class="proof-raster-frame proof-raster-frame--image">
+          <img src="${assetUrl(proof.src)}" alt="${proof.alt}" width="1600" height="1000" loading="lazy" decoding="async">
         </div>
         <figcaption>${proof.caption}</figcaption>
       </figure>`;
@@ -64,7 +53,7 @@
       const visual = card.querySelector('.sample-visual');
       if (!proof || !visual) return;
 
-      visual.innerHTML = proof.type === 'panel' ? panelMarkup(proof) : photoMarkup(proof);
+      visual.innerHTML = proofMarkup(proof, productId);
       visual.dataset.proofAsset = 'raster';
       card.dataset.proofAsset = 'raster';
     });
