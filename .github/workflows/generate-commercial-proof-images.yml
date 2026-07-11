@@ -3,7 +3,7 @@ name: Generate Commercial Proof Images
 on:
   push:
     branches:
-      - revise/product-proof-commercial-review
+      - fix/actual-product-proof-pngs
     paths:
       - 'tests/fixtures/commercial-proof-generator.html'
       - 'tools/render-commercial-proof-images.mjs'
@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: revise/product-proof-commercial-review
+          ref: fix/actual-product-proof-pngs
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -61,4 +61,4 @@ jobs:
             exit 0
           fi
           git commit -m 'Generate revised commercial product proof PNGs'
-          git push origin HEAD:revise/product-proof-commercial-review
+          git push origin HEAD:fix/actual-product-proof-pngs
