@@ -1,0 +1,31 @@
+name: Owner Portal Next Verify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps-script/core-engine/owner-portal-next/**'
+      - 'scripts/verify-owner-portal-next.js'
+      - '.github/workflows/owner-portal-next-verify.yml'
+  pull_request:
+    paths:
+      - 'apps-script/core-engine/owner-portal-next/**'
+      - 'scripts/verify-owner-portal-next.js'
+      - '.github/workflows/owner-portal-next-verify.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify Owner Portal Next
+        run: node scripts/verify-owner-portal-next.js
