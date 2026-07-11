@@ -1,5 +1,6 @@
-/** Repository, installer-safe sheet access, audit logging, and generic CRUD. */
+/** Repository, installer-safe sheet access, client schema, audit logging, and generic CRUD. */
 function h38PortalSpreadsheet_() {
+  if (!H38_PORTAL_NEXT.SPREADSHEET_ID) throw new Error('CONFIGURATION HOLD — H38_PORTAL_SPREADSHEET_ID is blank.');
   return SpreadsheetApp.openById(H38_PORTAL_NEXT.SPREADSHEET_ID);
 }
 
@@ -20,6 +21,10 @@ function h38PortalAssertOwner_() {
 
 function h38PortalNow_() {
   return Utilities.formatDate(new Date(), H38_PORTAL_NEXT.TIMEZONE, "yyyy-MM-dd'T'HH:mm:ssXXX");
+}
+
+function h38PortalToday_() {
+  return Utilities.formatDate(new Date(), H38_PORTAL_NEXT.TIMEZONE, 'yyyy-MM-dd');
 }
 
 function h38PortalId_(prefix) {
@@ -77,17 +82,18 @@ function h38PortalInstallCandidate(options) {
 
 function h38PortalSeedSettings_() {
   var defaults = [
-    ['release',H38_PORTAL_NEXT.RELEASE,'string','system','No','Active','Candidate release identifier'],
+    ['release',H38_PORTAL_NEXT.RELEASE,'string','system','No','Active','Integrated business OS release identifier'],
     ['timezone',H38_PORTAL_NEXT.TIMEZONE,'string','system','No','Active','Required operating timezone'],
-    ['test_mode','true','boolean','safety','No','Active','No external customer action'],
-    ['live_external_actions','false','boolean','safety','No','Locked','Must remain false until explicit approval and regression testing'],
-    ['metricool_mode','DISABLED','string','integration','No','Hold','Adapter built; credential and approval required'],
+    ['test_mode',String(H38_PORTAL_NEXT.TEST_MODE).toLowerCase(),'boolean','safety','No','Active','Environment-derived test mode'],
+    ['live_external_actions','false','boolean','safety','No','Locked','Must remain false until explicit Command Center approval and regression testing'],
+    ['selected_record_only','true','boolean','safety','No','Locked','No bulk execution'],
+    ['metricool_mode','DISABLED','string','integration','No','Hold','Credential and approval required'],
     ['payment_mode','MANUAL','string','integration','No','Active','Manual payment recording only'],
     ['accounting_export','CSV','string','integration','No','Active','Provider-neutral export'],
     ['catalog_status','MISMATCH_HOLD','string','catalog','No','Hold','Import exact approved catalog snapshot']
   ];
   var sh = h38PortalSpreadsheet_().getSheetByName(H38_PORTAL_TABLES.settings.sheet);
-  if (sh.getLastRow() > 1) return;
+  if (!sh || sh.getLastRow() > 1) return;
   var now = h38PortalNow_();
   sh.getRange(2,1,defaults.length,H38_PORTAL_TABLES.settings.headers.length).setValues(defaults.map(function(r){ return r.concat([now]); }));
 }
@@ -107,7 +113,12 @@ function h38PortalList(entity, filters) {
   var values = t.sheet.getDataRange().getDisplayValues();
   if (values.length < 2) return [];
   var headers = values[0];
-  var rows = values.slice(1).filter(function(r){ return r.join('').trim() !== ''; }).map(function(r, index){ var o = h38PortalObjectFromRow_(headers,r); o._rowNumber = index + 2; o._entity = entity; return o; });
+  var rows = values.slice(1).filter(function(r){ return r.join('').trim() !== ''; }).map(function(r, index){
+    var o = h38PortalObjectFromRow_(headers,r);
+    o._rowNumber = index + 2;
+    o._entity = entity;
+    return o;
+  });
   Object.keys(filters).forEach(function(key) {
     var wanted = String(filters[key] || '').trim().toLowerCase();
     if (!wanted) return;
@@ -161,58 +172,105 @@ function h38PortalDeleteToArchive(entity, id) {
   h38PortalAssertOwner_();
   var record = h38PortalGet(entity,id);
   if (!record) throw new Error('Record not found: ' + id);
-  if (H38_PORTAL_STATUS[entity] && record.Status !== undefined) record.Status = 'Archived';
+  if (record.Status !== undefined) record.Status = 'Archived';
+  else if (record['Job Stage'] !== undefined) record['Job Stage'] = 'Archived';
+  else if (record['Customer Status'] !== undefined) record['Customer Status'] = 'Archived';
   else record['Archive Status'] = 'Archived';
   return h38PortalSave(entity,record);
 }
 
+function h38PortalClientSchema() {
+  h38PortalAssertOwner_();
+  var tables = {};
+  Object.keys(H38_PORTAL_TABLES).forEach(function(entity){
+    var spec = H38_PORTAL_TABLES[entity];
+    tables[entity] = {entity:entity, sheet:spec.sheet, id:spec.id, headers:spec.headers};
+  });
+  var catalog = [];
+  try {
+    catalog = h38PortalList('catalog',{}).map(function(r){
+      return {id:r['Catalog ID'], name:r.Name, type:r['Record Type'], family:r.Family, price:r.Price, syncStatus:r['Sync Status']};
+    });
+  } catch (e) {}
+  return {
+    release:H38_PORTAL_NEXT.RELEASE,
+    modules:H38_PORTAL_NEXT.MODULES,
+    workspaceSections:H38_PORTAL_NEXT.WORKSPACE_SECTIONS,
+    tables:tables,
+    statuses:H38_PORTAL_STATUS,
+    expenseCategories:H38_PORTAL_EXPENSE_CATEGORIES,
+    catalog:catalog,
+    creatable:['tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar'],
+    editable:['tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar'],
+    safety:{ownerOnly:true,selectedRecordOnly:true,bulkExecution:false,triggers:false,liveExternalActions:false}
+  };
+}
+
 function h38PortalWriteProof_(entry) {
   entry = entry || {};
-  var ss = h38PortalSpreadsheet_();
-  var sh = ss.getSheetByName('Proof Log');
+  var sh = h38PortalSpreadsheet_().getSheetByName('Proof Log');
   if (!sh) return;
   var headers = sh.getLastColumn() ? sh.getRange(1,1,1,sh.getLastColumn()).getDisplayValues()[0] : [];
-  var data = {
-    'Proof ID': entry.proofId || h38PortalId_('PROOF'),
-    'Timestamp': h38PortalNow_(),
-    'Job ID': entry.jobId || '',
-    'Queue Tab': entry.source || 'Owner Portal Next',
-    'Action Type': entry.action || '',
-    'Approval Status Before': entry.approvalBefore || '',
-    'Rick Decision': entry.decision || '',
-    'Approved By': entry.approvedBy || 'Rick / Owner Portal',
-    'Source Evidence': entry.evidence || '',
-    'Output Created': entry.output || '',
-    'Recipient / Destination': entry.destination || '',
-    'Public-Safe Check': entry.publicSafe || 'N/A',
-    'Private-Data Check': entry.privateSafe || 'N/A',
-    'Result': entry.result || 'PASS',
-    'Created By': 'H38-OWNER-PORTAL-NEXT',
-    'Notes': entry.notes || ''
-  };
   if (!headers.length) return;
+  var proofId = entry.proofId || h38PortalId_('PROOF');
+  var evidence = entry.evidence || '';
+  var output = entry.output || '';
+  var destination = entry.destination || '';
+  var publicSafe = entry.publicSafe || 'N/A';
+  var privateSafe = entry.privateSafe || 'N/A';
+  var data = {
+    'Proof ID':proofId,
+    'Timestamp':h38PortalNow_(),
+    'Job ID':entry.jobId || '',
+    'Queue Tab':entry.source || 'Owner Portal',
+    'Action Type':entry.action || '',
+    'Approval Status Before':entry.approvalBefore || '',
+    'Rick Decision':entry.decision || '',
+    'Approved By':entry.approvedBy || 'Rick / Owner Portal',
+    'Source Evidence':evidence,
+    'Evidence Link':evidence,
+    'Output Created':output,
+    'Output / Message Link':output,
+    'Recipient / Destination':destination,
+    'Recipient / Channel':destination,
+    'Public-Safe Check':publicSafe,
+    'Public Safe Check':publicSafe,
+    'Private-Data Check':privateSafe,
+    'Private Data Check':privateSafe,
+    'Result':entry.result || 'PASS',
+    'Created By':'H38-OWNER-PORTAL-INTEGRATED',
+    'Notes':entry.notes || ''
+  };
   sh.appendRow(headers.map(function(h){ return data[h] !== undefined ? data[h] : ''; }));
+  return proofId;
 }
 
 function h38PortalWriteError_(entry) {
   entry = entry || {};
-  var ss = h38PortalSpreadsheet_();
-  var sh = ss.getSheetByName('Error Log');
+  var sh = h38PortalSpreadsheet_().getSheetByName('Error Log');
   if (!sh) return;
   var headers = sh.getLastColumn() ? sh.getRange(1,1,1,sh.getLastColumn()).getDisplayValues()[0] : [];
-  var data = {
-    'Error ID': entry.errorId || h38PortalId_('ERR'),
-    'Timestamp': h38PortalNow_(),
-    'Job ID': entry.jobId || '',
-    'Source Tab': entry.source || 'Owner Portal Next',
-    'Error Type': entry.type || 'PORTAL_HOLD',
-    'Error Description': entry.description || '',
-    'Blocked Action': entry.blockedAction || '',
-    'Resolution Status': entry.resolution || 'Open - Rick Review Required',
-    'Owner Action Required': 'Yes',
-    'Created By': 'H38-OWNER-PORTAL-NEXT',
-    'Notes': entry.notes || ''
-  };
   if (!headers.length) return;
+  var description = entry.description || '';
+  var ownerNeeded = entry.ownerReview === false ? 'No' : 'Yes';
+  var data = {
+    'Error ID':entry.errorId || h38PortalId_('ERR'),
+    'Timestamp':h38PortalNow_(),
+    'Job ID':entry.jobId || '',
+    'Source Tab':entry.source || 'Owner Portal',
+    'Error Type':entry.type || 'PORTAL_HOLD',
+    'Severity':entry.severity || 'Hold',
+    'Error Description':description,
+    'Description':description,
+    'Blocked Action':entry.blockedAction || '',
+    'Resolution Status':entry.resolution || 'Open - Rick Review Required',
+    'Owner Action Required':ownerNeeded,
+    'Owner Review Needed':ownerNeeded,
+    'Fixed By':entry.fixedBy || '',
+    'Fixed Time':entry.fixedTime || '',
+    'Proof Log ID':entry.proofId || '',
+    'Created By':'H38-OWNER-PORTAL-INTEGRATED',
+    'Notes':entry.notes || ''
+  };
   sh.appendRow(headers.map(function(h){ return data[h] !== undefined ? data[h] : ''; }));
 }
