@@ -1,46 +1,66 @@
-# Highway 38 Owner Portal Next
+# Highway 38 Integrated Business Operating System
 
-Status: **NON-DEPLOYED INTEGRATED CANDIDATE**
+Status: **OWNER-ONLY INTEGRATED PRODUCTION CANDIDATE**
 
-This folder contains an additive Owner Portal application candidate. It does not replace or modify the immutable live export under `owner-review-portal/`.
+This folder is the technical source for the existing bound Highway 38 Owner Portal. The operating model is one integrated business system centered on the Unified Task list and the selected-record workspace.
 
-## Included
+## Integrated operating screen
 
-- owner-only responsive web application
-- dashboard, unified selected-record tasks, and click-in workspace
-- leads, customers, jobs, quotes, invoices, payments, expenses, communications, social, advertising, website, calendar, catalog, reports, proof, errors, and settings modules
-- legacy queue compatibility projection
-- catalog validator for exactly 15 products and 9 bundles
-- selected-record approvals, duplicate-action protection, Proof Log, and Error Log
-- manual payments, expenses, accounting CSV, adapter test mode, synthetic fixtures, and non-destructive self-test
+Every lead, customer, job, quote, invoice, payment, expense, communication, social item, advertising campaign, website change, calendar event, proof record, and error record is accessible through the central Task/Job workspace.
+
+The workspace includes:
+
+- state-aware selected-task actions;
+- customer and lead context;
+- complete job scope and stage;
+- catalog-controlled quotes and invoices;
+- manual payment tracking;
+- expenses and accounting CSV export;
+- communication review records;
+- social scheduling controls;
+- advertising planning and approval;
+- website change and merge/deployment control;
+- linked calendar records;
+- Proof Log and Error Log history.
+
+Empty linked sections return `No linked records` instead of throwing a rendering error. Approved and completed tasks no longer keep showing the original approval decision as pending.
+
+## Internal functions available
+
+- unified clickable Task list with search, status, priority, and sort controls;
+- full Job workspace;
+- internal create and edit forms without JSON prompts;
+- quote creation from the synchronized 15-product / 9-bundle catalog;
+- invoice creation from approved or accepted quotes;
+- manual payment recording and invoice balance updates;
+- expense recording with controlled categories;
+- communication-draft records and owner review tasks;
+- social post records and internal scheduling;
+- advertising plan records and internal approval;
+- website change records and internal merge approval;
+- reporting, accounting CSV, global search, proof, errors, and adapter contract tests.
 
 ## Locked safety defaults
 
-- `TEST_MODE = true`
-- `LIVE_EXTERNAL_ACTIONS_ENABLED = false`
-- owner-only access
-- selected-record execution only
-- no bulk execution or trigger creation
-- no live email, quote, invoice, payment request, final delivery, publication, ad spend, merge, or deployment
+- owner-only access;
+- existing bound Apps Script project and existing private deployment only;
+- `LIVE_EXTERNAL_ACTIONS_ENABLED = false`;
+- selected-record execution only;
+- no bulk execution;
+- no trigger creation;
+- no live email, quote, invoice, payment request, final delivery, social publication, advertising launch/spend, website merge, or deployment;
+- exact owner approval gates, duplicate-action holds, Proof Log, and Error Log.
 
-External-action controls validate approval gates in test mode and record that no external action occurred.
+External-action buttons are test-only gate checks until 01 – Command Center explicitly releases a separately verified live workflow.
 
-## Candidate installation
+## Verification
 
-Use a separate Apps Script candidate project and a copied test spreadsheet. Do not push into the current live project.
+Run:
 
-```javascript
-h38PortalInstallCandidate({confirmation:'INSTALL NON-DEPLOYED CANDIDATE'});
+```bash
+node scripts/verify-owner-portal-next.js
 ```
 
-Then import the exact approved catalog payload:
+Then update the existing bound project with `scripts/deploy-owner-portal-next-production.sh`, confirm the three Script Properties, open the existing private Web App, and run the non-destructive self-test from Settings.
 
-```javascript
-h38PortalImportCatalogPayload(approvedCatalogObject,'IMPORT APPROVED CATALOG SNAPSHOT');
-```
-
-The importer requires `H38-P001` through `H38-P015` and `H38-B001` through `H38-B009` with controlled price, payment, revision, and SOP fields.
-
-## Release gate
-
-Run static verification, install in a copied environment, load synthetic fixtures, run `h38PortalSelfTest()`, complete mobile/desktop/accessibility/workflow regression tests, reconcile timezone and historical library conflicts, and obtain Rick approval before any version, manifest, or deployment change.
+03 – Operations & Documentation validates and locks daily procedures after technical acceptance. 01 – Command Center approves any future live external action separately.
