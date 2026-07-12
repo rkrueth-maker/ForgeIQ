@@ -1,0 +1,49 @@
+let BOOT=null,SCHEMA=null,EXPERIENCE=null,SAVED_VIEWS=[],CURRENT='today',ALL_TASKS=[],ALL_ROWS=[],SEARCH_RESULTS=[],ACTIVE_WORKSPACE=null,ACTIVE_TAB='summary',FORM_STATE=null,TASK_VIEW_MODE='list';
+const VIRTUAL_MODULES=['today','decisions','active','money','growth','websiteCenter','systemHealth','help'];
+const TITLES={today:'Today',decisions:'Needs Rick’s Decision',active:'Active Work',money:'Money Center',growth:'Growth Center',websiteCenter:'Website Center',systemHealth:'System Health',help:'Help & SOPs',dashboard:'Dashboard',tasks:'Tasks',leads:'Leads',customers:'Customers',jobs:'Jobs',quotes:'Quotes',invoices:'Invoices',payments:'Payments',expenses:'Expenses',communications:'Communications',social:'Social',advertising:'Advertising',website:'Website Records',calendar:'Calendar',products:'Products',reports:'Reports',proof:'Proof Log',errors:'Error Log',settings:'Settings'};
+const LIST_COLUMNS={leads:['Lead ID','Name','Business','Status','Product / Bundle ID','Next Action','Follow-Up Date'],customers:['Customer ID','Name','Business','Customer Status','Active Jobs','Outstanding Balance'],jobs:['Job ID','Customer Name','Product / Bundle ID','Job Stage','Payment Status','Due Date','Approval Status'],quotes:['Quote ID','Job ID','Product / Bundle ID','Quoted Amount','Status','Approval Status','Expiration Date'],invoices:['Invoice ID','Job ID','Invoice Type','Total','Amount Paid','Balance','Status','Due Date'],payments:['Payment ID','Invoice ID','Job ID','Payment Date','Amount','Payment Method','Status'],expenses:['Expense ID','Date','Vendor','Description','Category','Amount','Accounting Status'],communications:['Communication ID','Job ID','Channel','Direction','Recipient','Subject','Status','Approval Status'],social:['Social ID','Platform','Content Type','Caption','Status','Scheduled Time','Published Time'],advertising:['Campaign ID','Platform','Product / Bundle ID','Budget','Status','Spend','Leads','Revenue'],website:['Change ID','Page','Change Type','Requested Change','Status','Approval Status','Commit SHA'],calendar:['Event ID','Title','Event Type','Start Time','Status','Conflict Warning'],catalog:['Catalog ID','Record Type','Name','Family','Price','Payment Classification','Sync Status']};
+function call(name,args=[]){return new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[name](...args));}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function attr(v){return esc(v).replace(/`/g,'&#96;');}
+function array(v){return Array.isArray(v)?v:[];}
+function money(v){let n=Number(String(v||0).replace(/[$,]/g,''));return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(isNaN(n)?0:n);}
+function terminal(status){return /^(Complete|Completed|Cancelled|Archived|Rejected)$/i.test(String(status||''));}
+function notice(text,kind='hold'){let n=document.getElementById('notice');n.className='notice '+kind;n.innerHTML=text;}
+function toggleMenu(){document.getElementById('side').classList.toggle('open');}
+function capitalize(s){return String(s||'').charAt(0).toUpperCase()+String(s||'').slice(1);}
+function humanize(s){return String(s).replace(/([a-z])([A-Z])/g,'$1 $2').replace(/_/g,' ').replace(/^./,m=>m.toUpperCase());}
+function statusPill(status){let s=String(status||'');let cls=/approved|paid|complete|published|active|available|ready|pass/i.test(s)?'ok':/hold|blocked|overdue|revision|needs review|required|missing/i.test(s)?'hold':/reject|cancel|failed|error/i.test(s)?'bad':'';return `<span class="pill ${cls}">${esc(s||'—')}</span>`;}
+function tableCell(label,value){return `<td data-label="${attr(label)}">${value}</td>`;}
+function renderNav(){
+  const groups=[['Command Center',['today','decisions','active','money','growth','websiteCenter','systemHealth']],['Operations',['tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar','products']],['Evidence & Control',['reports','proof','errors','settings','help']]];
+  document.getElementById('nav').innerHTML=groups.map(([label,items])=>`<div class="nav-group"><b>${esc(label)}</b>${items.filter(m=>VIRTUAL_MODULES.includes(m)||array(BOOT&&BOOT.modules).includes(m)).map(m=>`<button class="${m===CURRENT?'active':''}" onclick="show('${m}')">${esc(TITLES[m]||m)}</button>`).join('')}</div>`).join('');
+}
+function renderQuickCreate(){let select=document.getElementById('quickCreate');select.innerHTML='<option value="">Quick create…</option>'+array(EXPERIENCE&&EXPERIENCE.quickCreate).map(x=>`<option value="${attr(x)}">${esc(humanize(x))}</option>`).join('');}
+function renderSavedViews(){let select=document.getElementById('savedViews');select.innerHTML='<option value="">Saved views…</option>'+SAVED_VIEWS.map(v=>`<option value="${attr(v.id)}">${esc(v.name)}</option>`).join('');}
+async function refresh(){
+  try{
+    [BOOT,SCHEMA,EXPERIENCE,SAVED_VIEWS]=await Promise.all([call('h38PortalBootstrap'),call('h38PortalClientSchema'),call('h38PortalExperienceControlCenter'),call('h38PortalSavedViews')]);
+    document.getElementById('release').textContent=BOOT.release;renderNav();renderQuickCreate();renderSavedViews();
+    notice(`<b>Owner verified.</b> Environment: ${esc(BOOT.installed&&BOOT.installed.installed?'INSTALLED':'HOLD')} · External actions: <b>${BOOT.safety.liveExternalActions?'ON':'LOCKED'}</b> · Catalog: ${esc(BOOT.catalog.status)}`,'ok');
+    await show(CURRENT);
+  }catch(e){notice('HOLD / ERROR — '+esc(e.message||e),'bad');}
+}
+async function show(module){
+  CURRENT=module;renderNav();document.getElementById('side').classList.remove('open');let view=document.getElementById('view');view.innerHTML='<div class="card">Loading selected operating surface…</div>';
+  try{
+    if(module==='today'||module==='dashboard')return renderDashboard(EXPERIENCE.views.today);
+    if(module==='decisions')return renderTaskSurface('Needs Rick’s Decision',EXPERIENCE.views.decisions.tasks,'Owner approvals, revisions, holds, and rejected work.');
+    if(module==='active')return renderTaskSurface('Active Work',EXPERIENCE.views.activeWork.tasks,'Open work across intake, scope, quotes, production, QA, and follow-up.');
+    if(module==='money')return renderMoney(EXPERIENCE.views.money);
+    if(module==='growth')return renderGrowth(EXPERIENCE.views.growth);
+    if(module==='websiteCenter')return renderWebsiteCenter(EXPERIENCE.views.website);
+    if(module==='systemHealth')return renderSystemHealth(EXPERIENCE.views.systemHealth);
+    if(module==='help')return renderHelp(await call('h38PortalHelpCenter'));
+    if(module==='tasks')return renderTasks(await call('h38PortalTasks',[{}]));
+    if(module==='reports')return renderReports(await call('h38PortalReports'));
+    if(module==='settings')return renderSettings();
+    if(module==='proof')return renderRecords('Proof Log',await call('h38PortalProofLog',['']),null);
+    if(module==='errors')return renderRecords('Error Log',await call('h38PortalErrorLog',['']),null);
+    let entity=module==='products'?'catalog':module;return renderRecords(TITLES[module]||module,await call('h38PortalList',[entity,{}]),entity);
+  }catch(e){notice(esc(e.message||e),'bad');view.innerHTML='<div class="notice bad"><b>Surface on HOLD.</b><br>Review Error Log, configuration, and System Health.</div>';}
+}
