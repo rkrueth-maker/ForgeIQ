@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style><?!= h38PortalInclude_('Portal_Experience_Styles'); ?></style>
+  <style><?!= h38PortalRawInclude_('Portal_Experience_Styles'); ?></style>
 </head>
 <body>
 <div class="app">
@@ -16,9 +16,9 @@
 <div class="drawer" id="drawer" onclick="if(event.target===this)closeDrawer()"><div class="drawer-panel"><div class="toolbar"><button class="btn" onclick="closeDrawer()">Close</button><button class="btn" id="editFocusBtn" style="display:none" onclick="editFocusedRecord()">Edit focused record</button></div><div id="drawerBody"></div></div></div>
 <div class="modal" id="formModal" onclick="if(event.target===this)closeForm()"><div class="modal-panel"><div class="workspace-head"><div><h2 id="formTitle">Record</h2><div class="muted" id="formHelp"></div></div><button class="btn" onclick="closeForm()">Close</button></div><form id="recordForm" onsubmit="submitRecord(event)"><div class="form-grid" id="formFields"></div><div class="toolbar"><button class="btn primary" type="submit">Save internal record</button><button class="btn" type="button" onclick="closeForm()">Cancel</button></div></form></div></div>
 <script>
-<?!= h38PortalInclude_('Portal_Experience_Client_Core'); ?>
-<?!= h38PortalInclude_('Portal_Experience_Client_Views'); ?>
-<?!= h38PortalInclude_('Portal_Experience_Client_Workspace'); ?>
+<?!= h38PortalRawInclude_('Portal_Experience_Client_Core'); ?>
+<?!= h38PortalRawInclude_('Portal_Experience_Client_Views'); ?>
+<?!= h38PortalRawInclude_('Portal_Experience_Client_Workspace'); ?>
 </script>
 </body>
 </html>
