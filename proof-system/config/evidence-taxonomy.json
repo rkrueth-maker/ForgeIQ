@@ -1,11 +1,11 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "allowedProofClassifications": [
-    "verified historical",
-    "historical estimate",
-    "anonymized reconstruction",
-    "demonstration sample",
-    "hypothetical"
+    "Verified historical work",
+    "Historical estimate",
+    "Anonymized reconstruction",
+    "Demonstration sample",
+    "Hypothetical example"
   ],
   "evidenceStatuses": [
     "UNREVIEWED",
@@ -32,7 +32,10 @@
     "legal-record",
     "medical-record",
     "vehicle-identifier",
-    "location-metadata"
+    "location-metadata",
+    "computer-screen",
+    "plant-layout",
+    "third-party-rights"
   ],
   "publicationRules": {
     "explicitPublicSafeRequired": true,
@@ -54,10 +57,20 @@
     "classification",
     "domain",
     "summary",
+    "problem",
+    "role",
+    "inputs",
+    "constraints",
+    "workPerformed",
+    "decisions",
+    "implementation",
+    "outcome",
     "evidenceStatus",
     "privacyStatus",
     "sourceCount",
-    "relatedProducts",
+    "approvedAssets",
+    "relatedFreeTool",
+    "relatedPaidService",
     "boundary"
   ]
 }
