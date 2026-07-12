@@ -1,0 +1,16 @@
+{
+  "manifestVersion":"1.0",
+  "product":"Highway 38 Business OS Core Engine",
+  "installationMode":"EXISTING_BOUND_PROJECT_ONLY_FOR_HIGHWAY_38",
+  "steps":[
+    {"id":"preflight","action":"Validate configuration schema, tenant namespace, catalog, roles, feature flags, and provider truth status."},
+    {"id":"backup","action":"Create and hash a full rollback backup before any production write."},
+    {"id":"install-core","action":"Install Core Engine repositories, task projection, approvals, logs, and health checks without business-specific terminology."},
+    {"id":"install-pack","action":"Install the selected Business Pack into its tenant namespace."},
+    {"id":"migrate","action":"Run idempotent schema migration and record before/after counts."},
+    {"id":"verify","action":"Run static, runtime, permission, tenant-isolation, duplicate-action, catalog, Proof Log, Error Log, backup, and recovery tests."},
+    {"id":"release","action":"Update only the approved existing deployment or create the explicitly approved tenant deployment."},
+    {"id":"acceptance","action":"Record URLs, versions, evidence, rollback point, provider states, and exact blockers."}
+  ],
+  "hardStops":["missing rollback point","catalog mismatch","tenant collision","live provider labeled connected without proof","bulk execution enabled","automatic retry enabled","raw card field detected","permission isolation failure"]
+}

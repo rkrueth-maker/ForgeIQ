@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://highway38.example/schemas/business-os-configuration-1.0.json",
+  "title":"Highway 38 Business OS Configuration",
+  "type":"object",
+  "required":["schemaVersion","tenant","businessPack","modules","roles","features","providers","release"],
+  "properties":{
+    "schemaVersion":{"const":"1.0"},
+    "tenant":{"type":"object","required":["id","displayName","timezone","dataNamespace"],"properties":{"id":{"type":"string","pattern":"^[a-z0-9-]+$"},"displayName":{"type":"string","minLength":1},"timezone":{"type":"string","minLength":1},"dataNamespace":{"type":"string","pattern":"^[A-Z0-9_-]+$"}}},
+    "businessPack":{"type":"object","required":["id","version"],"properties":{"id":{"type":"string"},"version":{"type":"string"},"catalogSource":{"type":"string"},"terminology":{"type":"object","additionalProperties":{"type":"string"}}}},
+    "modules":{"type":"array","items":{"enum":["tasks","leads","customers","jobs","quotes","invoices","payments","expenses","communications","social","advertising","website","calendar","catalog","reports","proof","errors","settings","conceptBuilder","customerPortal"]},"uniqueItems":true},
+    "roles":{"type":"array","items":{"type":"object","required":["id","permissions"],"properties":{"id":{"type":"string"},"permissions":{"type":"array","items":{"type":"string"},"uniqueItems":true}}}},
+    "features":{"type":"object","required":["selectedRecordOnly","bulkExecution","automaticRetry","externalActions"],"properties":{"selectedRecordOnly":{"const":true},"bulkExecution":{"const":false},"automaticRetry":{"const":false},"externalActions":{"type":"object","additionalProperties":{"enum":["DISABLED","TEST_ONLY","APPROVAL_GATED","LIVE"]}}}},
+    "providers":{"type":"object","properties":{"email":{"$ref":"#/$defs/provider"},"payments":{"$ref":"#/$defs/provider"},"accounting":{"$ref":"#/$defs/provider"},"social":{"$ref":"#/$defs/provider"},"website":{"$ref":"#/$defs/provider"},"storage":{"$ref":"#/$defs/provider"},"calendar":{"$ref":"#/$defs/provider"},"authentication":{"$ref":"#/$defs/provider"}}},
+    "theme":{"type":"object","properties":{"brandName":{"type":"string"},"logoPath":{"type":"string"},"accent":{"type":"string","pattern":"^#[0-9A-Fa-f]{6}$"},"surface":{"type":"string","pattern":"^#[0-9A-Fa-f]{6}$"}}},
+    "release":{"type":"object","required":["channel","version","backupRequired","rollbackRequired"],"properties":{"channel":{"enum":["demo","test","candidate","production"]},"version":{"type":"string"},"backupRequired":{"const":true},"rollbackRequired":{"const":true}}}
+  },
+  "$defs":{"provider":{"type":"object","required":["adapter","status"],"properties":{"adapter":{"type":"string"},"status":{"enum":["DISABLED","CREDENTIAL_REQUIRED","TEST_READY","CONNECTED"]},"secretReference":{"type":"string"},"notes":{"type":"string"}}}}
+}
