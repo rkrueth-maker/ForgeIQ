@@ -113,6 +113,19 @@ Artifact digest:
 
 Artifact retention expires October 10, 2026.
 
+## Owner runtime confirmation
+
+Rick reloaded the existing private Web App after version 12 was deployed and confirmed: **“works.”**
+
+This records the following runtime acceptance:
+
+- the Owner Portal opens successfully;
+- the malformed HTML exception is gone;
+- the existing private Web App URL remains functional;
+- version 12 is serving the corrected portal shell.
+
+This confirmation establishes the production render gate as **PASS**. It does not, by itself, certify every module, the non-destructive self-test, or mobile acceptance.
+
 ## Current truth
 
 **Build:** COMPLETE  
@@ -120,11 +133,23 @@ Artifact retention expires October 10, 2026.
 **Regression verification:** PASS  
 **Production source push:** COMPLETE  
 **Existing Web App deployment:** VERSION 12 CONFIRMED  
+**Owner runtime render confirmation:** PASS  
+**Malformed HTML exception:** RESOLVED  
 **New project or second deployment:** NONE  
 **External actions:** LOCKED  
-**Runtime owner confirmation:** PENDING  
-**Issue #33:** remains open until owner reload, self-test, and desktop/mobile acceptance are recorded
+**Non-destructive self-test:** PENDING  
+**Full desktop/mobile acceptance:** PENDING  
+**Issue #33:** remains open because its combined scope also includes customer portal production dependencies and the remaining acceptance evidence
 
-## Exact next action
+## Command Center handoff
 
-Reload the existing private Owner Portal. Confirm the malformed HTML exception is gone. Then run the non-destructive self-test from Settings and complete desktop/mobile acceptance before closing Issue #33.
+01 — Command Center may now treat the Owner Portal version 12 production render and malformed-HTML hotfix as complete and owner-confirmed.
+
+The remaining Issue #33 work is limited to:
+
+1. running and recording the non-destructive Owner Portal self-test;
+2. completing detailed desktop and mobile module acceptance;
+3. retaining final screenshots and acceptance evidence;
+4. continuing to track the separate customer portal production-stack HOLD and other documented external integration blockers.
+
+No additional Owner Portal redeployment is required unless the remaining acceptance checks identify a new defect.
