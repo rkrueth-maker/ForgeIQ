@@ -1,0 +1,95 @@
+name: Deploy Owner Portal HTML Include Hotfix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps-script/core-engine/owner-portal-next/Portal_Index.html'
+      - 'apps-script/core-engine/owner-portal-next/Portal_RawIncludes.js'
+      - 'scripts/verify-owner-portal-html-includes.js'
+      - '.github/workflows/deploy-owner-portal-html-hotfix.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: owner-portal-production-html-hotfix
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      H38_BOUND_SCRIPT_ID: 13Bes6_rs3LD-Sch4Vi5DKssCnlU_qb4hzZpGpDVfoRELRak0htXEj7O-
+      H38_EXISTING_DEPLOYMENT_ID: AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg
+      H38_PRODUCTION_SPREADSHEET_ID: 1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+    steps:
+      - name: Check out exact main source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install clasp
+        run: npm install --global @google/clasp
+
+      - name: Verify Owner Portal source and HTML include regression
+        run: |
+          node scripts/verify-owner-portal-next.js
+          node scripts/verify-owner-portal-hard-rule.js
+          node scripts/verify-owner-portal-html-includes.js
+
+      - name: Load encrypted clasp credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLASPRC_JSON" || { echo 'Missing CLASPRC_JSON repository secret.'; exit 78; }
+          printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          chmod 600 "$HOME/.clasprc.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8')); console.log('clasp credential loaded.');"
+
+      - name: Back up and update existing private Owner Portal deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/deploy-owner-portal-next-production.sh
+          ./scripts/deploy-owner-portal-next-production.sh
+
+      - name: Collect rollback and deployment evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p deployment-evidence
+          LATEST_ROOT="$(ls -dt "$HOME"/h38-integrated-business-os-* 2>/dev/null | head -n 1 || true)"
+          if [[ -n "$LATEST_ROOT" ]]; then
+            cp -a "$LATEST_ROOT"/. deployment-evidence/
+          fi
+
+      - name: Upload rollback and deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-portal-html-hotfix-${{ github.run_id }}
+          path: deployment-evidence/
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Record deployment on control issues
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          URL="https://script.google.com/macros/s/${H38_EXISTING_DEPLOYMENT_ID}/exec"
+          BODY="Owner Portal malformed-HTML hotfix deployed to the existing private Apps Script Web App from commit ${GITHUB_SHA}. Raw JavaScript fragments now use HtmlTemplate.getRawContent(), the existing deployment ID was updated in place, no new project or second deployment was created, and external actions remain disabled. Runtime acceptance remains required. URL: ${URL}. Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh issue comment 33 --repo "$GITHUB_REPOSITORY" --body "$BODY"
+          gh issue comment 31 --repo "$GITHUB_REPOSITORY" --body "$BODY"
