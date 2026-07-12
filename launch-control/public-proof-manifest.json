@@ -1,8 +1,16 @@
 {
   "schemaVersion": 1,
-  "release": "complete-ecosystem-live-launch-2026-07-11",
-  "policy": "Only explicitly public-safe assets may be listed here. Private PST, Clow, CSC, customer, vendor, employee, address, and family source data are excluded.",
+  "release": "proof-evidence-system-2026-07-12",
+  "policy": "Only explicitly public-safe assets may be listed here. Private PST, former-employer source records, customer, vendor, employee, address, family, proprietary, and unapproved-photo data are excluded.",
   "items": [
+    {
+      "id": "PUBLIC-PROOF-LIBRARY",
+      "title": "Highway 38 Proof Library",
+      "type": "classified public-safe case summaries",
+      "url": "proof.html",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceClass": "compiled public summaries and demonstrations"
+    },
     {
       "id": "PUBLIC-SAMPLE-LIBRARY",
       "title": "Highway 38 Sample Library",
@@ -21,6 +29,14 @@
     },
     {
       "id": "PUBLIC-TOOL-CENTER",
+      "title": "Highway 38 Tools",
+      "type": "interactive calculators and clean downloads",
+      "url": "free-tools.html",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceClass": "browser-only calculators and purpose-built CSV files"
+    },
+    {
+      "id": "PUBLIC-PLANNING-TOOL-CENTER",
       "title": "Planning Tool Center",
       "type": "interactive calculators",
       "url": "tool-center.html",
@@ -34,15 +50,24 @@
       "url": "business-concept-builder.html",
       "privacyStatus": "PUBLIC_SAFE",
       "sourceClass": "browser-only planning tool"
+    },
+    {
+      "id": "PUBLIC-PHOTO-REVIEW-DOWNLOAD",
+      "title": "Photo Privacy Review CSV",
+      "type": "public planning download",
+      "url": "downloads/h38-photo-privacy-review.csv",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceClass": "purpose-built blank template"
     }
   ],
   "excludedClasses": [
     "private PST extraction",
-    "Clow or CSC source records",
+    "former-employer source records",
     "unredacted customer or vendor files",
     "employee records",
     "private addresses",
     "family information",
+    "proprietary drawings, programs, pricing, or production data",
     "unapproved photographs"
   ]
 }
