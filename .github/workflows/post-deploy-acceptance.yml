@@ -102,10 +102,10 @@ jobs:
             return 1
           }
 
-          check_page 'index.html' 'data-h38-ecosystem-entry'
+          check_page 'index.html' 'Practical systems that actually work.'
           check_page 'ecosystem-status.html' 'Highway 38 Solutions · Ecosystem'
-          check_page 'customer-portal.html' 'Nothing entered here is transmitted'
-          check_page 'business-concept-builder.html' 'Turn a skill or problem into a testable business'
+          check_page 'customer-portal.html' 'No customer records, files, quotes, invoices, payments, deliverables, or communications are exposed'
+          check_page 'business-concept-builder.html' 'Turn a rough idea into a structured launch package.'
           check_page 'tool-center.html' 'data-tool="project"'
           check_page 'proof-center.html' 'public-proof-manifest'
 
@@ -178,7 +178,7 @@ jobs:
           - Source commit: \`${GITHUB_SHA}\`
           - Acceptance run: ${artifact_url}
           - Rollback baseline: \`3bd325f\`
-          - Live pages verified: homepage, ecosystem hub, customer workspace, Business Concept Builder, Planning Tool Center, and Proof Center
+          - Live pages verified: homepage, ecosystem hub, customer portal status, Business Concept Builder, Planning Tool Center, and Proof Center
           - External email, payment requests/processing, social publishing, advertising spend, and final delivery: **LOCKED**
           - Private PST, Clow/CSC, customer, vendor, employee, address, family, and unapproved-photo data: **NOT PUBLIC**
 
