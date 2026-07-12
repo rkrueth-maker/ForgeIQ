@@ -1,0 +1,31 @@
+{
+  "packageId": "H38-OWNER-PORTAL-HARD-RULE-2026-07-12",
+  "status": "SOURCE_READY_DEPLOYMENT_HOLD",
+  "existingBoundProjectPreserved": true,
+  "existingPrivateDeploymentPreserved": true,
+  "productionWriteOccurred": false,
+  "externalActionsEnabled": false,
+  "bulkExecutionEnabled": false,
+  "automaticRetryEnabled": false,
+  "sourceAcceptance": {
+    "requiredVerifier": "node scripts/verify-owner-portal-hard-rule.js",
+    "requiredLegacyVerifier": "node scripts/verify-owner-portal-next.js",
+    "requiredResult": "PASS"
+  },
+  "deploymentRequirements": [
+    "Rick authorizes the production source update to the existing private Owner Portal",
+    "Authorized Apps Script and clasp session is available outside the repository",
+    "Create and retain a pre-write clasp pull backup and rollback archive",
+    "Push only to the existing bound Apps Script project ID",
+    "Update only the existing private deployment ID; do not create a second deployment",
+    "Confirm Script Properties and owner-only access remain correct",
+    "Run the non-destructive self-test in the private Owner Portal",
+    "Complete desktop and mobile manual acceptance and record evidence"
+  ],
+  "prohibitedClaims": [
+    "Do not call the new Owner Portal experience live before the existing private deployment is updated and verified",
+    "Do not claim customer portal activation",
+    "Do not claim any external provider action is enabled"
+  ],
+  "nextExecutableStep": "After authorized deployment access is available, create the rollback backup and update the existing private deployment using scripts/deploy-owner-portal-next-production.sh."
+}
