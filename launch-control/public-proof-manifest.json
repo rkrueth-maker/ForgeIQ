@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "release": "complete-ecosystem-live-launch-2026-07-11",
+  "policy": "Only explicitly public-safe assets may be listed here. Private PST, Clow, CSC, customer, vendor, employee, address, and family source data are excluded.",
+  "items": [
+    {
+      "id": "PUBLIC-SAMPLE-LIBRARY",
+      "title": "Highway 38 Sample Library",
+      "type": "public sample collection",
+      "url": "sample-library-now.html",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceClass": "purpose-built public examples"
+    },
+    {
+      "id": "PUBLIC-SERVICE-CATALOG",
+      "title": "Products and Services",
+      "type": "public catalog",
+      "url": "products.html",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceClass": "approved public catalog"
+    },
+    {
+      "id": "PUBLIC-TOOL-CENTER",
+      "title": "Planning Tool Center",
+      "type": "interactive calculators",
+      "url": "tool-center.html",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceClass": "browser-only calculators"
+    },
+    {
+      "id": "PUBLIC-CONCEPT-BUILDER",
+      "title": "Business Concept Builder",
+      "type": "interactive planning tool",
+      "url": "business-concept-builder.html",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceClass": "browser-only planning tool"
+    }
+  ],
+  "excludedClasses": [
+    "private PST extraction",
+    "Clow or CSC source records",
+    "unredacted customer or vendor files",
+    "employee records",
+    "private addresses",
+    "family information",
+    "unapproved photographs"
+  ]
+}
