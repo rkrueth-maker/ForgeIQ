@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "passId": "H38-PROOF-DRIVE-2026-07-12-01",
+  "date": "2026-07-12",
+  "authority": "Issue #34 under Issue #31 Command Center authority",
+  "scope": "Private evidence available through connected Drive; no raw source content committed",
+  "results": {
+    "privateSourceRecordsIndexed": 12,
+    "claimsReviewed": 10,
+    "claimsApprovedOrApprovedWithBoundary": 5,
+    "claimsRevised": 1,
+    "claimsHeld": 4,
+    "stillImagesClassified": 18,
+    "videosRegisteredAndHeld": 3,
+    "publicSafeRawImagesApproved": 0,
+    "publicCaseStudiesAfterPass": 9,
+    "pstMessagesIndexed": 0,
+    "pstAttachmentsIndexed": 0
+  },
+  "claimDecisions": {
+    "approvedOrBounded": [
+      "CNC programming and FeatureCAM support responsibilities",
+      "robot-tended lathe planning participation",
+      "blanking-feed automation planning participation",
+      "historical kitchen planning artifact existence",
+      "broad manufacturing modernization planning experience"
+    ],
+    "revised": [
+      "ROI and savings are described only as historical planning estimates, not audited realized results"
+    ],
+    "held": [
+      "quantified career CNC program count",
+      "exact CADKEY version and chronology",
+      "robot-tended lathe final implementation and quantified outcomes",
+      "blanking automation quantified outcomes",
+      "exact realized ROI, labor, output and savings values",
+      "Breezy Point and Pine River historical project claims"
+    ]
+  },
+  "photoDecisionTotals": {
+    "PUBLIC_SAFE": 0,
+    "REDACT_AND_REVIEW": 15,
+    "HOLD": 6,
+    "REJECT": 0
+  },
+  "publication": {
+    "rawPrivateEvidencePublished": false,
+    "rawMessagesPublished": false,
+    "rawAttachmentsPublished": false,
+    "rawPhotosOrVideosPublished": false,
+    "publicAssetMethod": "privacy-approved summaries, anonymized reconstructions and existing purpose-built demonstrations only",
+    "externalActionsOccurred": false
+  },
+  "unavailableSources": [
+    {
+      "id": "UNAV-PST-001",
+      "source": "untouched original backup.pst",
+      "status": "OWNER_SOURCE_UNAVAILABLE",
+      "exactOwnerAction": "Upload the untouched original backup.pst to a private Google Drive folder named H38 Private Evidence Intake — Issue 34, or attach it directly in the active chat. Do not rename, open, export or resave it before upload."
+    },
+    {
+      "id": "UNAV-PHOTO-001",
+      "source": "owner-approved residential project photo archives",
+      "status": "OWNER_SOURCE_UNAVAILABLE",
+      "exactOwnerAction": "Upload the original top-level Breezy Point, Pine River, remodel and garage project photo folders selected for review to the private H38 Private Evidence Intake — Issue 34 folder, preserving folder names and original files."
+    },
+    {
+      "id": "UNAV-CAD-001",
+      "source": "original CAD, CKD, DWG, DXF archive and exact software-version evidence",
+      "status": "OWNER_SOURCE_UNAVAILABLE",
+      "exactOwnerAction": "Upload the original CAD archive folder or a read-only directory listing with filenames, extensions, sizes and modified dates to the private H38 Private Evidence Intake — Issue 34 folder."
+    }
+  ],
+  "closureRule": "The available private evidence pass is complete. Remaining unavailable sources each have one exact owner action. Issue #34 may close under the posted unavailable-source clause after repository verification, merge, public link verification and closure reporting."
+}
