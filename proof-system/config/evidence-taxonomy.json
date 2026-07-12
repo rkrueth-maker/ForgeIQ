@@ -1,12 +1,19 @@
 {
   "schemaVersion": 2,
   "allowedProofClassifications": [
-    "Verified historical work",
-    "Historical estimate",
-    "Anonymized reconstruction",
-    "Demonstration sample",
-    "Hypothetical example"
+    "verified historical",
+    "historical estimate",
+    "anonymized reconstruction",
+    "demonstration sample",
+    "hypothetical"
   ],
+  "publicClassificationLabels": {
+    "verified historical": "Verified historical work",
+    "historical estimate": "Historical estimate",
+    "anonymized reconstruction": "Anonymized reconstruction",
+    "demonstration sample": "Demonstration sample",
+    "hypothetical": "Hypothetical example"
+  },
   "evidenceStatuses": [
     "UNREVIEWED",
     "SOURCE_LOCATED",
@@ -57,20 +64,10 @@
     "classification",
     "domain",
     "summary",
-    "problem",
-    "role",
-    "inputs",
-    "constraints",
-    "workPerformed",
-    "decisions",
-    "implementation",
-    "outcome",
     "evidenceStatus",
     "privacyStatus",
     "sourceCount",
-    "approvedAssets",
-    "relatedFreeTool",
-    "relatedPaidService",
+    "relatedProducts",
     "boundary"
   ]
 }
