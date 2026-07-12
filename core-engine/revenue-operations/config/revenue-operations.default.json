@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "release": "revenue-operations-core-1.0.0",
+  "currency": "USD",
+  "controls": {
+    "selectedRecordOnly": true,
+    "bulkExecution": false,
+    "automaticRetry": false,
+    "duplicateProtection": true,
+    "proofLogRequired": true,
+    "errorLogRequired": true,
+    "ownerApprovalRequired": true,
+    "externalActionsEnabled": false
+  },
+  "providers": {
+    "email": {
+      "mode": "draft-only",
+      "approvedProviders": [],
+      "liveSend": false
+    },
+    "payment": {
+      "mode": "hosted-provider",
+      "approvedProviders": [],
+      "allowedSchemes": ["https:"],
+      "rawCardDataAllowed": false,
+      "liveRequests": false,
+      "liveProcessing": false
+    },
+    "accounting": {
+      "mode": "csv",
+      "approvedProviders": [],
+      "apiSync": false
+    },
+    "social": {
+      "mode": "internal-schedule",
+      "approvedProviders": [],
+      "livePublishing": false
+    },
+    "website": {
+      "mode": "review-only",
+      "approvedProviders": [],
+      "liveDeployment": false
+    }
+  },
+  "billingStages": ["deposit", "progress", "final", "recurring"],
+  "invoiceStatuses": ["DRAFT", "OWNER_APPROVED", "PRESENTED", "PARTIALLY_PAID", "PAID", "CREDITED", "VOID"],
+  "quoteStatuses": ["DRAFT", "OWNER_APPROVED", "PRESENTED", "CUSTOMER_APPROVED", "DECLINED", "EXPIRED"],
+  "contractStatuses": ["DRAFT", "OWNER_APPROVED", "ACTIVE", "PAUSED", "CANCELLED", "EXPIRED"],
+  "socialStatuses": ["DRAFT", "OWNER_APPROVED", "SCHEDULED_INTERNAL", "PUBLISHED", "CANCELLED"],
+  "communicationStatuses": ["DRAFT", "OWNER_APPROVED", "SENT", "FAILED", "CANCELLED"],
+  "privateFields": [
+    "internalNotes",
+    "internalCosts",
+    "providerCredentials",
+    "paymentCredentials",
+    "ownerApprovals",
+    "errorDetails",
+    "profitMarginPrivate"
+  ],
+  "activationRequirements": [
+    "approved provider",
+    "production credentials",
+    "selected-record execution",
+    "duplicate lock",
+    "owner approval",
+    "proof log",
+    "error log",
+    "sandbox or regression test",
+    "rollback procedure"
+  ]
+}
