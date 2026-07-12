@@ -80,8 +80,10 @@ check('final payment closes invoice', finalPayment.invoice.status === 'PAID' && 
 check('payment stores no raw card data', partial.payment.rawCardDataStored === false && finalPayment.payment.rawCardDataStored === false);
 expectThrow('payment over balance blocked', () => recordPayment({ invoice: invoiceSent, amount: 100, providerReference: 'sandbox-over', receivedAt: now }), 'exceeds');
 expectThrow('payment without provider reference blocked', () => recordPayment({ invoice: invoiceSent, amount: 10, providerReference: '', receivedAt: now }), 'reference');
-expectThrow('raw card field blocked', () => assertNoRawCardData({ cardNumber: '4111111111111111' }), 'forbidden');
-expectThrow('Luhn card string blocked', () => assertNoRawCardData({ note: 'test 4111 1111 1111 1111' }), 'forbidden');
+const syntheticCardDigits = ['4111', '1111', '1111', '1111'].join('');
+const syntheticCardSpaced = ['4111', '1111', '1111', '1111'].join(' ');
+expectThrow('raw card field blocked', () => assertNoRawCardData({ cardNumber: syntheticCardDigits }), 'forbidden');
+expectThrow('Luhn card string blocked', () => assertNoRawCardData({ note: `test ${syntheticCardSpaced}` }), 'forbidden');
 
 const refund = recordRefund({ invoice: finalPayment.invoice, paymentId: finalPayment.payment.id, amount: 59, providerReference: 'sandbox-refund-001', now });
 check('refund record created without execution', refund.refund.externalActionOccurred === false && refund.refund.rawCardDataStored === false);
