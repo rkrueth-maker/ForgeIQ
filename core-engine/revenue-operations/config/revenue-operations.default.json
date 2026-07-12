@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "release": {
+    "id": "revenue-operations-core",
+    "version": "1.0.0",
+    "status": "TESTED_NOT_ACTIVATED"
+  },
+  "controls": {
+    "selectedRecordOnly": true,
+    "bulkExecution": false,
+    "automaticRetry": false,
+    "duplicateProtection": true,
+    "ownerApprovalRequired": true,
+    "proofLogRequired": true,
+    "errorLogRequired": true,
+    "externalActionsEnabled": false
+  },
+  "currency": {
+    "code": "USD",
+    "minorUnit": 2,
+    "rounding": "HALF_AWAY_FROM_ZERO"
+  },
+  "quotes": {
+    "allowedStatuses": ["DRAFT", "OWNER_REVIEW", "APPROVED_TO_SEND", "SENT", "ACCEPTED", "DECLINED", "EXPIRED", "CANCELLED"],
+    "sendEnabled": false,
+    "acceptanceRequiresVersionMatch": true,
+    "duplicateSendLock": true
+  },
+  "invoices": {
+    "allowedStatuses": ["DRAFT", "OWNER_REVIEW", "APPROVED_TO_SEND", "SENT", "PARTIALLY_PAID", "PAID", "OVERDUE", "VOID", "CREDITED"],
+    "sendEnabled": false,
+    "paymentRequestsEnabled": false,
+    "duplicateSendLock": true,
+    "types": ["DEPOSIT", "PROGRESS", "FINAL", "RECURRING", "CREDIT"]
+  },
+  "payments": {
+    "providerHostedOnly": true,
+    "rawCardDataAllowed": false,
+    "processingEnabled": false,
+    "refundExecutionEnabled": false,
+    "manualRecordingEnabled": true,
+    "approvedProviders": []
+  },
+  "communications": {
+    "draftCreationEnabled": true,
+    "liveSendEnabled": false,
+    "allowedChannels": ["EMAIL", "SMS_DRAFT", "PORTAL_RECORD", "PHONE_LOG"],
+    "duplicateSendLock": true
+  },
+  "contracts": {
+    "allowedStatuses": ["DRAFT", "OWNER_REVIEW", "ACTIVE", "PAUSED", "CANCEL_PENDING", "CANCELLED", "EXPIRED"],
+    "automaticRenewalExecution": false,
+    "automaticBillingExecution": false,
+    "usageTrackingEnabled": true
+  },
+  "social": {
+    "internalSchedulingEnabled": true,
+    "publicationEnabled": false,
+    "approvedPlatforms": ["Facebook", "Instagram", "LinkedIn", "Google Business Profile", "YouTube"]
+  },
+  "advertising": {
+    "planningEnabled": true,
+    "launchEnabled": false,
+    "spendEnabled": false,
+    "budgetApprovalRequired": true
+  },
+  "website": {
+    "changePlanningEnabled": true,
+    "deploymentEnabled": false,
+    "rollbackRequired": true
+  },
+  "accounting": {
+    "csvExportEnabled": true,
+    "apiSyncEnabled": false,
+    "supportedExportFormats": ["GENERAL_LEDGER_CSV", "OPEN_INVOICES_CSV", "PAYMENTS_CSV", "EXPENSES_CSV", "PROFITABILITY_CSV"]
+  },
+  "providers": {
+    "email": {"mode": "DRAFT_ONLY", "status": "NOT_CONNECTED"},
+    "payment": {"mode": "MANUAL_RECORD", "status": "NOT_CONNECTED"},
+    "accounting": {"mode": "CSV", "status": "READY"},
+    "social": {"mode": "INTERNAL_SCHEDULE", "status": "NOT_CONNECTED"},
+    "website": {"mode": "REVIEW_ONLY", "status": "NOT_CONNECTED"}
+  }
+}
