@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "release": "proof-evidence-system-2026-07-12",
+  "publicationPolicy": "Only explicitly PUBLIC_SAFE summaries are included. Raw messages, attachments, addresses, people, customers, vendors, employees, employers, programs, drawings, pricing, and production data are excluded.",
+  "items": [
+    {
+      "id": "CASE-MFG-001",
+      "title": "Blanking-feed automation planning",
+      "classification": "anonymized reconstruction",
+      "domain": "Manufacturing and automation",
+      "summary": "A controlled reconstruction covering sequence definition, material handling, sensor logic, guarding questions, installation gates, and measurable production criteria without employer, vendor, part, or plant identifiers.",
+      "evidenceStatus": "SOURCE_LOCATED",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceCount": 0,
+      "relatedProducts": ["H38-P010", "H38-P011"],
+      "boundary": "Reconstruction only; no proprietary source drawings, programs, production values, vendor identity, or safety certification.",
+      "unresolvedQuestions": ["Locate independent source records and confirm dates before upgrading the classification."]
+    },
+    {
+      "id": "CASE-MFG-002",
+      "title": "Robot-tended lathe workflow",
+      "classification": "anonymized reconstruction",
+      "domain": "Manufacturing and automation",
+      "summary": "A public-safe reconstruction of part presentation, gripper and chuck interface questions, machine signals, probing, exception handling, queue control, and decision criteria.",
+      "evidenceStatus": "SOURCE_LOCATED",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceCount": 0,
+      "relatedProducts": ["H38-P010", "H38-P015"],
+      "boundary": "No machine serials, proprietary programs, part identities, videos, cycle data, or vendor-specific controls are published.",
+      "unresolvedQuestions": ["Confirm the exact machine model and source chronology privately before upgrading the classification."]
+    },
+    {
+      "id": "CASE-MFG-004",
+      "title": "CNC and CAD/CAM standardization",
+      "classification": "verified historical",
+      "domain": "Machining and digital manufacturing",
+      "summary": "Long-term experience implementing CNC programming standards, CAD/CAM workflows, posts, tool libraries, feeds and speeds, troubleshooting, quoting, and repeatable output controls.",
+      "evidenceStatus": "CORROBORATED",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceCount": 1,
+      "relatedProducts": ["H38-P010", "H38-P011"],
+      "boundary": "Public wording remains non-quantified until program-count and output claims are independently corroborated.",
+      "unresolvedQuestions": ["Do not publish a 25,000-plus program count unless a defensible count and methodology are documented."]
+    },
+    {
+      "id": "CASE-RES-003",
+      "title": "Kitchen planning and sequence",
+      "classification": "demonstration sample",
+      "domain": "Residential planning",
+      "summary": "A public-safe planning example covering use zones, fixed constraints, measurements, material decisions, and the order in which owner choices should be resolved.",
+      "evidenceStatus": "CORROBORATED",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceCount": 1,
+      "relatedProducts": ["H38-P002", "H38-P003"],
+      "boundary": "Demonstration structure only; not a permit, code, electrical, plumbing, or construction drawing.",
+      "unresolvedQuestions": []
+    },
+    {
+      "id": "CASE-RES-004",
+      "title": "Garage flow and zone planning",
+      "classification": "demonstration sample",
+      "domain": "Residential and shop planning",
+      "summary": "A 28-by-40-foot garage example showing protected vehicle lanes, workbench and tool zones, fixed-obstacle checks, missing measurements, and phased setup actions.",
+      "evidenceStatus": "CORROBORATED",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceCount": 1,
+      "relatedProducts": ["H38-P002", "H38-P003", "H38-P004"],
+      "boundary": "Hypothetical demonstration; not customer work, permit drawings, engineering, or field-verified dimensions.",
+      "unresolvedQuestions": []
+    },
+    {
+      "id": "CASE-BIZ-001",
+      "title": "Small-business lead-to-job control",
+      "classification": "demonstration sample",
+      "domain": "Business systems",
+      "summary": "A seven-status owner-controlled workflow connecting intake, missing information, quote review, scheduling, completion, and follow-up without automatic customer sends.",
+      "evidenceStatus": "CORROBORATED",
+      "privacyStatus": "PUBLIC_SAFE",
+      "sourceCount": 1,
+      "relatedProducts": ["H38-P005", "H38-P007", "H38-P008"],
+      "boundary": "Synthetic records only; no real customer or communication data.",
+      "unresolvedQuestions": []
+    }
+  ]
+}
