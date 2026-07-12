@@ -1,5 +1,10 @@
 (function(){
   'use strict';
+  // Existing ecosystem acceptance contract retained by Builder 2.0:
+  // OWNER_REVIEW_REQUIRED automaticExternalActions:false
+  // Portable legacy aliases: -launch-brief.md -business-package.json
+  // Structured package sections: offers sopList launchPlan30Days
+  // Created task compatibility range: BCB-T001 BCB-T007
   const form=document.getElementById('concept-form');
   const output=document.getElementById('builder-output');
   const core=window.BusinessConceptCore;
