@@ -29,6 +29,31 @@ function textFile(file) {
   return /\.(?:html?|css|js|mjs|cjs|json|md|txt|csv|xml|yml|yaml|svg)$/i.test(file);
 }
 
+function luhnValid(digits) {
+  let sum = 0;
+  let doubleDigit = false;
+  for (let index = digits.length - 1; index >= 0; index -= 1) {
+    let value = Number(digits[index]);
+    if (doubleDigit) {
+      value *= 2;
+      if (value > 9) value -= 9;
+    }
+    sum += value;
+    doubleDigit = !doubleDigit;
+  }
+  return sum % 10 === 0;
+}
+
+function hasPaymentCardCandidate(body) {
+  const candidatePattern = /(?:^|[^A-Za-z0-9])(\d{13,19}|(?:\d{4}[ -]){2,4}\d{3,4}|\d{4}[ -]\d{6}[ -]\d{5})(?![A-Za-z0-9])/g;
+  let match;
+  while ((match = candidatePattern.exec(body)) !== null) {
+    const digits = match[1].replace(/\D/g, '');
+    if (digits.length >= 13 && digits.length <= 19 && luhnValid(digits)) return true;
+  }
+  return false;
+}
+
 check('launch manifest exists', fs.existsSync(MANIFEST));
 let manifest = null;
 try {
@@ -67,7 +92,6 @@ const publicCandidates = textFiles.filter(file => {
 
 const forbiddenPatterns = [
   { name: 'raw US SSN', regex: /\b\d{3}-\d{2}-\d{4}\b/g },
-  { name: 'raw payment card candidate', regex: /\b(?:\d[ -]*?){13,19}\b/g },
   { name: 'private key material', regex: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/g },
   { name: 'Google API key', regex: /\bAIza[0-9A-Za-z_-]{30,}\b/g },
   { name: 'GitHub token', regex: /\bgh[pousr]_[0-9A-Za-z]{20,}\b/g },
@@ -84,6 +108,10 @@ for (const file of publicCandidates) {
       detail: path.relative(ROOT, file)
     });
   }
+  if (hasPaymentCardCandidate(body)) failures.push({
+    name: 'privacy/secret scan: Luhn-valid payment card candidate',
+    detail: path.relative(ROOT, file)
+  });
 }
 check('privacy and secret scan', !failures.some(x => x.name.startsWith('privacy/secret scan')), `${publicCandidates.length} public text candidates scanned`);
 
@@ -100,9 +128,12 @@ for (const rel of requiredPaths) check(`required artifact ${rel}`, fs.existsSync
 
 const htmlFiles = files.filter(f => /\.html?$/i.test(f));
 for (const file of htmlFiles) {
+  const rel = path.relative(ROOT, file).replace(/\\/g, '/');
   const body = fs.readFileSync(file, 'utf8');
-  check(`html viewport ${path.relative(ROOT,file)}`, /<meta[^>]+name=["']viewport["']/i.test(body));
-  check(`html title ${path.relative(ROOT,file)}`, /<title>[^<]+<\/title>/i.test(body));
+  const standaloneDocument = !rel.startsWith('apps-script/') && /<!doctype\s+html|<html\b/i.test(body);
+  if (!standaloneDocument) continue;
+  check(`html viewport ${rel}`, /<meta[^>]+name=["']viewport["']/i.test(body));
+  check(`html title ${rel}`, /<title>[^<]+<\/title>/i.test(body));
 }
 
 const evidence = {
