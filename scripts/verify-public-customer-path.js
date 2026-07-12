@@ -32,7 +32,9 @@ if(catalog){
 }
 
 const products=read('products.html');
-check('product wall replaced by family navigation',products.includes('id="plans"')&&products.includes('id="implementation"')&&products.includes('id="manufacturing"')&&!products.includes('data-product-details'));
+const visibleDetailMount=/<(?:div|section|article)[^>]*data-product-details/i.test(products);
+check('product wall replaced by family navigation',products.includes('id="plans"')&&products.includes('id="implementation"')&&products.includes('id="manufacturing"')&&!visibleDetailMount);
+check('hidden commercial detail compatibility retained',products.includes('<template data-product-details'));
 check('all family render targets present',['data-products="plans"','data-products="implementation"','data-products="manufacturing"'].every(marker=>products.includes(marker)));
 check('comparison matrix retained',products.includes('data-pricing-table'));
 check('bundles retained',products.includes('data-bundles'));
