@@ -65,6 +65,7 @@ async function run() {
   const committedPublic = readJson(path.join(ROOT, 'proof-system/public/public-case-studies.json'));
 
   check('five required proof classifications', taxonomy.allowedProofClassifications.length === 5);
+  check('five approved public labels', JSON.stringify(Object.values(taxonomy.publicClassificationLabels || {})) === JSON.stringify(['Verified historical work','Historical estimate','Anonymized reconstruction','Demonstration sample','Hypothetical example']));
   check('raw PST publication forbidden', taxonomy.publicationRules.rawMessagePublicationAllowed === false && taxonomy.publicationRules.rawAttachmentPublicationAllowed === false);
   check('uncorroborated quantity claims forbidden', taxonomy.publicationRules.uncorroboratedQuantityClaimsAllowed === false);
   check('search plan covers six evidence groups', searchPlan.groups.length === 6, String(searchPlan.groups.length));
@@ -118,15 +119,20 @@ async function run() {
   check('matched groups include CAD/CAM and automation', ['cad-cam','automation'].every(id => privateIndex.messages[0].matchedGroups.some(group => group.groupId === id)));
 
   const compiled = compilePublicCaseStudies(registry, taxonomy);
-  check('six explicitly public-safe case studies compile', compiled.items.length === 6, String(compiled.items.length));
-  check('held cases remain excluded', !compiled.items.some(item => ['CASE-MFG-003','CASE-MFG-005','CASE-MFG-006','CASE-MFG-007','CASE-RES-001','CASE-RES-002'].includes(item.id)));
+  check('nine explicitly public-safe case studies compile', compiled.items.length === 9, String(compiled.items.length));
+  check('held cases remain excluded', !compiled.items.some(item => ['CASE-MFG-003','CASE-RES-001','CASE-RES-002'].includes(item.id)));
   check('all compiled items are public safe', compiled.items.every(item => item.privacyStatus === 'PUBLIC_SAFE'));
-  check('verified historical item has source count', compiled.items.filter(item => item.classification === 'verified historical').every(item => item.sourceCount >= 1));
+  check('verified historical items have source counts', compiled.items.filter(item => item.classification === 'verified historical').every(item => item.sourceCount >= 1));
   check('compiled registry matches committed IDs', JSON.stringify(compiled.items.map(item => item.id)) === JSON.stringify(committedPublic.items.map(item => item.id)));
   check('compiled public proof excludes private indicators', !/\bClow\b|\bCSC\b|backup\.pst|private-work|@/i.test(JSON.stringify(compiled)));
+  const publicLabels = new Set(Object.values(taxonomy.publicClassificationLabels || {}));
+  check('public case studies use only approved labels', committedPublic.items.every(item => publicLabels.has(item.classification)));
+  const caseFields = ['problem','role','inputs','constraints','workPerformed','decisions','implementation','outcome','approvedAssets','relatedFreeTool','relatedPaidService'];
+  check('public cases contain complete case-study fields', committedPublic.items.every(item => caseFields.every(field => item[field] !== undefined && item[field] !== null)));
+  check('no raw public image approved in evidence pass', committedPublic.items.every(item => Array.isArray(item.approvedAssets) && item.approvedAssets.length === 0));
 
   const tamperedRegistry = JSON.parse(JSON.stringify(registry));
-  const held = tamperedRegistry.cases.find(item => item.id === 'CASE-MFG-006');
+  const held = tamperedRegistry.cases.find(item => item.id === 'CASE-MFG-003');
   held.publicationStatus = 'PUBLIC_SAFE';
   held.classification = 'verified historical';
   held.privacyStatus = 'PUBLIC_SAFE';
@@ -176,12 +182,16 @@ async function run() {
   check('proof page publishes method and privacy rules', proofHtml.includes('Original preserved. Working copy indexed. Public summary compiled separately.') && proofHtml.includes('No raw PST messages or attachments are public.'));
   check('proof page links photo review and tool resources', proofHtml.includes('downloads/h38-photo-privacy-review.csv') && proofHtml.includes('free-tools.html'));
   check('public proof code excludes private employer names', !/\bClow\b|\bCSC\b/i.test(proofHtml + proofJs + proofData));
+  check('proof renderer includes complete case fields', ['The problem','Rick’s role','Inputs','Constraints','Work performed','Decisions made','Implementation','Outcome','Approved images or video stills','Related free tool','Related paid service'].every(label => proofJs.includes(label)));
   check('free tools exposes release, manifest, and downloads', freeTools.includes('Release 1.0.0') && freeTools.includes('tools-manifest.json') && toolManifest.downloads.every(item => freeTools.includes(item.file)));
   check('free tools has no checkout form or raw card input', !/<form[^>]*(?:checkout|payment)|cardNumber|\bcvv\b|\bcvc\b/i.test(freeTools));
 
-  check('PST source remains explicitly blocked, not claimed complete', status.status === 'PIPELINE_READY_PRIVATE_SOURCE_BLOCKED' && status.blockers.some(item => item.id === 'BLOCK-PST-001' && item.status === 'MISSING_PRIVATE_MOUNT'));
-  check('photo source remains explicitly blocked', status.blockers.some(item => item.id === 'BLOCK-PHOTO-001' && item.status === 'MISSING_PRIVATE_MOUNT'));
-  check('status records no private publication or external actions', status.externalActionsOccurred === false && status.privateSourcePublished === false);
+  check('Drive evidence pass recorded', status.status === 'DRIVE_EVIDENCE_PASS_COMPLETE_OWNER_SOURCES_PENDING' && status.privateEvidencePass?.privateSourceRecordsIndexed === 12 && status.privateEvidencePass?.claimsReviewed === 10);
+  check('photo pass recorded fail closed', status.privateEvidencePass?.stillImagesClassified === 18 && status.privateEvidencePass?.videosHeld === 3 && status.privateEvidencePass?.publicSafeRawImagesApproved === 0);
+  check('PST remains unavailable with exact owner action', status.blockers.some(item => item.id === 'BLOCK-PST-001' && item.status === 'OWNER_SOURCE_UNAVAILABLE' && item.exactNextStep.includes('backup.pst')));
+  check('residential photos remain unavailable with exact owner action', status.blockers.some(item => item.id === 'BLOCK-PHOTO-001' && item.status === 'OWNER_SOURCE_UNAVAILABLE' && item.exactNextStep.includes('H38 Private Evidence Intake')));
+  check('CAD archive remains unavailable with exact owner action', status.blockers.some(item => item.id === 'BLOCK-CAD-001' && item.status === 'OWNER_SOURCE_UNAVAILABLE' && item.exactNextStep.includes('directory listing')));
+  check('status records no private publication or external actions', status.externalActionsOccurred === false && status.privateSourcePublished === false && status.publicRawPhotoPublished === false);
 
   const syntheticEvidence = {
     status: 'SYNTHETIC_PIPELINE_PASS',
@@ -207,10 +217,15 @@ async function run() {
   const evidence = {
     status: failures.length ? 'HOLD' : 'PASS',
     generatedAt: new Date().toISOString(),
-    release: 'proof-evidence-system-2026-07-12',
+    release: 'proof-evidence-system-2026-07-12-drive-pass-1',
     passed: passes.length,
     failed: failures.length,
     publicCaseStudies: compiled.items.length,
+    driveSourcesIndexed: status.privateEvidencePass?.privateSourceRecordsIndexed || 0,
+    claimsReviewed: status.privateEvidencePass?.claimsReviewed || 0,
+    stillImagesClassified: status.privateEvidencePass?.stillImagesClassified || 0,
+    videosHeld: status.privateEvidencePass?.videosHeld || 0,
+    publicRawImagesApproved: status.privateEvidencePass?.publicSafeRawImagesApproved || 0,
     tools: toolManifest.tools.length,
     downloads: toolManifest.downloads.length,
     actualPrivatePstProcessed: false,
