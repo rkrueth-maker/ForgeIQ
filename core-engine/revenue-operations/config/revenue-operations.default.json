@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "release": {
+    "id": "revenue-operations-control-core",
+    "version": "1.0.0",
+    "status": "TESTED_NOT_ACTIVATED",
+    "currency": "USD",
+    "timezone": "America/Chicago"
+  },
+  "controls": {
+    "selectedRecordOnly": true,
+    "bulkExecution": false,
+    "automaticRetry": false,
+    "duplicateProtectionRequired": true,
+    "ownerApprovalRequired": true,
+    "proofLogRequired": true,
+    "errorLogRequired": true,
+    "providerReferenceRequiredAfterExternalAction": true,
+    "rawCardDataAllowed": false,
+    "externalActionsEnabled": false
+  },
+  "approvalMatrix": {
+    "SEND_EMAIL": "APPROVE SEND",
+    "SEND_QUOTE": "APPROVE QUOTE SEND",
+    "SEND_INVOICE": "APPROVE INVOICE SEND",
+    "REQUEST_PAYMENT": "APPROVE PAYMENT REQUEST",
+    "ISSUE_REFUND": "APPROVE REFUND",
+    "SEND_FINAL_DELIVERY": "APPROVE FINAL DELIVERY",
+    "PUBLISH_SOCIAL": "APPROVE SOCIAL PUBLISH",
+    "LAUNCH_AD": "APPROVE AD LAUNCH",
+    "DEPLOY_WEBSITE": "APPROVE WEBSITE DEPLOY"
+  },
+  "billing": {
+    "invoiceTypes": ["Deposit", "Progress", "Final", "Recurring", "Subscription", "Credit"],
+    "paymentStates": ["Not requested", "Awaiting approval", "Requested", "Partially paid", "Paid", "Overdue", "Refunded", "Partially refunded", "Failed", "Disputed", "Written off"],
+    "quoteStates": ["Draft", "Needs review", "Approved", "Sent", "Viewed", "Accepted", "Declined", "Expired", "Replaced", "Cancelled"],
+    "invoiceStates": ["Draft", "Needs review", "Approved", "Sent", "Partially paid", "Paid", "Overdue", "Refunded", "Partially refunded", "Failed", "Disputed", "Written off", "Cancelled"],
+    "rounding": 2,
+    "maximumDiscountPercent": 100,
+    "maximumTaxPercent": 30,
+    "minimumInvoiceTotal": 0
+  },
+  "contracts": {
+    "statuses": ["Draft", "Needs review", "Approved", "Active", "Renewal due", "Cancelled", "Expired", "Completed"],
+    "billingCadences": ["One-time", "Monthly", "Quarterly", "Annual"],
+    "usageUnits": ["request", "hour", "deliverable", "revision", "support incident"],
+    "automaticRenewalDefault": false,
+    "automaticBillingDefault": false
+  },
+  "providers": [
+    {"id": "gmail", "category": "communications", "mode": "DRAFT_ONLY", "status": "AVAILABLE", "liveExecution": false, "blocker": "Owner-approved selected-record send workflow must be separately released."},
+    {"id": "stripe", "category": "payments", "mode": "HOSTED_PROVIDER", "status": "NOT_CONFIGURED", "liveExecution": false, "blocker": "Provider choice, account approval, restricted credentials, webhook validation, and owner release required."},
+    {"id": "square", "category": "payments", "mode": "HOSTED_PROVIDER", "status": "NOT_CONFIGURED", "liveExecution": false, "blocker": "Provider choice, account approval, restricted credentials, webhook validation, and owner release required."},
+    {"id": "paypal", "category": "payments", "mode": "HOSTED_PROVIDER", "status": "NOT_CONFIGURED", "liveExecution": false, "blocker": "Provider choice, account approval, restricted credentials, webhook validation, and owner release required."},
+    {"id": "quickbooks", "category": "accounting", "mode": "CSV_FALLBACK", "status": "FALLBACK_READY", "liveExecution": false, "blocker": "API credentials, account mapping, reconciliation tests, and owner release required for API sync."},
+    {"id": "xero", "category": "accounting", "mode": "CSV_FALLBACK", "status": "FALLBACK_READY", "liveExecution": false, "blocker": "API credentials, account mapping, reconciliation tests, and owner release required for API sync."},
+    {"id": "wave", "category": "accounting", "mode": "CSV_FALLBACK", "status": "FALLBACK_READY", "liveExecution": false, "blocker": "API availability, credentials, account mapping, and reconciliation tests required."},
+    {"id": "freshbooks", "category": "accounting", "mode": "CSV_FALLBACK", "status": "FALLBACK_READY", "liveExecution": false, "blocker": "API credentials, account mapping, reconciliation tests, and owner release required for API sync."},
+    {"id": "metricool", "category": "social", "mode": "INTERNAL_SCHEDULE", "status": "CREDENTIAL_REQUIRED", "liveExecution": false, "blocker": "Reconnect account, validate supported channels, publish synthetic test, and obtain owner release."},
+    {"id": "github", "category": "website", "mode": "REVIEW_ONLY", "status": "AVAILABLE", "liveExecution": false, "blocker": "Approved pull request, rollback point, production verification, and owner deployment release required."}
+  ],
+  "social": {
+    "supportedPlatforms": ["Facebook", "Instagram", "LinkedIn", "Google Business Profile", "YouTube"],
+    "publicationEnabled": false,
+    "advertisingSpendEnabled": false,
+    "assetPrivacyReviewRequired": true,
+    "platformSpecificCopyRequired": true
+  },
+  "accounting": {
+    "exportVersion": "1.0",
+    "defaultAccounts": {
+      "serviceRevenue": "Service Revenue",
+      "subscriptionRevenue": "Subscription Revenue",
+      "salesTaxPayable": "Sales Tax Payable",
+      "paymentFees": "Banking and Payment Fees",
+      "accountsReceivable": "Accounts Receivable",
+      "customerCredits": "Customer Credits",
+      "refunds": "Sales Returns and Refunds"
+    },
+    "csvFallbackEnabled": true,
+    "apiSyncEnabled": false
+  },
+  "externalActions": {
+    "customerEmail": false,
+    "quoteSend": false,
+    "invoiceSend": false,
+    "paymentRequest": false,
+    "paymentProcessing": false,
+    "refundExecution": false,
+    "finalDelivery": false,
+    "socialPublishing": false,
+    "advertisingSpend": false,
+    "websiteDeployment": false,
+    "accountingApiSync": false
+  }
+}
