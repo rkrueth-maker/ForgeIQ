@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "activationRequirements": {
+    "credentials": true,
+    "sandboxOrTestEvidence": true,
+    "selectedRecord": true,
+    "ownerApproval": true,
+    "duplicateLock": true,
+    "proofLog": true,
+    "errorLog": true,
+    "rollbackOrReconciliationPlan": true,
+    "automaticRetry": false
+  },
+  "providers": [
+    {
+      "slot": "payment",
+      "interface": "PaymentProvider",
+      "defaultMode": "manual-recording",
+      "liveEnabled": false,
+      "capabilities": ["createHostedPaymentLink", "readPaymentStatus", "recordCredit", "requestRefund", "reconcile"],
+      "forbidden": ["rawCardStorage", "browserSecret", "automaticRefund", "uncertainRetry"]
+    },
+    {
+      "slot": "email",
+      "interface": "CommunicationProvider",
+      "defaultMode": "draft-only",
+      "liveEnabled": false,
+      "capabilities": ["createDraft", "sendApprovedSelectedRecord", "readThread", "recordDeliveryStatus"],
+      "forbidden": ["bulkSend", "unapprovedSend", "uncertainRetry"]
+    },
+    {
+      "slot": "accounting",
+      "interface": "AccountingProvider",
+      "defaultMode": "csv-export",
+      "liveEnabled": false,
+      "capabilities": ["exportTransactions", "mapAccounts", "readReconciliationStatus", "syncApprovedSelectedBatch"],
+      "forbidden": ["silentOverwrite", "unreconciledDelete", "credentialLogging"]
+    },
+    {
+      "slot": "social",
+      "interface": "SocialProvider",
+      "defaultMode": "internal-schedule",
+      "liveEnabled": false,
+      "capabilities": ["createDraft", "scheduleApprovedSelectedRecord", "publishApprovedSelectedRecord", "readPublicationStatus", "readPerformance"],
+      "forbidden": ["bulkPublish", "unapprovedPublish", "uncertainRetry"]
+    },
+    {
+      "slot": "website",
+      "interface": "WebsiteProvider",
+      "defaultMode": "review-only",
+      "liveEnabled": false,
+      "capabilities": ["prepareChange", "validate", "deployApprovedChange", "readDeploymentStatus", "rollback"],
+      "forbidden": ["deployWithoutRollback", "unapprovedDeploy", "uncertainRetry"]
+    },
+    {
+      "slot": "final-delivery",
+      "interface": "DeliveryProvider",
+      "defaultMode": "internal-ready",
+      "liveEnabled": false,
+      "capabilities": ["prepareDelivery", "validateFiles", "deliverApprovedSelectedRecord", "recordReceipt"],
+      "forbidden": ["unapprovedDelivery", "publicPrivateFile", "uncertainRetry"]
+    }
+  ]
+}
