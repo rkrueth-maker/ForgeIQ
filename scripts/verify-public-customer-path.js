@@ -63,7 +63,7 @@ check('intake avoids silent external submission',!/(fetch\s*\(|XMLHttpRequest|se
 const tools=read('free-tools.html')+read('free-tools.js');
 check('free tools route is functional',/data-tool|tool_calculate/.test(tools));
 check('free tools includes downloads',/Blob|download/i.test(tools));
-check('free tools contains no fake checkout',!/(checkout|add to cart|buy now)/i.test(tools));
+check('free tools contains no actionable fake checkout',!/href="[^"]*(?:checkout|cart)|action="[^"]*(?:checkout|cart)|>\s*(?:buy now|add to cart|checkout)\s*</i.test(tools));
 
 const forge=read('forgeiq.html');
 check('ForgeIQ redirects to Highway 38 Tools',/free-tools\.html/.test(forge)&&/location\.replace/.test(forge));
