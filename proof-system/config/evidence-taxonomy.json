@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "allowedProofClassifications": [
+    "verified historical",
+    "historical estimate",
+    "anonymized reconstruction",
+    "demonstration sample",
+    "hypothetical"
+  ],
+  "evidenceStatuses": [
+    "UNREVIEWED",
+    "SOURCE_LOCATED",
+    "CORROBORATED",
+    "PRIVACY_REVIEW_REQUIRED",
+    "PUBLIC_SAFE",
+    "HOLD",
+    "REJECTED"
+  ],
+  "privacyRiskClasses": [
+    "person",
+    "family",
+    "address",
+    "customer",
+    "vendor",
+    "employee",
+    "former-employer",
+    "proprietary-drawing",
+    "part-number",
+    "pricing",
+    "production-data",
+    "credentials",
+    "legal-record",
+    "medical-record",
+    "vehicle-identifier",
+    "location-metadata"
+  ],
+  "publicationRules": {
+    "explicitPublicSafeRequired": true,
+    "rawMessagePublicationAllowed": false,
+    "rawAttachmentPublicationAllowed": false,
+    "privateSourcePathPublicationAllowed": false,
+    "peopleAllowedWithoutRelease": false,
+    "addressAllowed": false,
+    "customerOrVendorIdentityAllowed": false,
+    "formerEmployerProprietaryMaterialAllowed": false,
+    "uncorroboratedQuantityClaimsAllowed": false,
+    "programCountClaim": "Use non-quantified wording until corroborated by independent source counts."
+  },
+  "photoStages": ["before", "during", "after", "reference", "unknown"],
+  "photoDecisions": ["PUBLIC_SAFE", "REDACT_AND_REVIEW", "HOLD", "REJECT"],
+  "minimumPublicRecord": [
+    "id",
+    "title",
+    "classification",
+    "domain",
+    "summary",
+    "evidenceStatus",
+    "privacyStatus",
+    "sourceCount",
+    "relatedProducts",
+    "boundary"
+  ]
+}
