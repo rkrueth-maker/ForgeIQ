@@ -68,7 +68,11 @@ function normalizeCustomerId(value) {
 }
 
 function sanitizeFileName(value) {
-  const base = path.basename(String(value || '').trim()).replace(/[\u0000-\u001f\u007f]/g, '');
+  const raw = String(value || '').trim();
+  let decoded = raw;
+  try { decoded = decodeURIComponent(raw); } catch (_) { decoded = raw; }
+  if (!raw || raw.includes('..') || decoded.includes('..') || /[\\/]/.test(raw) || /[\\/]/.test(decoded)) throw new Error('Filename is invalid.');
+  const base = path.basename(raw).replace(/[\u0000-\u001f\u007f]/g, '');
   if (!base || base === '.' || base === '..' || base.includes('/') || base.includes('\\')) throw new Error('Filename is invalid.');
   const cleaned = base.replace(/[^A-Za-z0-9._ -]/g, '_').replace(/\s+/g, ' ').trim();
   if (!cleaned || cleaned.length > 160) throw new Error('Filename is invalid.');
