@@ -1,40 +1,48 @@
 {
   "packageId": "H38-OWNER-PORTAL-HARD-RULE-2026-07-12",
-  "status": "DEPLOYED_PENDING_POST_DEPLOYMENT_TEST_AND_VERIFICATION",
-  "sourceStatus": "MERGED_VERIFIED_AND_PUSHED",
+  "status": "DEPLOYED_VERSION_12_PENDING_RUNTIME_ACCEPTANCE",
+  "sourceStatus": "MERGED_VERIFIED_PUSHED_AND_VERSIONED",
   "sourcePackageCommit": "31eec68c42d22456944d5906a7fd35de8ab52a56",
-  "deployedRepositoryHead": "5283bdddaf28fda414f38a43c17b89c7348b3c71",
-  "deploymentControlMergeCommit": "4b876296e87f23712b2f1a083667672228daafba",
+  "htmlIncludeHotfixMergeCommit": "bd5ce578b12fbddaf54124e08f1a8b0c1c7db69e",
+  "deployedRepositoryHead": "f72463f3554377c02250d13696bc8949d76d634c",
   "releaseMarker": "production-2026-07-12-hard-rule-owner-portal",
-  "deployedAt": "2026-07-12T21:48:17Z",
-  "deploymentRoute": "AUTHENTICATED_GOOGLE_CLOUD_SHELL_DIRECT_EXISTING_DEPLOYMENT_UPDATE",
+  "deployedAt": "2026-07-12T22:05:18Z",
+  "deploymentRoute": "GITHUB_ACTIONS_EXPLICIT_IMMUTABLE_VERSION_UPDATE",
+  "reportedRuntimeFailure": {
+    "status": "RESOLVED_IN_VERSION_12_PENDING_OWNER_RELOAD_CONFIRMATION",
+    "exception": "Malformed HTML content",
+    "file": "Portal_Experience",
+    "rootCause": "Raw JavaScript client fragments containing HTML template literals were read with HtmlService.createHtmlOutputFromFile(), which parsed each fragment as standalone HTML before Portal_Index rendered.",
+    "correction": "Allowlisted client and style fragments now use HtmlService.createTemplateFromFile(fileName).getRawContent()."
+  },
   "sourceVerification": {
-    "status": "PASS",
-    "passed": 102,
-    "failed": 0,
-    "serverFiles": 12,
-    "namedFunctions": 91,
-    "duplicateFunctions": []
+    "ownerPortalNext": "PASS",
+    "ownerPortalHardRule": "PASS",
+    "htmlIncludeRegression": "PASS",
+    "repositoryPullRequestChecks": "PASS"
   },
   "productionTarget": {
     "boundScriptId": "13Bes6_rs3LD-Sch4Vi5DKssCnlU_qb4hzZpGpDVfoRELRak0htXEj7O-",
     "existingDeploymentId": "AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg",
     "webAppUrl": "https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec",
     "productionSpreadsheetId": "1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo",
-    "previousVersion": 9,
-    "currentVersion": 10,
-    "deploymentDescription": "Highway 38 Integrated Business OS"
+    "previousVersion": 11,
+    "currentVersion": 12,
+    "deploymentDescription": "Highway 38 Owner Portal HTML hotfix f72463f3554377c02250d13696bc8949d76d634c"
   },
   "rollbackEvidence": {
     "backupCreated": true,
-    "backupPath": "/home/rkrueth/h38-integrated-business-os-20260712-214806/bound-project-backup.tar.gz",
-    "evidenceFolder": "/home/rkrueth/h38-integrated-business-os-20260712-214806",
-    "backupSha256": "faf249671b4a515486851d3c9a296db2e118b770cd33b90b8be1664a75bba379"
+    "backupSha256": "9030d0eae1b8b5311b8e7c41647fa82ad07dc408e1cb1124b763b5b41a3f9af3",
+    "workflowArtifact": "owner-portal-html-hotfix-29210844902",
+    "artifactDigest": "sha256:c775bfdd9d99007c52b29118d0b6bb601e0294451b97172fc86f1b5be31c3209",
+    "artifactRetentionUntil": "2026-10-10T22:04:51Z"
   },
   "deploymentResult": {
     "productionWriteOccurred": true,
-    "filesPushed": 18,
+    "explicitVersionCreated": true,
+    "versionAdvanced": true,
     "existingDeploymentUpdated": true,
+    "deploymentVersionConfirmedAfterUpdate": 12,
     "createdNewProject": false,
     "createdSecondDeployment": false,
     "existingBoundProjectPreserved": true,
@@ -47,15 +55,17 @@
     "automaticRetryEnabled": false,
     "ownerApprovalGatesPreserved": true
   },
-  "githubActionsHistory": {
-    "workflow": "Deploy Owner Portal Hard Rule Production",
-    "runId": 29208826609,
-    "latestHostedRunnerResult": "FAIL_BEFORE_WRITE_INVALID_SCRIPT_KEY_IN_WORKFLOW_CONFIGURATION",
-    "credentialSecretConfigured": true,
-    "productionSuccessCameFrom": "Authenticated Cloud Shell using the corrected existing bound script ID"
+  "githubActionsEvidence": {
+    "workflow": "Deploy Owner Portal HTML Include Hotfix",
+    "runId": 29210844902,
+    "jobId": 86698180461,
+    "result": "SUCCESS",
+    "sourceCommit": "f72463f3554377c02250d13696bc8949d76d634c",
+    "controlIssuesUpdated": [31, 33]
   },
-  "postDeploymentAcceptanceStatus": "PENDING",
+  "postDeploymentAcceptanceStatus": "PENDING_OWNER_RUNTIME_CONFIRMATION",
   "postDeploymentAcceptance": [
+    "Reload the existing private Owner Portal and confirm the malformed HTML exception is gone",
     "Run the non-destructive Owner Portal self-test",
     "Confirm the hard-rule release marker",
     "Verify Today, Needs Rick's Decision, Active Work, Money, Growth, Website, and System Health",
@@ -68,9 +78,9 @@
     "Retain screenshots and final acceptance evidence"
   ],
   "prohibitedClaims": [
-    "Do not claim post-deployment runtime acceptance until the self-test and desktop/mobile checks are recorded",
+    "Do not claim final runtime acceptance until the owner reload, self-test, and desktop/mobile checks are recorded",
     "Do not claim customer portal activation",
     "Do not claim any external provider action is enabled"
   ],
-  "nextExecutableStep": "Run the Owner Portal self-test and complete desktop/mobile post-deployment acceptance against version 10, then record final acceptance on Issues #33 and #31."
+  "nextExecutableStep": "Reload the existing private Owner Portal version 12. If it renders, run the non-destructive self-test and complete desktop/mobile acceptance, then record final acceptance on Issues #33 and #31."
 }
