@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "allowedProofClassifications": [
     "verified historical",
     "historical estimate",
@@ -7,6 +7,13 @@
     "demonstration sample",
     "hypothetical"
   ],
+  "publicClassificationLabels": {
+    "verified historical": "Verified historical work",
+    "historical estimate": "Historical estimate",
+    "anonymized reconstruction": "Anonymized reconstruction",
+    "demonstration sample": "Demonstration sample",
+    "hypothetical": "Hypothetical example"
+  },
   "evidenceStatuses": [
     "UNREVIEWED",
     "SOURCE_LOCATED",
@@ -32,7 +39,10 @@
     "legal-record",
     "medical-record",
     "vehicle-identifier",
-    "location-metadata"
+    "location-metadata",
+    "computer-screen",
+    "plant-layout",
+    "third-party-rights"
   ],
   "publicationRules": {
     "explicitPublicSafeRequired": true,

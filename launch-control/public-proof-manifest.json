@@ -1,15 +1,15 @@
 {
-  "schemaVersion": 1,
-  "release": "proof-evidence-system-2026-07-12",
-  "policy": "Only explicitly public-safe assets may be listed here. Private PST, former-employer source records, customer, vendor, employee, address, family, proprietary, and unapproved-photo data are excluded.",
+  "schemaVersion": 2,
+  "release": "proof-evidence-system-2026-07-12-drive-pass-1",
+  "policy": "Only explicitly public-safe summaries, anonymized reconstructions and purpose-built demonstrations may be listed here. Private PST, source correspondence, former-employer records, customer, vendor, employee, address, family, proprietary, screen, plant-layout, pricing, production and unapproved-photo data are excluded.",
   "items": [
     {
       "id": "PUBLIC-PROOF-LIBRARY",
       "title": "Highway 38 Proof Library",
-      "type": "classified public-safe case summaries",
+      "type": "nine classified public-safe case studies",
       "url": "proof.html",
       "privacyStatus": "PUBLIC_SAFE",
-      "sourceClass": "compiled public summaries and demonstrations"
+      "sourceClass": "privacy-approved historical summaries, anonymized reconstructions and demonstrations"
     },
     {
       "id": "PUBLIC-SAMPLE-LIBRARY",
@@ -30,7 +30,7 @@
     {
       "id": "PUBLIC-TOOL-CENTER",
       "title": "Highway 38 Tools",
-      "type": "interactive calculators and clean downloads",
+      "type": "eight interactive calculators and three clean downloads",
       "url": "free-tools.html",
       "privacyStatus": "PUBLIC_SAFE",
       "sourceClass": "browser-only calculators and purpose-built CSV files"
@@ -60,14 +60,22 @@
       "sourceClass": "purpose-built blank template"
     }
   ],
+  "evidencePass": {
+    "id": "H38-PROOF-DRIVE-2026-07-12-01",
+    "publicCaseStudies": 9,
+    "publicRawImagesApproved": 0,
+    "rawPrivateEvidencePublished": false,
+    "externalActionsOccurred": false
+  },
   "excludedClasses": [
     "private PST extraction",
+    "private correspondence and attachments",
     "former-employer source records",
     "unredacted customer or vendor files",
     "employee records",
     "private addresses",
     "family information",
-    "proprietary drawings, programs, pricing, or production data",
-    "unapproved photographs"
+    "proprietary drawings, programs, pricing, production data, screens or plant layouts",
+    "unapproved photographs and videos"
   ]
 }

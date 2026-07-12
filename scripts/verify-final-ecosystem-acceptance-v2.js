@@ -97,7 +97,13 @@ function main(){
   check('social publishing disabled',social.publishingControls.externalPublishingEnabled===false&&social.externalActionsOccurred===false);
 
   const proof=json('proof-system/status.json');
-  check('private proof source blockers retained',proof.status==='PIPELINE_READY_PRIVATE_SOURCE_BLOCKED'&&proof.privateSourcePublished===false&&proof.externalActionsOccurred===false);
+  const proofBlockers=new Map((proof.blockers||[]).map(item=>[item.id,item]));
+  check('Drive proof pass recorded with private-source holds retained',
+    proof.status==='DRIVE_EVIDENCE_PASS_COMPLETE_OWNER_SOURCES_PENDING'&&
+    proof.privateSourcePublished===false&&proof.publicRawPhotoPublished===false&&proof.externalActionsOccurred===false&&
+    proof.privateEvidencePass?.privateSourceRecordsIndexed===12&&proof.privateEvidencePass?.stillImagesClassified===18&&
+    ['BLOCK-PST-001','BLOCK-PHOTO-001','BLOCK-CAD-001'].every(id=>proofBlockers.get(id)?.status==='OWNER_SOURCE_UNAVAILABLE'&&String(proofBlockers.get(id)?.exactNextStep||'').length>40)
+  );
 
   const page=read('final-acceptance.html');
   check('final page metadata',/<title>[^<]+<\/title>/i.test(page)&&/<meta[^>]+name="viewport"/i.test(page));
