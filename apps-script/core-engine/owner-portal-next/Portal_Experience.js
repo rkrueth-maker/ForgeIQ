@@ -8,9 +8,7 @@ function h38PortalInclude_(fileName) {
     'Portal_Experience_Styles',
     'Portal_Experience_Client_Core',
     'Portal_Experience_Client_Views',
-    'Portal_Experience_Client_Workspace',
-    'Portal_Auth_Client',
-    'Portal_User_Access_Client'
+    'Portal_Experience_Client_Workspace'
   ];
   if (allowed.indexOf(String(fileName || '')) < 0) throw new Error('Portal include is not allowed.');
   return HtmlService.createHtmlOutputFromFile(fileName).getContent();

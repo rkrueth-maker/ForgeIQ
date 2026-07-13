@@ -12,9 +12,7 @@ function h38PortalRawInclude_(fileName) {
     'Portal_Experience_Styles',
     'Portal_Experience_Client_Core',
     'Portal_Experience_Client_Views',
-    'Portal_Experience_Client_Workspace',
-    'Portal_Auth_Client',
-    'Portal_User_Access_Client'
+    'Portal_Experience_Client_Workspace'
   ];
   fileName = String(fileName || '');
   if (allowed.indexOf(fileName) < 0) throw new Error('Portal raw include is not allowed.');

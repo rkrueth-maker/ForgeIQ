@@ -35,3 +35,4 @@ async function selfTest(){let button=document.getElementById('selfTestButton'),o
 async function accountingCsv(){let csv=await call('h38PortalAccountingCsv'),blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='highway-38-accounting-export.csv';a.click();URL.revokeObjectURL(url);}
 async function globalSearch(){let q=document.getElementById('search').value.trim();if(!q)return;try{SEARCH_RESULTS=await call('h38PortalGlobalSearch',[q]);CURRENT='search';renderNav();document.getElementById('view').innerHTML=`<h1>Search results</h1><div class="muted">${SEARCH_RESULTS.length} matching records</div>${SEARCH_RESULTS.length?plainTable(SEARCH_RESULTS,['entity','id','title'],'openSearchResult'):'<div class="empty">No matches.</div>'}`;}catch(e){notice(esc(e.message||e),'bad');}}
 function openSearchResult(index){let r=SEARCH_RESULTS[index];if(r)openEntity(r.entity,r.id);}
+refresh();

@@ -6,37 +6,16 @@ function h38PortalSpreadsheet_() {
 
 function h38PortalAccess_() {
   var active = '';
+  var effective = '';
   try { active = String(Session.getActiveUser().getEmail() || '').toLowerCase(); } catch (e) {}
+  try { effective = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(); } catch (e2) {}
   var owners = H38_PORTAL_NEXT.OWNER_EMAILS.map(function(v) { return String(v).toLowerCase(); });
-  if (typeof H38_PORTAL_REQUEST_AUTH !== 'undefined' && H38_PORTAL_REQUEST_AUTH) {
-    return {
-      allowed:H38_PORTAL_REQUEST_AUTH.status === 'active',
-      activeUser:H38_PORTAL_REQUEST_AUTH.email,
-      uid:H38_PORTAL_REQUEST_AUTH.uid,
-      role:H38_PORTAL_REQUEST_AUTH.role,
-      status:H38_PORTAL_REQUEST_AUTH.status,
-      authentication:'FIREBASE'
-    };
-  }
-  return {
-    allowed:owners.indexOf(active) >= 0,
-    activeUser:active || '(blank)',
-    role:owners.indexOf(active) >= 0 ? 'Owner' : '',
-    status:owners.indexOf(active) >= 0 ? 'active' : 'unauthorized',
-    authentication:'APPS_SCRIPT_EDITOR',
-    ownerEmails:owners
-  };
+  return {allowed: owners.indexOf(active) >= 0 || owners.indexOf(effective) >= 0, activeUser:active || '(blank)', effectiveUser:effective || '(blank)', ownerEmails:owners};
 }
 
 function h38PortalAssertOwner_() {
   var access = h38PortalAccess_();
-  if (!access.allowed) throw new Error('ACCESS HOLD — a verified, active portal session is required.');
-  return access;
-}
-
-function h38PortalAssertOwnerRole_() {
-  var access = h38PortalAssertOwner_();
-  if (access.role !== 'Owner') throw new Error('ACCESS HOLD — Owner role required.');
+  if (!access.allowed) throw new Error('ACCESS HOLD — owner-only portal. Active=' + access.activeUser + ' Effective=' + access.effectiveUser);
   return access;
 }
 
@@ -201,7 +180,7 @@ function h38PortalDeleteToArchive(entity, id) {
 }
 
 function h38PortalClientSchema() {
-  var access = h38PortalAssertOwner_();
+  h38PortalAssertOwner_();
   var tables = {};
   Object.keys(H38_PORTAL_TABLES).forEach(function(entity){
     var spec = H38_PORTAL_TABLES[entity];
@@ -221,8 +200,8 @@ function h38PortalClientSchema() {
     statuses:H38_PORTAL_STATUS,
     expenseCategories:H38_PORTAL_EXPENSE_CATEGORIES,
     catalog:catalog,
-    creatable:access.role === 'Viewer' ? [] : ['tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar'],
-    editable:access.role === 'Viewer' ? [] : ['tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar'],
+    creatable:['tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar'],
+    editable:['tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar'],
     safety:{ownerOnly:true,selectedRecordOnly:true,bulkExecution:false,triggers:false,liveExternalActions:false}
   };
 }
