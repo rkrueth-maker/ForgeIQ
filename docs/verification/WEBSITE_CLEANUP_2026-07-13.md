@@ -1,0 +1,116 @@
+# Website Cleanup Pass — 2026-07-13
+
+- Top-level pages audited: 50
+- Internal/external links inspected: 271
+- Images inspected: 12
+- Script references inspected: 114
+- Stylesheet references inspected: 137
+- Source issues found: 0
+- Browser/mobile failures: 1
+
+## Safe normalization applied
+- `404.html`
+- `about.html`
+- `ai-workflow.html`
+- `approval-deposit-pack.html`
+- `automation-examples.html`
+- `backend-system.html`
+- `business-concept-builder.html`
+- `business-os.html`
+- `catalog.html`
+- `custom-work-build.html`
+- `customer-history-setup.html`
+- `customer-portal.html`
+- `ecosystem-status.html`
+- `examples.html`
+- `faq.html`
+- `final-acceptance.html`
+- `forgeiq.html`
+- `free-tools.html`
+- `how-it-works.html`
+- `index.html`
+- `launch-plan.html`
+- `local-service-operating-system.html`
+- `packages.html`
+- `portal.html`
+- `pricing.html`
+- `privacy.html`
+- `product.html`
+- `products.html`
+- `project-action-snapshot.html`
+- `proof-builds.html`
+- `proof-center.html`
+- `proof.html`
+- `quote-sheet-builder.html`
+- `real-proof-lab.html`
+- `request-form-lead-tracker.html`
+- `resources.html`
+- `revenue-operations-status.html`
+- `sample-library-now.html`
+- `sample-library.html`
+- `sample-workbooks.html`
+- `services.html`
+- `shop-automation.html`
+- `solutions.html`
+- `start-request.html`
+- `terms.html`
+- `test-plan.html`
+- `tool-center.html`
+- `tools.html`
+- `weekly-owner-dashboard.html`
+- `worked-examples.html`
+
+## Source issues
+- None
+
+## Browser and mobile results
+- `404.html` — **PASS**
+- `about.html` — **PASS**
+- `ai-workflow.html` — **PASS**
+- `approval-deposit-pack.html` — **PASS**
+- `automation-examples.html` — **PASS**
+- `backend-system.html` — **PASS**
+- `business-concept-builder.html` — **PASS**
+- `business-os.html` — **PASS**
+- `catalog.html` — **PASS**
+- `custom-work-build.html` — **PASS**
+- `customer-history-setup.html` — **PASS**
+- `customer-portal.html` — **PASS**
+- `ecosystem-status.html` — **PASS**
+- `examples.html` — **PASS**
+- `faq.html` — **PASS**
+- `final-acceptance.html` — **PASS**
+- `forgeiq.html` — **PASS**
+- `free-tools.html` — **PASS**
+- `how-it-works.html` — **PASS**
+- `index.html` — **PASS**
+- `launch-plan.html` — **PASS**
+- `local-service-operating-system.html` — **PASS**
+- `packages.html` — **PASS**
+- `portal.html` — **PASS**
+- `pricing.html` — **PASS**
+- `privacy.html` — **PASS**
+- `product.html` — **PASS**
+- `products.html` — **PASS**
+- `project-action-snapshot.html` — **PASS**
+- `proof-builds.html` — **PASS**
+- `proof-center.html` — **PASS**
+- `proof.html` — **PASS**
+- `quote-sheet-builder.html` — **PASS**
+- `real-proof-lab.html` — **PASS**
+- `request-form-lead-tracker.html` — **PASS**
+- `resources.html` — **PASS**
+- `revenue-operations-status.html` — **PASS**
+- `sample-library-now.html` — **PASS**
+- `sample-library.html` — **PASS**
+- `sample-workbooks.html` — **PASS**
+- `services.html` — **PASS**
+- `shop-automation.html` — **PASS**
+- `solutions.html` — **PASS**
+- `start-request.html` — **PASS**
+- `terms.html` — **PASS**
+- `test-plan.html` — **PASS**
+- `tool-center.html` — **PASS**
+- `tools.html` — **PASS**
+- `weekly-owner-dashboard.html` — **PASS**
+- `worked-examples.html` — **FAIL**: mobile overflow 422/390
