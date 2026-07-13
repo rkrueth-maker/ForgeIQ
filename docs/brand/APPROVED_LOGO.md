@@ -1,0 +1,1 @@
+Only the second uploaded mountain-and-road Highway 38 Solutions badge is approved for public branding. All public logo references must use assets/highway38-logo.png?v=20260713-logo2. The first and third logo variants are retired and must not appear in headers, footers, heroes, legacy brand bars, or verification expectations.
