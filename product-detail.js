@@ -35,6 +35,22 @@
     <section class="section"><div class="container"><div class="detail-grid"><section class="detail-panel"><h2>Problem solved</h2><p>${esc(product.problem)}</p></section><section class="detail-panel"><h2>Ideal customer</h2><p>${esc(product.ideal)}</p></section><section class="detail-panel good-fit"><h2>Best fit</h2>${list(product.bestFit)}</section><section class="detail-panel not-fit"><h2>Not a fit</h2>${list(product.notFit)}</section><section class="detail-panel"><h2>What you send</h2>${list(product.inputs)}</section><section class="detail-panel"><h2>What you receive</h2>${list(product.deliverables)}</section><section class="detail-panel"><h2>Scope limits</h2>${list(product.scope)}</section><section class="detail-panel"><h2>Exclusions</h2>${list(product.exclusions)}</section><section class="detail-panel full"><h2>Professional-service boundary</h2><div class="boundary">${esc(product.boundary)}</div><p><strong>Upgrade path:</strong> ${esc(product.upgrade)}</p></section></div></div></section>
     <section class="section alt"><div class="container"><div class="section-head"><span class="badge">Same service family</span><h2>Related approved products</h2></div><div class="product-grid">${related.map(item=>`<article class="product-card"><div class="meta"><span>${esc(item.id)}</span><span>${esc(item.familyLabel)}</span></div><h3>${esc(item.name)}</h3><div class="price">${money(item.price)}</div><p>${esc(item.summary)}</p><div class="button-row"><a class="btn btn-light" href="product.html?id=${encodeURIComponent(item.id)}">Full scope</a><a class="btn btn-dark" href="start-request.html?product=${encodeURIComponent(item.id)}">Request</a></div></article>`).join('')}</div></div></section>`;
 
+  const existingSchema=document.querySelector('script[data-product-schema]');
+  if(existingSchema)existingSchema.remove();
+  const schema=document.createElement('script');
+  schema.type='application/ld+json';
+  schema.dataset.productSchema='true';
+  schema.textContent=JSON.stringify({
+    '@context':'https://schema.org',
+    '@type':'Service',
+    name:product.name,
+    serviceType:product.familyLabel,
+    description:product.summary,
+    provider:{'@type':'ProfessionalService',name:'Highway 38 Solutions',url:'https://rkrueth-maker.github.io/highway-38-solutions/'},
+    offers:{'@type':'Offer',price:product.price,priceCurrency:'USD',url:canonical,availability:'https://schema.org/InStock'}
+  });
+  document.head.appendChild(schema);
+
   window.h38AnalyticsQueue=window.h38AnalyticsQueue||[];
   window.h38AnalyticsQueue.push({event:'product_detail_view',productId:product.id,family:product.family,timestamp:new Date().toISOString()});
 })();
