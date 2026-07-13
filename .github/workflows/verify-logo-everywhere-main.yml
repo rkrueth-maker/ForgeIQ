@@ -1,0 +1,102 @@
+name: Verify Logo Everywhere Main
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-logo-everywhere-main.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Browser and mobile verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm init -y >/dev/null 2>&1
+          npm install --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+          python3 -m http.server 4173 >/tmp/http.log 2>&1 &
+          pid=$!
+          trap 'kill $pid || true' EXIT
+          sleep 2
+          node - <<'NODE'
+          const { chromium }=require('playwright');
+          const fs=require('fs');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const checks=[
+              ['index.html',true],
+              ['services.html',true],
+              ['sample-library.html',false],
+              ['quote-sheet-builder.html',false],
+              ['real-proof-lab.html',false],
+              ['404.html',false]
+            ];
+            const results=[];
+            for(const [name,expectMenu] of checks){
+              const page=await browser.newPage({viewport:{width:390,height:844}});
+              await page.goto('http://127.0.0.1:4173/'+name,{waitUntil:'domcontentloaded',timeout:15000});
+              await page.waitForSelector('img.brand-logo',{timeout:10000});
+              const logo=page.locator('img.brand-logo').first();
+              const src=await logo.getAttribute('src');
+              const alt=await logo.getAttribute('alt');
+              if(!src.includes('assets/highway38-logo.png?v=20260713-logo3'))throw new Error(name+': stale logo path '+src);
+              if(alt!=='Highway 38 Solutions')throw new Error(name+': wrong alt '+alt);
+              const size=await logo.evaluate(el=>({w:el.getBoundingClientRect().width,h:el.getBoundingClientRect().height}));
+              if(size.h<29||size.h>37)throw new Error(name+': mobile height '+size.h);
+              const text=await page.locator('.brand-text').first().textContent();
+              if(!/Highway\s*38\s*Solutions/i.test(text.replace(/\s+/g,' ')))throw new Error(name+': text fallback missing');
+              const menu=page.locator('.eco-menu');
+              if(expectMenu&&await menu.count()){
+                await menu.click();
+                if(await menu.getAttribute('aria-expanded')!=='true')throw new Error(name+': menu did not open');
+                if(!await page.locator('.eco-nav__links').first().evaluate(el=>el.classList.contains('is-open')))throw new Error(name+': menu class missing');
+              }
+              results.push(`${name}: ${size.w.toFixed(1)}×${size.h.toFixed(1)} PASS`);
+              await page.close();
+            }
+            await browser.close();
+            fs.writeFileSync('/tmp/browser.txt',results.join('\n'));
+          })().catch(err=>{console.error(err);process.exit(1)});
+          NODE
+      - name: Lighthouse image-alt verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4174 >/tmp/http2.log 2>&1 &
+          pid=$!
+          trap 'kill $pid || true' EXIT
+          sleep 2
+          npx --yes lighthouse@12 http://127.0.0.1:4174/index.html --only-categories=accessibility --chrome-flags='--headless --no-sandbox --disable-gpu' --output=json --output-path=/tmp/lighthouse.json --quiet
+          node - <<'NODE'
+          const fs=require('fs');
+          const r=JSON.parse(fs.readFileSync('/tmp/lighthouse.json','utf8'));
+          if(r.audits['image-alt'].score!==1)throw new Error('Lighthouse image-alt failed');
+          fs.writeFileSync('/tmp/lighthouse.txt',`Accessibility: ${r.categories.accessibility.score}\nImage-alt: ${r.audits['image-alt'].score}\n`);
+          NODE
+      - name: Record verification on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo
+            echo '## Post-publication browser verification'
+            sed 's/^/- /' /tmp/browser.txt
+            echo '- Mobile-menu behavior: PASS'
+            sed 's/^/- Lighthouse /' /tmp/lighthouse.txt
+          } >> docs/verification/LOGO_EVERYWHERE_2026-07-13.md
+          rm .github/workflows/verify-logo-everywhere-main.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Record logo-everywhere browser verification'
+          git push origin main
