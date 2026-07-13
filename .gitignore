@@ -126,6 +126,8 @@ dist
 
 # Firebase cache directory
 .firebase/
+*service-account*.json
+firebase/functions/.runtimeconfig.json
 
 # TernJS port file
 .tern-port

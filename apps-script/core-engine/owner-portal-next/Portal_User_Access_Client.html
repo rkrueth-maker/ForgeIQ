@@ -1,0 +1,15 @@
+async function renderUserAccess(){
+  const view=document.getElementById('view');
+  view.innerHTML='<div class="card">Loading secure user access records…</div>';
+  try{
+    const result=await call('h38PortalUserAccessList');
+    const users=array(result.users);
+    view.innerHTML=`<div class="workspace-head"><div><h1>User Access</h1><div class="muted">Owner-only invitations, roles, activation, disabling, and removal.</div></div></div>
+      <form class="card form-grid" onsubmit="invitePortalUser(event)"><label>Email<input id="inviteEmail" type="email" required></label><label>Role<select id="inviteRole">${['Administrator','Staff','Viewer','Owner'].map(r=>`<option>${r}</option>`).join('')}</select></label><div class="wide"><button class="btn primary" type="submit">Invite user</button></div></form>
+      <div class="notice hold"><b>Invitation-only:</b> users cannot create their own accounts. Firebase sends the invited address a password setup/reset message.</div>
+      <div class="tablewrap"><table><thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Last sign-in</th><th>Controls</th></tr></thead><tbody>${users.map(user=>`<tr><td data-label="Email">${esc(user.email)}</td><td data-label="Role"><select id="role_${attr(user.uid)}">${['Owner','Administrator','Staff','Viewer'].map(r=>`<option ${user.role===r?'selected':''}>${r}</option>`).join('')}</select></td><td data-label="Status">${statusPill(user.status)}</td><td data-label="Last sign-in">${esc(user.lastSignInTime||'Never')}</td><td data-label="Controls"><div class="toolbar"><button class="btn" onclick="updatePortalUser('${attr(user.uid)}','role')">Save role</button><button class="btn ${user.status==='active'?'hold':'ok'}" onclick="updatePortalUser('${attr(user.uid)}','${user.status==='active'?'disable':'activate'}')">${user.status==='active'?'Disable':'Activate'}</button><button class="btn bad" onclick="removePortalUser('${attr(user.uid)}','${attr(user.email)}')">Remove</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  }catch(error){view.innerHTML='<div class="notice bad">'+esc(error.message||error)+'</div>';}
+}
+async function invitePortalUser(event){event.preventDefault();try{await call('h38PortalInviteUser',[{email:document.getElementById('inviteEmail').value.trim(),role:document.getElementById('inviteRole').value}]);notice('Invitation created and password setup email requested.','ok');await renderUserAccess();}catch(error){notice(esc(error.message||error),'bad');}}
+async function updatePortalUser(uid,action){try{const input={uid,action};if(action==='role')input.role=document.getElementById('role_'+uid).value;await call('h38PortalUpdateUserAccess',[input]);notice('User access updated. Role changes apply after token refresh; disabled access is blocked server-side.','ok');await renderUserAccess();}catch(error){notice(esc(error.message||error),'bad');}}
+async function removePortalUser(uid,email){if(!confirm(`Remove portal access for ${email}?`))return;try{await call('h38PortalRemoveUserAccess',[{uid}]);notice('User access removed.','ok');await renderUserAccess();}catch(error){notice(esc(error.message||error),'bad');}}

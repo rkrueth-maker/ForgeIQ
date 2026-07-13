@@ -1,6 +1,5 @@
 /** Dashboard, unified tasks, full workspaces, reporting, search, and internal business workflows. */
 function doGet(e) {
-  h38PortalAssertOwner_();
   return HtmlService.createTemplateFromFile('Portal_Index').evaluate().setTitle(H38_PORTAL_NEXT.APP_NAME).setSandboxMode(HtmlService.SandboxMode.IFRAME);
 }
 
@@ -14,7 +13,7 @@ function h38PortalBootstrap() {
     access:access,
     installed:installed,
     catalog:installed.installed ? h38PortalCatalogStatus_() : {status:'HOLD'},
-    modules:H38_PORTAL_NEXT.MODULES,
+    modules:H38_PORTAL_NEXT.MODULES.filter(function(moduleName){ return moduleName !== 'userAccess' || access.role === 'Owner'; }),
     statuses:H38_PORTAL_STATUS,
     expenseCategories:H38_PORTAL_EXPENSE_CATEGORIES,
     approvalMatrix:H38_PORTAL_APPROVAL_MATRIX,

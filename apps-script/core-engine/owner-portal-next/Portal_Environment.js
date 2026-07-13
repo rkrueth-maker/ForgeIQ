@@ -1,5 +1,6 @@
 /** Explicit environment configuration gates for copied TEST and owner-only PRODUCTION projects. */
 function h38PortalConfigureEnvironment(input) {
+  h38PortalAssertOwnerRole_();
   input = input || {};
   var confirmation = String(input.confirmation || '');
   var spreadsheetId = String(input.spreadsheetId || '').trim();
@@ -40,6 +41,7 @@ function h38PortalConfigureProductionEnvironment(input) {
 }
 
 function h38PortalEnvironmentStatus() {
+  h38PortalAssertOwner_();
   var props = PropertiesService.getScriptProperties();
   var id = String(props.getProperty('H38_PORTAL_SPREADSHEET_ID') || '');
   var environment = String(props.getProperty('H38_PORTAL_ENVIRONMENT') || 'UNCONFIGURED').toUpperCase();

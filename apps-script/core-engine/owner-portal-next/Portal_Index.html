@@ -3,22 +3,40 @@
 <head>
   <base target="_top">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <style><?!= h38PortalRawInclude_('Portal_Experience_Styles'); ?></style>
 </head>
 <body>
-<div class="app">
+<section class="auth-shell" id="authShell">
+  <form class="auth-card" id="loginForm">
+    <div class="brand">Highway 38<small>Secure Owner Portal</small></div>
+    <h1>Authorized users only</h1>
+    <p class="muted">Accounts are created only after an Owner invitation.</p>
+    <label>Email<input id="loginEmail" type="email" autocomplete="username" required></label>
+    <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+    <button class="btn primary" type="submit">Sign in</button>
+    <button class="btn" type="button" id="resetPasswordButton">Reset password</button>
+    <div class="notice hold" id="authNotice">Enter the invited email address and password.</div>
+  </form>
+</section>
+<div class="app" id="portalApp" hidden>
   <aside class="side" id="side"><div class="brand">Highway 38<small id="release">Business Operating System</small></div><nav class="nav" id="nav"></nav></aside>
   <main>
-    <div class="top"><button class="btn mobile" onclick="toggleMenu()">☰</button><input id="search" placeholder="Universal search across business records" onkeydown="if(event.key==='Enter')globalSearch()"><button class="btn" onclick="globalSearch()">Search</button><select id="quickCreate"><option value="">Quick create…</option></select><button class="btn primary" onclick="runQuickCreate()">Create</button><select id="savedViews" onchange="applySavedView(this.value)"><option value="">Saved views…</option></select><button class="btn" onclick="refresh()">Refresh</button></div>
+    <div class="top"><button class="btn mobile" onclick="toggleMenu()">☰</button><input id="search" placeholder="Universal search across business records" onkeydown="if(event.key==='Enter')globalSearch()"><button class="btn" onclick="globalSearch()">Search</button><select id="quickCreate"><option value="">Quick create…</option></select><button class="btn primary" onclick="runQuickCreate()">Create</button><select id="savedViews" onchange="applySavedView(this.value)"><option value="">Saved views…</option></select><button class="btn" onclick="refresh()">Refresh</button><button class="btn" onclick="portalLogout()">Logout</button></div>
     <div class="content"><div id="notice" class="notice hold">Loading secure owner session…</div><div id="view"></div></div>
   </main>
 </div>
 <div class="drawer" id="drawer" onclick="if(event.target===this)closeDrawer()"><div class="drawer-panel"><div class="toolbar"><button class="btn" onclick="closeDrawer()">Close</button><button class="btn" id="editFocusBtn" style="display:none" onclick="editFocusedRecord()">Edit focused record</button></div><div id="drawerBody"></div></div></div>
 <div class="modal" id="formModal" onclick="if(event.target===this)closeForm()"><div class="modal-panel"><div class="workspace-head"><div><h2 id="formTitle">Record</h2><div class="muted" id="formHelp"></div></div><button class="btn" onclick="closeForm()">Close</button></div><form id="recordForm" onsubmit="submitRecord(event)"><div class="form-grid" id="formFields"></div><div class="toolbar"><button class="btn primary" type="submit">Save internal record</button><button class="btn" type="button" onclick="closeForm()">Cancel</button></div></form></div></div>
 <script>
+const H38_FIREBASE_CONFIG=<?!= h38PortalFirebasePublicConfig_(); ?>;
 <?!= h38PortalRawInclude_('Portal_Experience_Client_Core'); ?>
 <?!= h38PortalRawInclude_('Portal_Experience_Client_Views'); ?>
 <?!= h38PortalRawInclude_('Portal_Experience_Client_Workspace'); ?>
+<?!= h38PortalRawInclude_('Portal_User_Access_Client'); ?>
+<?!= h38PortalRawInclude_('Portal_Auth_Client'); ?>
 </script>
 </body>
 </html>

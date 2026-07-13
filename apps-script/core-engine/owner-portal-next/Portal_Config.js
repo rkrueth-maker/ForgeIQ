@@ -11,8 +11,14 @@ var H38_PORTAL_NEXT = Object.freeze({
   RELEASE: 'production-2026-07-12-hard-rule-owner-portal',
   TIMEZONE: 'America/Chicago',
   SPREADSHEET_ID: PropertiesService.getScriptProperties().getProperty('H38_PORTAL_SPREADSHEET_ID') || '',
+  FIREBASE_PROJECT_ID: PropertiesService.getScriptProperties().getProperty('H38_FIREBASE_PROJECT_ID') || '',
+  FIREBASE_API_KEY: PropertiesService.getScriptProperties().getProperty('H38_FIREBASE_API_KEY') || '',
+  FIREBASE_AUTH_DOMAIN: PropertiesService.getScriptProperties().getProperty('H38_FIREBASE_AUTH_DOMAIN') || '',
+  FIREBASE_SESSION_URL: PropertiesService.getScriptProperties().getProperty('H38_FIREBASE_SESSION_URL') || '',
+  FIREBASE_USER_ADMIN_URL: PropertiesService.getScriptProperties().getProperty('H38_FIREBASE_USER_ADMIN_URL') || '',
   ENVIRONMENT: H38_PORTAL_ENVIRONMENT,
-  OWNER_EMAILS: ['rkrueth@gmail.com', 'highway38solutions@gmail.com'],
+  OWNER_EMAILS: String(PropertiesService.getScriptProperties().getProperty('H38_PORTAL_OWNER_EMAILS') || '')
+    .split(',').map(function(email){ return email.trim().toLowerCase(); }).filter(String),
   TEST_MODE: H38_PORTAL_ENVIRONMENT !== 'PRODUCTION',
   LIVE_EXTERNAL_ACTIONS_ENABLED: false,
   MAX_ROWS: 500,
@@ -34,7 +40,7 @@ var H38_PORTAL_NEXT = Object.freeze({
   MODULES: [
     'dashboard','tasks','leads','customers','jobs','quotes','invoices','payments',
     'expenses','communications','social','advertising','website','calendar','products',
-    'reports','proof','errors','settings'
+    'reports','proof','errors','settings','userAccess'
   ],
   WORKSPACE_SECTIONS: [
     'task','customer','leads','job','quotes','invoices','payments','expenses',

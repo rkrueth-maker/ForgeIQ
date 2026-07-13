@@ -7,7 +7,8 @@ const testDeployScript=path.join(repo,'scripts/deploy-owner-portal-next-test.sh'
 const productionDeployScript=path.join(repo,'scripts/deploy-owner-portal-next-production.sh');
 const testRunbook=path.join(root,'RUNTIME_TEST_RUNBOOK.md');
 const productionRunbook=path.join(root,'PRODUCTION_INSTALL.md');
-const required=['appsscript.json','Portal_Config.js','Portal_Environment.js','Portal_Production.js','Portal_Repository.js','Portal_Catalog.js','Portal_Services.js','Portal_Actions.js','Portal_Adapters.js','Portal_LogApi.js','Portal_SelfTest.js','Portal_TestFixtures.js','Portal_Experience.js','Portal_Index.html','Portal_Experience_Styles.html','Portal_Experience_Client_Core.html','Portal_Experience_Client_Views.html','Portal_Experience_Client_Workspace.html','README.md'];
+const privateSpreadsheetId=String(process.env.H38_PRODUCTION_SPREADSHEET_ID||'').trim();
+const required=['appsscript.json','Portal_Config.js','Portal_Environment.js','Portal_Production.js','Portal_Repository.js','Portal_Catalog.js','Portal_Services.js','Portal_Actions.js','Portal_Adapters.js','Portal_LogApi.js','Portal_SelfTest.js','Portal_TestFixtures.js','Portal_Experience.js','Portal_Auth.js','Portal_RawIncludes.js','Portal_Index.html','Portal_Experience_Styles.html','Portal_Experience_Client_Core.html','Portal_Experience_Client_Views.html','Portal_Experience_Client_Workspace.html','Portal_Auth_Client.html','Portal_User_Access_Client.html','README.md','FIREBASE_MULTI_USER_SETUP.md'];
 const failures=[];const pass=[];
 function check(name,condition,detail=''){if(condition)pass.push({name,detail});else failures.push({name,detail});}
 required.forEach(f=>check('file '+f,fs.existsSync(path.join(root,f))));
@@ -17,7 +18,7 @@ check('test runbook exists',fs.existsSync(testRunbook));
 check('production runbook exists',fs.existsSync(productionRunbook));
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'appsscript.json'),'utf8'));
 check('manifest timezone',manifest.timeZone==='America/Chicago',manifest.timeZone);
-check('manifest webapp owner-only',manifest.webapp&&manifest.webapp.access==='MYSELF',manifest.webapp&&manifest.webapp.access);
+check('manifest webapp exposes login shell only',manifest.webapp&&manifest.webapp.access==='ANYONE_ANONYMOUS'&&fs.readFileSync(path.join(root,'Portal_Auth.js'),'utf8').includes('h38PortalVerifyFirebaseSession_'),manifest.webapp&&manifest.webapp.access);
 check('manifest execution api owner-only',manifest.executionApi&&manifest.executionApi.access==='MYSELF',manifest.executionApi&&manifest.executionApi.access);
 const jsFiles=required.filter(f=>f.endsWith('.js'));
 const all=jsFiles.map(f=>fs.readFileSync(path.join(root,f),'utf8')).join('\n');
@@ -25,7 +26,7 @@ const production=fs.readFileSync(path.join(root,'Portal_Production.js'),'utf8');
 const selfTest=fs.readFileSync(path.join(root,'Portal_SelfTest.js'),'utf8');
 const shell=fs.readFileSync(path.join(root,'Portal_Index.html'),'utf8');
 const styles=fs.readFileSync(path.join(root,'Portal_Experience_Styles.html'),'utf8');
-const clientFiles=['Portal_Experience_Client_Core.html','Portal_Experience_Client_Views.html','Portal_Experience_Client_Workspace.html'];
+const clientFiles=['Portal_Experience_Client_Core.html','Portal_Experience_Client_Views.html','Portal_Experience_Client_Workspace.html','Portal_User_Access_Client.html','Portal_Auth_Client.html'];
 const client=clientFiles.map(f=>fs.readFileSync(path.join(root,f),'utf8')).join('\n');
 const html=shell+'\n'+styles+'\n'+client;
 check('approved release identifier',all.includes("RELEASE: 'production-2026-07-12-hard-rule-owner-portal'"));
@@ -51,7 +52,7 @@ check('catalog mismatch hold',/CATALOG MISMATCH HOLD/.test(all));
 check('all modules',['dashboard','tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar','products','reports','proof','errors','settings'].every(x=>all.includes("'"+x+"'")));
 check('environment property key',/H38_PORTAL_SPREADSHEET_ID/.test(all));
 check('test environment confirmation',/CONFIGURE NON-DEPLOYED TEST ENVIRONMENT/.test(all));
-check('no hard-coded live spreadsheet id in Apps Script source',!all.includes('1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo'));
+check('no hard-coded live spreadsheet id in Apps Script source',!privateSpreadsheetId||!all.includes(privateSpreadsheetId));
 check('client schema endpoint',/function h38PortalClientSchema/.test(all));
 check('generic business record save',/function h38PortalSaveBusinessRecord/.test(all));
 check('unified task projection',/function h38PortalTaskProjection_/.test(all));
@@ -84,8 +85,9 @@ check('mobile viewport',/name="viewport"/.test(shell));check('responsive css',/@
 const names=[];for(const f of jsFiles){const src=fs.readFileSync(path.join(root,f),'utf8');for(const m of src.matchAll(/^function\s+([A-Za-z_$][\w$]*)\s*\(/gm))names.push(m[1]);}
 const duplicates=names.filter((n,i,a)=>a.indexOf(n)!==i).filter((n,i,a)=>a.indexOf(n)===i);
 check('zero duplicate top-level server functions',duplicates.length===0,duplicates.join(','));
-const dangerous=['GmailApp.sendEmail','MailApp.sendEmail','UrlFetchApp.fetch','ScriptApp.newTrigger'];
+const dangerous=['GmailApp.sendEmail','MailApp.sendEmail','ScriptApp.newTrigger'];
 check('no dangerous external-action patterns',dangerous.every(p=>!all.includes(p)),dangerous.filter(p=>all.includes(p)).join(','));
+check('UrlFetch limited to Firebase authentication gateway',!all.replace(fs.readFileSync(path.join(root,'Portal_Auth.js'),'utf8'),'').includes('UrlFetchApp.fetch'));
 if(fs.existsSync(productionDeployScript)){
   const deploy=fs.readFileSync(productionDeployScript,'utf8');
   const bash=cp.spawnSync('bash',['-n',productionDeployScript],{encoding:'utf8'});
@@ -96,7 +98,7 @@ if(fs.existsSync(productionDeployScript)){
   check('production does not create second deployment',deploy.includes('update-deployment')||/clasp deploy\s+-i/.test(deploy));
   check('production backs up bound project',deploy.includes('bound-project-backup.tar.gz')&&deploy.includes('clasp pull'));
   check('production pushes source',/clasp push --force/.test(deploy));
-  check('production excludes live spreadsheet id',!deploy.includes('1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo'));
+  check('production excludes live spreadsheet id',!privateSpreadsheetId||!deploy.includes(privateSpreadsheetId));
   check('production keeps external actions locked',deploy.includes('External actions remain disabled'));
 }
 if(fs.existsSync(testDeployScript)){const bash=cp.spawnSync('bash',['-n',testDeployScript],{encoding:'utf8'});check('test deploy script syntax',bash.status===0,bash.stderr||bash.stdout);}
