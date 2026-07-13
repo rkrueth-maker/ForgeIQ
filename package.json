@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:commercial",
+    "test:commercial": "node scripts/verify-commercial-system.js && node scripts/verify-public-customer-path.js && node scripts/verify-complete-ecosystem.js && node scripts/verify-complete-ecosystem-launch.js && node scripts/verify-commercial-browser.js"
   },
   "repository": {
     "type": "git",
