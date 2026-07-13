@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  const LOGO='assets/highway38-logo.png?v=20260713-logo3';
+  const LOGO='assets/highway38-logo.png?v=20260713-logo2';
   const brandText=()=>'<span class="brand-text"><span>Highway 38</span> Solutions</span>';
   const logo=()=>{const img=document.createElement('img');img.className='brand-logo';img.src=LOGO;img.alt='Highway 38 Solutions';return img;};
   function wrapText(el){

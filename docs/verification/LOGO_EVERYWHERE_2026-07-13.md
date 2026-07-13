@@ -1,7 +1,7 @@
 # Logo Everywhere Publication — 2026-07-13
 
-- Header asset: third uploaded H38 swoosh
-- Public path: `assets/highway38-logo.png?v=20260713-logo3`
+- Header asset: second uploaded mountain-and-road badge
+- Public path: `assets/highway38-logo.png?v=20260713-logo2`
 - Asset validation: 164 × 72 valid PNG
 - Desktop height: 36px
 - Mobile height: 30px
@@ -132,5 +132,5 @@
 - quote-sheet-builder.html: PASS — 68.3×30.0
 - real-proof-lab.html: PASS — 68.3×30.0
 - 404.html: PASS — 68.3×30.0- Browser failure count: 0
-- Third-logo header and fallback text: PASS
+- Second-logo header and fallback text: PASS
 - Mobile menu behavior: PASS
