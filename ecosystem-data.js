@@ -47,7 +47,7 @@
     ],
     providers: [
       {id:'gmail',feature:'Customer email, quote, invoice, and delivery sends',mode:'APPROVAL_GATED',status:'CODE_READY_CONNECTION_BLOCKED',blocker:'Authorize the production Gmail account and confirm approved sender identity in the bound Apps Script project.'},
-      {id:'payments',feature:'Provider-hosted payment links, receipts, refunds, subscriptions',mode:'PROVIDER_HOSTED',status:'PROVIDER_SELECTION_BLOCKED',blocker:'Rick must select Stripe, Square, or PayPal and supply a production account/API connection. Raw card data will never enter the portal.'},
+      {id:'payments',feature:'Provider-hosted payment links, receipts, refunds, subscriptions',mode:'PROVIDER_HOSTED',status:'PROVIDER_SELECTION_BLOCKED',blocker:'Owner must select Stripe, Square, or PayPal and supply a production account/API connection. Raw card data will never enter the portal.'},
       {id:'metricool',feature:'Social scheduling and publication',mode:'APPROVAL_GATED',status:'CREDENTIAL_BLOCKED',blocker:'Connect or replace the Metricool account and verify each channel permission. Publication remains disabled until then.'},
       {id:'accounting',feature:'Accounting synchronization',mode:'CSV_READY',status:'CSV_LIVE_API_BLOCKED',blocker:'CSV export is ready. Select QuickBooks, Xero, Wave, or FreshBooks and authorize the chosen API for direct synchronization.'},
       {id:'customer-auth',feature:'Customer portal authentication and file access',mode:'CUSTOMER_ISOLATED',status:'AUTH_PROVIDER_BLOCKED',blocker:'Select and configure an authentication provider and customer-file authorization model before public customer portal activation.'},
