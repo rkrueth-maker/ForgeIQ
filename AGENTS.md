@@ -28,9 +28,9 @@ Before any deploy or deploy recommendation, run the guard script when possible:
 python3 scripts/guard_deploy.py \
   --page sample-library-now.html \
   --live-url "https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html" \
-  --match "assets/problem-snapshot-before-after.png" \
-  --match "assets/shop-flow-before-after.png" \
-  --match "assets/workflow-opportunity-before-after.png"
+  --match "Browse 15 samples" \
+  --match "Compare products & pricing" \
+  --match 'data-samples="all"'
 ```
 
 Use page-appropriate `--match` markers for other deploy targets.
@@ -41,9 +41,9 @@ Optional wrapper command:
 scripts/deploy_with_guard.sh \
   --page sample-library-now.html \
   --live-url "https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html" \
-  --match "assets/problem-snapshot-before-after.png" \
-  --match "assets/shop-flow-before-after.png" \
-  --match "assets/workflow-opportunity-before-after.png"
+  --match "Browse 15 samples" \
+  --match "Compare products & pricing" \
+  --match 'data-samples="all"'
 ```
 
 ## Reference Docs
