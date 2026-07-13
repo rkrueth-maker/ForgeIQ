@@ -19,16 +19,16 @@ Examples:
   scripts/deploy_with_guard.sh \
     --page sample-library-now.html \
     --live-url "https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html" \
-    --match "hero-garage-before-after.png?v=v5-no-svg-polish" \
-    --match "demo-run-sample-garage-bay.png?v=v5-no-svg-polish" \
-    --match "workflow-opportunity-finished.png?v=v5-no-svg-polish"
+    --match "Browse 15 samples" \
+    --match "Compare products & pricing" \
+    --match 'data-samples="all"'
 
   scripts/deploy_with_guard.sh \
     --page sample-library-now.html \
     --live-url "https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html" \
-    --match "hero-garage-before-after.png?v=v5-no-svg-polish" \
-    --match "demo-run-sample-garage-bay.png?v=v5-no-svg-polish" \
-    --match "workflow-opportunity-finished.png?v=v5-no-svg-polish" \
+    --match "Browse 15 samples" \
+    --match "Compare products & pricing" \
+    --match 'data-samples="all"' \
     -- git push origin HEAD:main
 EOF
 }
