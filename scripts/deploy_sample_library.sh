@@ -5,9 +5,9 @@ PAGE="sample-library-now.html"
 LIVE_URL="https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html"
 ALLOW_DIRTY="false"
 MATCHES=(
-  "assets/hero-garage-before-after.png?v=v5-no-svg-polish"
-  "assets/demo-run-sample-garage-bay.png?v=v5-no-svg-polish"
-  "assets/workflow-opportunity-finished.png?v=v5-no-svg-polish"
+  "catalog-data.js?v=20260711-commercial-overhaul"
+  "data-samples=\"all\""
+  "brand-global.js?v=20260713-logo2"
 )
 CUSTOM_MATCHES="false"
 
