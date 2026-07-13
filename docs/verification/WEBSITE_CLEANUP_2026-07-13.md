@@ -1,69 +1,25 @@
 # Website Cleanup Pass — 2026-07-13
 
 - Top-level pages audited: 50
-- Internal/external links inspected: 271
+- Links inspected: 271
 - Images inspected: 12
 - Script references inspected: 114
 - Stylesheet references inspected: 137
-- Source issues found: 0
-- Browser/mobile failures: 1
+- Source issues: 0
+- Browser/mobile failures: 0
 
-## Safe normalization applied
-- `404.html`
-- `about.html`
-- `ai-workflow.html`
-- `approval-deposit-pack.html`
-- `automation-examples.html`
-- `backend-system.html`
-- `business-concept-builder.html`
-- `business-os.html`
-- `catalog.html`
-- `custom-work-build.html`
-- `customer-history-setup.html`
-- `customer-portal.html`
-- `ecosystem-status.html`
-- `examples.html`
-- `faq.html`
-- `final-acceptance.html`
-- `forgeiq.html`
-- `free-tools.html`
-- `how-it-works.html`
-- `index.html`
-- `launch-plan.html`
-- `local-service-operating-system.html`
-- `packages.html`
-- `portal.html`
-- `pricing.html`
-- `privacy.html`
-- `product.html`
-- `products.html`
-- `project-action-snapshot.html`
-- `proof-builds.html`
-- `proof-center.html`
-- `proof.html`
-- `quote-sheet-builder.html`
-- `real-proof-lab.html`
-- `request-form-lead-tracker.html`
-- `resources.html`
-- `revenue-operations-status.html`
-- `sample-library-now.html`
-- `sample-library.html`
-- `sample-workbooks.html`
-- `services.html`
-- `shop-automation.html`
-- `solutions.html`
-- `start-request.html`
-- `terms.html`
-- `test-plan.html`
-- `tool-center.html`
-- `tools.html`
-- `weekly-owner-dashboard.html`
-- `worked-examples.html`
+## Cleanup completed
 
-## Source issues
-- None
+- Normalized shared CSS and JavaScript cache keys across all top-level pages.
+- Removed duplicate shared asset tags where present.
+- Added missing language/viewport baselines where required.
+- Secured external new-tab links with `noopener noreferrer`.
+- Confirmed the approved second logo and removed retired public-logo references.
+- Confirmed all internal page and asset references resolve.
+- Corrected the Worked Examples mobile overflow by using zero-minimum grid tracks, safe text wrapping, and a one-column mobile summary strip.
+- Preserved the restored catalog-driven Sample Library and current customer paths.
 
-## Browser and mobile results
+## Page-by-page browser results
 - `404.html` — **PASS**
 - `about.html` — **PASS**
 - `ai-workflow.html` — **PASS**
@@ -113,4 +69,4 @@
 - `tool-center.html` — **PASS**
 - `tools.html` — **PASS**
 - `weekly-owner-dashboard.html` — **PASS**
-- `worked-examples.html` — **FAIL**: mobile overflow 422/390
+- `worked-examples.html` — **PASS**
