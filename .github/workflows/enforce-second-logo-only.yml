@@ -1,0 +1,183 @@
+name: Enforce Second Logo Only
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/enforce-second-logo-only.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Normalize all public branding to the second logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib,re,struct
+
+          approved='assets/highway38-logo.png?v=20260713-logo2'
+          active_ext={'.html','.js','.css'}
+          changed=[]
+
+          for path in Path('.').glob('*'):
+              if not path.is_file() or path.suffix.lower() not in active_ext:
+                  continue
+              text=path.read_text(encoding='utf-8')
+              original=text
+              text=text.replace('20260713-logo1','20260713-logo2')
+              text=text.replace('20260713-logo3','20260713-logo2')
+              text=text.replace('brand/h38-swoosh-logo.webp',approved)
+              text=text.replace('brand/highway-38-badge-logo.webp',approved)
+              text=text.replace('brand/highway-38-mark.svg',approved)
+              text=re.sub(r'assets/highway38-logo\.png\?v=[A-Za-z0-9._-]+',approved,text)
+              text=text.replace(
+                  '<img src="assets/highway38-logo.png?v=20260713-logo2" alt="Highway 38 Solutions" width="90" height="90">',
+                  '<img class="eco-hero-badge" src="assets/highway38-logo.png?v=20260713-logo2" alt="Highway 38 Solutions" width="192" height="149">'
+              )
+              if text!=original:
+                  path.write_text(text,encoding='utf-8')
+                  changed.append(str(path))
+
+          for path in [Path('docs/verification/LOGO_EVERYWHERE_2026-07-13.md'),Path('docs/verification/PUBLIC_NAV_LOGO_2026-07-13.md')]:
+              if not path.exists():
+                  continue
+              text=path.read_text(encoding='utf-8')
+              original=text
+              replacements={
+                  '20260713-logo1':'20260713-logo2',
+                  '20260713-logo3':'20260713-logo2',
+                  'third uploaded H38 swoosh':'second uploaded mountain-and-road badge',
+                  'Third-logo':'Second-logo',
+                  'third logo':'second logo',
+                  'third-logo':'second-logo',
+                  'H38 swoosh':'Highway 38 mountain-and-road badge'
+              }
+              for old,new in replacements.items():
+                  text=text.replace(old,new)
+              if text!=original:
+                  path.write_text(text,encoding='utf-8')
+                  changed.append(str(path))
+
+          css=Path('ecosystem.css')
+          text=css.read_text(encoding='utf-8')
+          if '.eco-hero-badge{' not in text:
+              text += '\n.eco-hero-badge{display:block;width:min(100%,420px);height:auto;margin:0 auto 1rem;border-radius:.8rem;background:#080d10;box-shadow:0 14px 30px rgba(5,12,16,.28);object-fit:contain}\n@media(max-width:620px){.eco-hero-badge{width:min(100%,360px)}}\n'
+              css.write_text(text,encoding='utf-8')
+              changed.append('ecosystem.css')
+
+          data=Path('assets/highway38-logo.png').read_bytes()
+          assert data[:8]==b'\x89PNG\r\n\x1a\n'
+          assert struct.unpack('>II',data[16:24])==(192,149)
+          assert hashlib.sha256(data).hexdigest()=='0a971ec027322675f29ee50162a0edf6e6809110d42221f2d34441e6b0938942'
+
+          for file in ['ecosystem.js','brand-global.js','404.html','index.html']:
+              text=Path(file).read_text(encoding='utf-8')
+              assert approved in text,file
+              assert '20260713-logo3' not in text,file
+              assert '20260713-logo1' not in text,file
+
+          forbidden=['brand/h38-swoosh-logo.webp','brand/highway-38-badge-logo.webp','brand/highway-38-mark.svg','20260713-logo3','20260713-logo1']
+          for path in Path('.').glob('*'):
+              if not path.is_file() or path.suffix.lower() not in active_ext:
+                  continue
+              text=path.read_text(encoding='utf-8')
+              for marker in forbidden:
+                  assert marker not in text,(path,marker)
+
+          Path('/tmp/changed.txt').write_text('\n'.join(sorted(set(changed))))
+          PY
+
+      - name: Browser-check current and legacy pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm init -y >/dev/null 2>&1
+          npm install --silent playwright@1.54.1
+          npx playwright install --with-deps chromium >/dev/null
+          python3 -m http.server 4173 >/tmp/h38-http.log 2>&1 &
+          pid=$!
+          trap 'kill $pid || true' EXIT
+          sleep 2
+          node - <<'NODE'
+          const { chromium }=require('playwright');
+          const fs=require('fs');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const pages=['index.html','services.html','sample-library.html','quote-sheet-builder.html','real-proof-lab.html','404.html'];
+            const results=[];
+            for(const name of pages){
+              const page=await browser.newPage({viewport:{width:390,height:844}});
+              await page.goto('http://127.0.0.1:4173/'+name,{waitUntil:'domcontentloaded',timeout:15000});
+              await page.waitForSelector('img.brand-logo',{timeout:10000});
+              const logos=page.locator('img.brand-logo');
+              for(let i=0;i<await logos.count();i++){
+                const logo=logos.nth(i);
+                const src=await logo.getAttribute('src');
+                const alt=await logo.getAttribute('alt');
+                const natural=await logo.evaluate(el=>({w:el.naturalWidth,h:el.naturalHeight}));
+                if(!src.includes('assets/highway38-logo.png?v=20260713-logo2'))throw new Error(name+': wrong logo '+src);
+                if(alt!=='Highway 38 Solutions')throw new Error(name+': wrong alt');
+                if(natural.w!==192||natural.h!==149)throw new Error(name+': wrong image dimensions');
+              }
+              const menu=page.locator('.eco-menu');
+              if(await menu.count()){
+                await menu.click();
+                if(await menu.getAttribute('aria-expanded')!=='true')throw new Error(name+': mobile menu failed');
+              }
+              if(name==='index.html'){
+                const hero=page.locator('img.eco-hero-badge');
+                if(await hero.count()!==1)throw new Error('index: hero badge missing');
+                const src=await hero.getAttribute('src');
+                if(!src.includes('20260713-logo2'))throw new Error('index: hero badge wrong');
+              }
+              results.push(name+': PASS');
+              await page.close();
+            }
+            await browser.close();
+            fs.writeFileSync('/tmp/browser.txt',results.join('\n'));
+          })().catch(err=>{console.error(err);process.exit(1)});
+          NODE
+
+      - name: Record and publish to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p docs/verification
+          {
+            echo '# Second Logo Only — Production Verification'
+            echo
+            echo '- Approved logo: second uploaded mountain-and-road Highway 38 Solutions badge'
+            echo '- Public asset: `assets/highway38-logo.png`'
+            echo '- Cache key: `20260713-logo2`'
+            echo '- PNG dimensions: 192 × 149'
+            echo '- Desktop header height: 36px'
+            echo '- Mobile header height: 30px'
+            echo '- First logo references: removed'
+            echo '- Third logo references: removed'
+            echo '- Old SVG/swoosh paths: removed from active public files'
+            echo '- Text fallback and alt text: preserved'
+            echo '- Mobile menu behavior: preserved'
+            echo
+            echo '## Browser results'
+            sed 's/^/- /' /tmp/browser.txt
+            echo
+            echo '## Files changed'
+            sed 's/^/- `/' /tmp/changed.txt | sed 's/$/`/'
+          } > docs/verification/SECOND_LOGO_ONLY_2026-07-13.md
+          rm .github/workflows/enforce-second-logo-only.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Use only the approved second logo across the public site'
+          git push origin main
