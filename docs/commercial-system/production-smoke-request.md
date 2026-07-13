@@ -10,6 +10,6 @@ Required live checks:
 
 - homepage contains `Big problems.`
 - Products & Pricing contains `One controlled catalog`
-- Samples contains `Hypothetical examples`
+- Samples contains `One sample for every catalog product.`
 - Start Request contains the outcome-first opening question
 - Samples retains the approved Owner Portal link

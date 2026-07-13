@@ -46,9 +46,9 @@ jobs:
         run: |
           set -euo pipefail
           grep -Fq 'Big problems. Clear plans.' index.html
-          grep -Fq 'Choose a result without scrolling through one long product wall.' products.html
+          grep -Fq 'Choose the finished result—not a vague engagement.' products.html
           grep -Fq 'data-product-detail-single' product.html
-          grep -Fq 'Hypothetical examples' sample-library-now.html
+          grep -Fq 'One sample for every catalog product.' sample-library-now.html
           grep -Fq 'What would you like to have when this is finished?' start-request.html
           grep -Fq 'data-owner-link="true"' sample-library-now.html
           grep -Fq 'product_detail_view' product-detail.js
@@ -77,9 +77,9 @@ jobs:
             return 1
           }
           fetch_until_ready '' 'Big problems. Clear plans.' /tmp/home.html
-          fetch_until_ready 'products.html' 'Choose a result without scrolling through one long product wall.' /tmp/products.html
+          fetch_until_ready 'products.html' 'Choose the finished result—not a vague engagement.' /tmp/products.html
           fetch_until_ready 'product.html?id=H38-P001' 'data-product-detail-single' /tmp/product.html
-          fetch_until_ready 'sample-library-now.html' 'Hypothetical examples' /tmp/samples.html
+          fetch_until_ready 'sample-library-now.html' 'One sample for every catalog product.' /tmp/samples.html
           fetch_until_ready 'start-request.html' 'What would you like to have when this is finished?' /tmp/request.html
           grep -Fq 'data-owner-link="true"' /tmp/samples.html
           echo 'Production GitHub Pages smoke check passed.'
