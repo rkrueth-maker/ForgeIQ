@@ -10,10 +10,12 @@ This Google Apps Script project connects website requests, product fulfillment, 
    - `H38_BACKEND_SPREADSHEET_ID`: the private Sheet ID.
    - `H38_BACKEND_OWNER_EMAILS`: comma-separated authorized Owner Google account email addresses.
    - `H38_PUBLIC_INTAKE_ENABLED`: initially `false`.
+   - `H38_INTAKE_FORM_ID`: ID of the already-approved Google request form.
 4. Run `h38BackendInstall({confirmation:'INSTALL INTEGRATED BACKEND'})` from the Apps Script editor while signed into an authorized Owner account.
 5. Review the five created sheets and confirm no customer data is public.
 6. Deploy as a web app executing as the deploying Owner. Public access is required only for `doPost`; it exposes no read endpoint and creates approval-gated records only.
 7. Test with `H38_PUBLIC_INTAKE_ENABLED=false`, then set it to `true` only when the approved website form is ready to use the deployment URL.
+8. Run `h38BackendInstallFormTrigger({confirmation:'INSTALL APPROVED FORM TRIGGER'})`. Existing form submissions will then create backend requests and Owner Portal review records even while direct public web intake remains off.
 
 ## Workflow gates
 
@@ -25,3 +27,4 @@ This Google Apps Script project connects website requests, product fulfillment, 
 
 The existing portal can consume the same spreadsheet through a bridge or scheduled import. Keep its current customer-action approval gates in place.
 
+The bridge writes directly into the existing `Portal Leads`, `Portal Customers`, `Portal Jobs`, and `Portal Tasks` sheets. Approval creates the customer/job and fulfillment workspace; start authorization still requires every fulfillment gate.

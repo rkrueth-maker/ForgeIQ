@@ -42,9 +42,29 @@ function h38BackendCreateRequest_(payload, fingerprint) {
       'Privacy Classification':'Customer Confidential','Next Action':'Owner review and qualification','Created Time':now,'Updated Time':now
     });
     h38BackendSave_('tasks',{'Task ID':h38BackendId_('TASK'),'Task Title':'Review new customer request','Task Type':'Customer intake','Related ID':requestId,'Priority':'High','Status':'Open','Approval Requirement':'Owner Approval Required','Approval Status':'Pending','Assigned Action':'Review request; qualify or request information','Next Recommended Action':'Open request ' + requestId});
+    h38BackendMirrorNewRequest_(h38BackendFind_('requests','Request ID',requestId));
     h38BackendProof_('Website intake',requestId,'Create request','PUBLIC SUBMISSION','PASS','Fingerprint=' + fingerprint,'Internal records only.');
     return {requestId:requestId,status:'OWNER_REVIEW_REQUIRED'};
   } finally { lock.releaseLock(); }
+}
+
+/** Installable Google Form response trigger. It never sends a customer message. */
+function h38BackendOnFormSubmit(e) {
+  var response = e && e.response, answers = {};
+  if (!response) throw new Error('FORM HOLD — response event required.');
+  response.getItemResponses().forEach(function(itemResponse){ answers[itemResponse.getItem().getTitle()] = itemResponse.getResponse(); });
+  var raw = JSON.stringify(answers), fingerprint = Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, raw)).slice(0,32);
+  var email = String(response.getRespondentEmail() || answers.Email || '');
+  return h38BackendCreateRequest_({
+    idempotencyKey:'FORM-' + response.getId(), source:'approved-google-form', name:answers.Name, email:email,
+    phone:answers['Phone number — optional'], preferredContact:answers['Preferred contact method'],
+    desiredOutcome:answers['What would you like to have when this is finished?'],
+    problem:answers['What is wrong, messy, confusing, or costing time?'],
+    finishedResult:answers['What should the finished result let you do?'],
+    filesOrLinks:answers['Photos, screenshots, files, videos, or links available'],
+    details:[answers['Measurements, process data, tools, constraints, or important details'],answers['Family-specific details: describe the space/project, business workflow, digital tools/access limits, file collection, or manufacturing machine/process/part/cycle as applicable.']].filter(String).join('\n'),
+    budget:answers['Budget range'], timing:answers['Desired timing']
+  },fingerprint);
 }
 
 function h38BackendClean_(value, max) {
@@ -53,4 +73,3 @@ function h38BackendClean_(value, max) {
   return clean;
 }
 function h38BackendJson_(value) { return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON); }
-

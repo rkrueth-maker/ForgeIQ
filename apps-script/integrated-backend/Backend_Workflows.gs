@@ -6,6 +6,7 @@ function h38BackendApproveRequest(requestId, decision) {
   if (request.Status === 'Removed' || request.Status === 'Rejected') throw new Error('WORKFLOW HOLD — request is closed.');
   request.Status = 'Approved for setup'; request['Approval Status'] = 'Approved'; request['Owner Decision'] = decision; request['Next Action'] = 'Create fulfillment workspace';
   h38BackendSave_('requests',request);
+  request = h38BackendPromoteApprovedRequest_(request);
   h38BackendProof_('Owner workflow',requestId,'Approve request',decision,'PASS','Owner=' + owner,'No customer action executed.');
   return h38BackendCreateFulfillment_(request);
 }
@@ -22,6 +23,7 @@ function h38BackendCreateFulfillment_(request) {
   });
   h38BackendSave_('tasks',{'Task ID':h38BackendId_('TASK'),'Task Title':'Prepare fulfillment scope','Task Type':'Fulfillment','Related ID':fulfillmentId,'Priority':'High','Status':'Open','Approval Requirement':'Owner Approval Required','Approval Status':'Pending','Assigned Action':'Verify inputs and prepare scope','Next Recommended Action':'Keep start authorization on HOLD'});
   h38BackendProof_('Fulfillment',fulfillmentId,'Create fulfillment workspace','APPROVE REQUEST FOR FULFILLMENT','PASS','Request=' + request['Request ID'],'Final delivery remains blocked.');
+  h38BackendMirrorFulfillment_(record);
   return record;
 }
 
@@ -61,4 +63,3 @@ function h38BackendBusinessOsSnapshot() {
   }
   return {release:H38_BACKEND.RELEASE,requests:count('requests','Status'),fulfillment:count('fulfillment','Status'),tasks:count('tasks','Status'),externalActions:false,generatedAt:h38BackendNow_()};
 }
-

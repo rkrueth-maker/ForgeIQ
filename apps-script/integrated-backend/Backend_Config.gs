@@ -4,12 +4,20 @@ var H38_BACKEND = Object.freeze({
   TIMEZONE: 'America/Chicago',
   SPREADSHEET_PROPERTY: 'H38_BACKEND_SPREADSHEET_ID',
   OWNER_EMAILS_PROPERTY: 'H38_BACKEND_OWNER_EMAILS',
+  INTAKE_FORM_ID_PROPERTY: 'H38_INTAKE_FORM_ID',
   PUBLIC_INTAKE_ENABLED_PROPERTY: 'H38_PUBLIC_INTAKE_ENABLED',
   MAX_TEXT: 5000,
   MAX_ROWS: 1000,
   LIVE_EXTERNAL_ACTIONS_ENABLED: false,
   PRODUCT_IDS: ['H38-P001','H38-P002','H38-P003','H38-P004','H38-P005','H38-P006','H38-P007','H38-P008','H38-P009','H38-P010','H38-P011','H38-P012','H38-P013','H38-P014','H38-P015'],
   BUNDLE_IDS: ['H38-B001','H38-B002','H38-B003','H38-B004','H38-B005','H38-B006','H38-B007','H38-B008','H38-B009']
+});
+
+var H38_PORTAL_MIRROR_TABLES = Object.freeze({
+  leads: {sheet:'Portal Leads', id:'Lead ID'},
+  customers: {sheet:'Portal Customers', id:'Customer ID'},
+  jobs: {sheet:'Portal Jobs', id:'Job ID'},
+  tasks: {sheet:'Portal Tasks', id:'Task ID'}
 });
 
 var H38_BACKEND_TABLES = Object.freeze({
@@ -19,4 +27,3 @@ var H38_BACKEND_TABLES = Object.freeze({
   proof: {sheet:'Backend Proof Log', id:'Proof ID', headers:['Proof ID','Time','Actor','Source','Related ID','Action','Decision','Result','Evidence','Notes']},
   errors: {sheet:'Backend Error Log', id:'Error ID', headers:['Error ID','Time','Source','Related ID','Message','Stack','Payload Fingerprint']}
 });
-
