@@ -1,1 +1,226 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Portal Access | Highway 38</title><meta name="description" content="Highway 38 Owner Portal and customer portal connection status."><link rel="canonical" href="https://rkrueth-maker.github.io/highway-38-solutions/portal.html"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="commercial.css?v=20260711"><link rel="stylesheet" href="ecosystem.css?v=20260713-cleanup1"><script defer src="ecosystem-data.js?v=20260711"></script><script defer src="ecosystem.js?v=20260714-commercial-evolution"></script><link rel="stylesheet" href="brand-global.css?v=20260713-cleanup1"><script defer src="brand-global.js?v=20260713-cleanup1"></script></head><body data-page="portal"><a class="skip-link" href="#main">Skip to main content</a><nav class="site-nav"></nav><header class="eco-hero"><div class="eco-wrap"><span class="eco-kicker">Portal access</span><h1>Owner operations are live. Customer access stays locked until isolation passes.</h1><p class="eco-lead">The existing private Owner Portal is production-installed and self-tested. Customer portal code and workflows remain a separate security gate so no internal notes, costs, approvals, errors, other customers, or private files can leak.</p></div></header><main id="main"><section class="eco-section"><div class="eco-wrap"><div class="eco-grid eco-grid--2"><article class="eco-card"><div class="eco-meta"><span class="eco-chip eco-chip--ok">Production</span><span class="eco-chip">Owner only</span></div><h2>Owner Portal</h2><p>Unified tasks, customers, jobs, quotes, invoices, payments, expenses, communications, social, advertising, website, calendar, products, reports, proof, errors, and settings.</p><p><b>Safety:</b> selected-record execution; external actions disabled; no bulk execution or triggers.</p><a class="eco-button eco-button--primary" href="https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec" rel="noopener">Open private Owner Portal</a></article><article class="eco-card"><div class="eco-meta"><span class="eco-chip eco-chip--warn">Connection blocked</span><span class="eco-chip">Customer isolated</span></div><h2>Customer Portal</h2><p>Required functions are defined: missing information, uploads, quotes, approvals, invoices, provider-hosted payments, approved downloads, status, revisions, and approved communication history.</p><div class="eco-alert"><b>Exact blocker:</b> select and configure authentication plus customer-file authorization, then pass cross-customer, direct-link, internal-field, and session tests.</div><a class="eco-button eco-button--outline" href="customer-portal.html">View activation status</a></article></div></div></section></main><footer class="site-footer"></footer></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Owner Portal | Highway 38 Solutions</title>
+  <meta name="description" content="Private Highway 38 owner operations hub for the Business Office, uploads, social, marketing, communications, website, files, approvals, reporting, access, and recovery.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="canonical" href="https://rkrueth-maker.github.io/highway-38-solutions/portal.html">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="commercial.css?v=20260711">
+  <link rel="stylesheet" href="ecosystem.css?v=20260713-cleanup1">
+  <link rel="stylesheet" href="brand-global.css?v=20260713-cleanup1">
+  <script defer src="ecosystem-data.js?v=20260711"></script>
+  <script defer src="ecosystem.js?v=20260714-owner-hub"></script>
+  <script defer src="brand-global.js?v=20260713-cleanup1"></script>
+  <style>
+    :root{--portal-navy:#173a5e;--portal-blue:#326a9e;--portal-light:#eef5fb;--portal-border:#d7e0e8;--portal-muted:#5e6a75;--portal-good:#dff4e7;--portal-warn:#fff0bf}
+    .portal-hero{background:linear-gradient(135deg,#102d49 0%,#1c4b75 62%,#2c6899 100%);color:#fff;padding:72px 20px 62px}
+    .portal-wrap{width:min(1180px,calc(100% - 32px));margin:0 auto}
+    .portal-hero-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.6fr);gap:28px;align-items:center}
+    .portal-kicker{display:inline-flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:.78rem;color:#d9edff}
+    .portal-hero h1{font-size:clamp(2.35rem,6vw,4.8rem);line-height:.98;margin:14px 0 18px;max-width:900px}
+    .portal-hero p{font-size:1.12rem;line-height:1.65;max-width:760px;color:#e8f3fc}
+    .portal-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+    .portal-button{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 18px;border-radius:9px;text-decoration:none;font-weight:800;border:2px solid transparent}
+    .portal-button--primary{background:#fff;color:var(--portal-navy)}
+    .portal-button--secondary{border-color:#b9d7ed;color:#fff;background:rgba(255,255,255,.08)}
+    .portal-signin{background:#fff;color:#17212b;border-radius:14px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.22)}
+    .portal-signin h2{margin:0 0 8px;color:var(--portal-navy)}
+    .portal-signin p{color:var(--portal-muted);font-size:.96rem;margin:0 0 16px}
+    .portal-signin .portal-button{width:100%;background:var(--portal-navy);color:#fff}
+    .portal-status{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:-24px;position:relative;z-index:2}
+    .portal-status article{background:#fff;border:1px solid var(--portal-border);border-radius:12px;padding:16px;box-shadow:0 8px 28px rgba(20,47,72,.1)}
+    .portal-status strong{display:block;color:var(--portal-navy);margin-bottom:5px}
+    .portal-status span{color:var(--portal-muted);font-size:.9rem;line-height:1.4}
+    .portal-section{padding:56px 0}
+    .portal-section--alt{background:#f3f7fa}
+    .portal-heading{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:22px}
+    .portal-heading h2{margin:0;color:var(--portal-navy);font-size:clamp(1.75rem,4vw,2.6rem)}
+    .portal-heading p{margin:8px 0 0;color:var(--portal-muted);max-width:760px;line-height:1.55}
+    .portal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .portal-card{background:#fff;border:1px solid var(--portal-border);border-radius:14px;padding:20px;display:flex;flex-direction:column;min-height:230px;box-shadow:0 2px 10px rgba(20,47,72,.04)}
+    .portal-card--featured{border:2px solid var(--portal-blue);background:var(--portal-light)}
+    .portal-card h3{margin:12px 0 8px;color:var(--portal-navy);font-size:1.18rem}
+    .portal-card p{color:var(--portal-muted);line-height:1.5;margin:0 0 14px}
+    .portal-card ul{padding-left:20px;margin:0 0 16px;color:var(--portal-muted);line-height:1.55}
+    .portal-card .portal-button{margin-top:auto;align-self:flex-start;background:var(--portal-navy);color:#fff;min-height:44px;padding:9px 14px}
+    .portal-chip-row{display:flex;flex-wrap:wrap;gap:7px}
+    .portal-chip{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:.76rem;font-weight:800;background:#e9eef3;color:#33485b}
+    .portal-chip--live{background:var(--portal-good);color:#15552e}
+    .portal-chip--gate{background:var(--portal-warn);color:#6b4b00}
+    .portal-channels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:20px}
+    .portal-channel{background:#fff;border:1px solid var(--portal-border);border-radius:12px;padding:16px;text-align:center}
+    .portal-channel strong{display:block;color:var(--portal-navy);margin-bottom:7px}
+    .portal-channel span{font-size:.82rem;color:#6b4b00;background:var(--portal-warn);padding:4px 8px;border-radius:999px;display:inline-block}
+    .portal-boundary{background:#fff8dd;border:1px solid #e9cf75;border-radius:12px;padding:18px;line-height:1.55;margin-top:24px}
+    .portal-boundary strong{color:#5b4300}
+    .portal-checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+    .portal-check{background:#fff;border:1px solid var(--portal-border);border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start}
+    .portal-check b{color:var(--portal-navy)}
+    .portal-check span{color:var(--portal-muted);font-size:.9rem;line-height:1.4}
+    @media(max-width:900px){.portal-hero-grid,.portal-status,.portal-grid{grid-template-columns:1fr 1fr}.portal-channels{grid-template-columns:repeat(2,minmax(0,1fr))}.portal-signin{grid-column:1/-1}.portal-heading{display:block}}
+    @media(max-width:620px){.portal-hero{padding-top:48px}.portal-hero-grid,.portal-status,.portal-grid,.portal-checklist,.portal-channels{grid-template-columns:1fr}.portal-status{margin-top:16px}.portal-actions{flex-direction:column}.portal-button{width:100%}.portal-wrap{width:min(100% - 22px,1180px)}}
+  </style>
+</head>
+<body data-page="portal">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <nav class="site-nav" aria-label="Main navigation"></nav>
+
+  <header class="portal-hero">
+    <div class="portal-wrap portal-hero-grid">
+      <div>
+        <span class="portal-kicker">Private owner control center</span>
+        <h1>Run Highway 38 from one owner portal.</h1>
+        <p>This webpage is the safe owner launch point. The private Business Office opens in Google and handles customers, jobs, documents, camera uploads, OCR review, quotes, invoices, expenses, accounting preparation, approvals, proof, errors, and recovery.</p>
+        <div class="portal-actions">
+          <a class="portal-button portal-button--primary" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open Business Office</a>
+          <a class="portal-button portal-button--secondary" href="#social">Social &amp; growth workspace</a>
+          <a class="portal-button portal-button--secondary" href="#management">Owner management tools</a>
+        </div>
+      </div>
+      <aside class="portal-signin" aria-label="Private Business Office access">
+        <div class="portal-chip-row"><span class="portal-chip portal-chip--live">Production</span><span class="portal-chip">Owner only</span></div>
+        <h2>Private Google sign-in</h2>
+        <p>Use the authorized Highway 38 Google account. The website does not store portal credentials or private business records.</p>
+        <a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Sign in to Owner Portal</a>
+      </aside>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="portal-wrap portal-status" aria-label="Owner Portal status">
+      <article><strong>Private access</strong><span>Google sign-in and role controls protect the working system.</span></article>
+      <article><strong>Uploads live</strong><span>Upload PDFs, existing photos, or take a picture from the Business Office.</span></article>
+      <article><strong>Approval gated</strong><span>Customer sends, posting, payroll export, and tax finalization require approval.</span></article>
+      <article><strong>Customer isolated</strong><span>The customer portal remains separate until authentication and file isolation pass.</span></article>
+    </div>
+
+    <section class="portal-section" aria-labelledby="operations-title">
+      <div class="portal-wrap">
+        <div class="portal-heading">
+          <div><h2 id="operations-title">Daily operations</h2><p>The working Business Office is the source for records and controlled actions. These cards make the most-used owner paths easy to find from the website.</p></div>
+        </div>
+        <div class="portal-grid">
+          <article class="portal-card portal-card--featured">
+            <div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span><span class="portal-chip">Primary workspace</span></div>
+            <h3>Business Office</h3>
+            <p>Customers, vendors, requests, quotes, work orders, jobs, purchasing, receipts, expenses, invoices, payments, job costing, time, payroll preparation, tax preparation, approvals, reports, and setup.</p>
+            <a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open Business Office</a>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span><span class="portal-chip">Camera ready</span></div>
+            <h3>PDF &amp; photo intake</h3>
+            <p>Upload a receipt, invoice, work order, statement, contract, tax document, equipment record, mileage record, or other private file.</p>
+            <ul><li>Take a picture on phone or tablet</li><li>Choose a PDF or photo on Chromebook</li><li>Review OCR suggestions before approval</li></ul>
+            <a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Upload in Business Office</a>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span><span class="portal-chip portal-chip--gate">Owner approval</span></div>
+            <h3>Quotes, invoices &amp; payments</h3>
+            <p>Prepare commercial records, generate branded PDFs, review approval gates, track balances, and preserve proof without automatically sending or moving money.</p>
+            <a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open financial workspace</a>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span></div>
+            <h3>Customers, jobs &amp; schedule</h3>
+            <p>Move owner-reviewed requests into customer, work-order, and job records. Track scope, due dates, costs, documents, status, and next action.</p>
+            <a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open operations</a>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span><span class="portal-chip portal-chip--gate">Preparation only</span></div>
+            <h3>Accounting, payroll &amp; tax prep</h3>
+            <p>Validate the ledger, prepare reports, calculate payroll summaries, and organize tax-period information. No funds move and no returns are filed.</p>
+            <a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open reports</a>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span></div>
+            <h3>Approvals, proof &amp; errors</h3>
+            <p>Review pending decisions, Proof Log entries, Error Log items, audit history, backups, and rollback evidence from one controlled system.</p>
+            <a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open controls</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="portal-section portal-section--alt" id="social" aria-labelledby="social-title">
+      <div class="portal-wrap">
+        <div class="portal-heading">
+          <div><h2 id="social-title">Social, marketing &amp; growth</h2><p>Dedicated owner-controlled spaces are reserved for content, channels, campaigns, analytics, reviews, and website work. Connections remain off until the account and approval rules are verified.</p></div>
+        </div>
+        <div class="portal-grid">
+          <article class="portal-card portal-card--featured">
+            <div class="portal-chip-row"><span class="portal-chip">Workspace slot</span><span class="portal-chip portal-chip--gate">Connection required</span></div>
+            <h3>Social command center</h3>
+            <p>One place for channel status, content ideas, drafts, media, approvals, scheduled posts, comments needing attention, and performance summaries.</p>
+            <a class="portal-button" href="#social-channels">Review channel setup</a>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip">Planned</span><span class="portal-chip portal-chip--gate">Owner approval</span></div>
+            <h3>Content calendar</h3>
+            <p>Weekly and monthly post planning with topic, audience, channel, asset, call to action, approval state, publish date, and reuse notes.</p>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip">Planned</span><span class="portal-chip portal-chip--gate">No auto-publish</span></div>
+            <h3>Publishing queue</h3>
+            <p>Draft, review, approve, schedule, publish, verify, and archive states. Nothing publishes until the approved provider connection is live.</p>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip">Planned</span></div>
+            <h3>Analytics &amp; attribution</h3>
+            <p>Followers, reach, engagement, clicks, leads, requests, conversions, source, campaign, content performance, and next-action notes.</p>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip">Planned</span><span class="portal-chip portal-chip--gate">Review before reply</span></div>
+            <h3>Reviews &amp; reputation</h3>
+            <p>Track review requests, public reviews, owner-approved responses, testimonials awaiting permission, and issues needing follow-up.</p>
+          </article>
+          <article class="portal-card">
+            <div class="portal-chip-row"><span class="portal-chip">Planned</span><span class="portal-chip portal-chip--gate">Spend approval</span></div>
+            <h3>Ads &amp; campaigns</h3>
+            <p>Campaign goal, audience, creative, landing page, budget, approval, spend, leads, conversion, return, and stop conditions.</p>
+          </article>
+        </div>
+
+        <div id="social-channels" class="portal-channels" aria-label="Social channel connection spots">
+          <div class="portal-channel"><strong>Facebook</strong><span>Not connected</span></div>
+          <div class="portal-channel"><strong>Instagram</strong><span>Not connected</span></div>
+          <div class="portal-channel"><strong>LinkedIn</strong><span>Not connected</span></div>
+          <div class="portal-channel"><strong>YouTube</strong><span>Not connected</span></div>
+          <div class="portal-channel"><strong>Google Business Profile</strong><span>Not connected</span></div>
+        </div>
+        <div class="portal-boundary"><strong>Social control:</strong> These are connection and workflow spots, not claims that the accounts are connected. Publishing, replies, advertising spend, and profile changes stay blocked until owner access and channel permissions are verified.</div>
+      </div>
+    </section>
+
+    <section class="portal-section" id="management" aria-labelledby="management-title">
+      <div class="portal-wrap">
+        <div class="portal-heading">
+          <div><h2 id="management-title">Management areas added to the portal</h2><p>These close the most common gaps between a record system and a usable owner operating center.</p></div>
+        </div>
+        <div class="portal-grid">
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip">Workspace slot</span></div><h3>Communications &amp; inbox</h3><p>Email, contact history, customer follow-up, missing information, drafts awaiting approval, and communication proof.</p></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip">Workspace slot</span></div><h3>Calendar &amp; scheduling</h3><p>Jobs, deadlines, follow-ups, owner review dates, content dates, recurring work, and blocked-time visibility.</p></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip portal-chip--live">Website live</span></div><h3>Website management</h3><p>Public-page status, change requests, releases, forms, proof, products, pricing controls, analytics, and deployment verification.</p><a class="portal-button" href="ecosystem-status.html">Open system status</a></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span></div><h3>Files &amp; deliverables</h3><p>Original uploads, OCR review, generated PDFs, approved customer deliverables, exports, proof references, and private classifications.</p><a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open documents</a></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip portal-chip--live">Six roles</span></div><h3>Team &amp; access</h3><p>Owner, Administrator, Staff, Bookkeeper, Payroll, and Viewer controls with permission boundaries and private account access.</p><a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open setup</a></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip portal-chip--live">Live</span></div><h3>System, backup &amp; recovery</h3><p>Health checks, error review, proof logs, audit history, backup creation, rollback evidence, migration, and release controls.</p><a class="portal-button" data-owner-app href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener">Open system controls</a></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip portal-chip--gate">Isolation gate</span></div><h3>Customer portal</h3><p>Customer access remains a separate security project. No customer records or files are exposed from this owner launch page.</p><a class="portal-button" href="customer-portal.html">View activation status</a></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip">Workspace slot</span></div><h3>Products &amp; fulfillment</h3><p>Catalog control, product and bundle status, job handoff, fulfillment checklist, revision limits, delivery approval, and completion proof.</p></article>
+          <article class="portal-card"><div class="portal-chip-row"><span class="portal-chip">Workspace slot</span></div><h3>Goals, KPIs &amp; decisions</h3><p>Revenue, pipeline, backlog, turnaround, margin, customer outcomes, growth priorities, risks, blockers, and owner decisions.</p></article>
+        </div>
+
+        <div class="portal-checklist" aria-label="Owner portal connection checklist">
+          <div class="portal-check"><b>1.</b><span><strong>Use the website as the launcher.</strong> Owner Login now routes here instead of bypassing the portal webpage.</span></div>
+          <div class="portal-check"><b>2.</b><span><strong>Use Google for private access.</strong> Records and credentials remain outside the public website.</span></div>
+          <div class="portal-check"><b>3.</b><span><strong>Connect providers one at a time.</strong> Social, analytics, email, calendar, payments, and accounting require verified access.</span></div>
+          <div class="portal-check"><b>4.</b><span><strong>Keep owner approval.</strong> External messages, publishing, spend, delivery, posting, payroll export, and tax finalization remain gated.</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"></footer>
+</body>
+</html>
