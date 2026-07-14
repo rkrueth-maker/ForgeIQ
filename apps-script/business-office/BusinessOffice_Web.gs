@@ -28,7 +28,7 @@ function boBootstrap_() {
   const definitions = boGetModuleDefinitions_();
   return {
     context: boGetClientContext(),
-    dashboard: boGetDashboard(),
+    dashboard: boGetOwnerDashboard_(),
     modules: boGetModuleNavigation_(definitions),
     definitions: definitions,
     savedViews: {
@@ -53,7 +53,7 @@ function boApi(request) {
   const handlers = {
     bootstrap: function () { return boBootstrap_(); },
     list: function () { return boListRecords(args.module, args.options || {}); },
-    dashboard: function () { return boGetDashboard(); },
+    dashboard: function () { return boGetOwnerDashboard_(); },
     savedViews: function () { return boGetSavedViews(args.module); },
     save: function () { return boSaveRecord(args.module, args.recordId || '', args.values || {}); },
     voidRecord: function () { return boSoftVoidRecord_(H38_BO_MODULES[args.module] || args.module, args.recordId, args.reason); },
