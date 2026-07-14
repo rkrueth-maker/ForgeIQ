@@ -1,0 +1,48 @@
+name: Highway 38 Business Office
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps-script/business-office/**'
+      - 'apps-script/business-office-sync/**'
+      - 'docs/business-office/**'
+      - 'scripts/verify-business-office.js'
+      - 'scripts/verify-business-office-live.js'
+      - 'package.json'
+      - '.github/workflows/business-office.yml'
+      - 'tests/business-office/**'
+  push:
+    branches: [main, issue-85-business-office]
+    paths:
+      - 'apps-script/business-office/**'
+      - 'apps-script/business-office-sync/**'
+      - 'docs/business-office/**'
+      - 'scripts/verify-business-office.js'
+      - 'scripts/verify-business-office-live.js'
+      - 'package.json'
+      - '.github/workflows/business-office.yml'
+      - 'tests/business-office/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-business-office:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify complete Business Office source
+        run: npm run test:business-office
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: business-office-verification-${{ github.run_id }}
+          path: artifacts/business-office/verification.json
+          if-no-files-found: error
+          retention-days: 90
