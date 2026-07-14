@@ -6,11 +6,26 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/production-smoke.yml'
+      - 'scripts/verify-issue83-source.sh'
       - 'index.html'
       - 'products.html'
       - 'product.html'
       - 'sample-library-now.html'
       - 'start-request.html'
+      - 'problem-starter.html'
+      - 'automation-opportunity-planning.html'
+      - 'digital-file-cleanup-planning.html'
+      - 'fixture-jig-concept-review.html'
+      - 'garage-layout-planning.html'
+      - 'manufacturing-bottleneck-analysis.html'
+      - 'project-planning-packets.html'
+      - 'robot-tending-concept-planning.html'
+      - 'shop-layout-flow-review.html'
+      - 'small-business-workflow-cleanup.html'
+      - 'vision-inspection-concept-planning.html'
+      - 'service-landing.js'
+      - 'issue83-enhancements.js'
+      - 'issue83-enhancements.css'
       - 'catalog-data.js'
       - 'commercial.js'
       - 'commercial.css'
@@ -20,12 +35,27 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/production-smoke.yml'
+      - 'scripts/verify-issue83-source.sh'
       - 'docs/commercial-system/production-smoke-request.md'
       - 'index.html'
       - 'products.html'
       - 'product.html'
       - 'sample-library-now.html'
       - 'start-request.html'
+      - 'problem-starter.html'
+      - 'automation-opportunity-planning.html'
+      - 'digital-file-cleanup-planning.html'
+      - 'fixture-jig-concept-review.html'
+      - 'garage-layout-planning.html'
+      - 'manufacturing-bottleneck-analysis.html'
+      - 'project-planning-packets.html'
+      - 'robot-tending-concept-planning.html'
+      - 'shop-layout-flow-review.html'
+      - 'small-business-workflow-cleanup.html'
+      - 'vision-inspection-concept-planning.html'
+      - 'service-landing.js'
+      - 'issue83-enhancements.js'
+      - 'issue83-enhancements.css'
       - 'catalog-data.js'
       - 'commercial.js'
       - 'commercial.css'
@@ -44,15 +74,18 @@ jobs:
       - name: Verify proposed public source markers
         shell: bash
         run: |
-          set -euo pipefail
-          grep -Fq 'Big problems. Clear plans.' index.html
-          grep -Fq 'Choose the finished result—not a vague engagement.' products.html
-          grep -Fq 'data-product-detail-single' product.html
-          grep -Fq 'One sample for every catalog product.' sample-library-now.html
-          grep -Fq 'What would you like to have when this is finished?' start-request.html
-          grep -Fq 'data-owner-link="true"' sample-library-now.html
-          grep -Fq 'product_detail_view' product-detail.js
-          echo 'Pull-request public source smoke check passed.'
+          set +e
+          bash scripts/verify-issue83-source.sh > /tmp/issue83-source-report.txt 2>&1
+          status=$?
+          cat /tmp/issue83-source-report.txt
+          exit "$status"
+      - name: Upload Issue 83 source report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue83-source-report
+          path: /tmp/issue83-source-report.txt
+          if-no-files-found: error
 
   production-smoke:
     if: github.event_name != 'pull_request'
@@ -76,10 +109,30 @@ jobs:
             echo "Production check failed for $path; expected: $pattern" >&2
             return 1
           }
+
           fetch_until_ready '' 'Big problems. Clear plans.' /tmp/home.html
-          fetch_until_ready 'products.html' 'Choose the finished result—not a vague engagement.' /tmp/products.html
+          grep -Fq 'Start with a $99 Problem Snapshot' /tmp/home.html
+          fetch_until_ready 'products.html' 'Choose the smallest service that produces the result you need.' /tmp/products.html
           fetch_until_ready 'product.html?id=H38-P001' 'data-product-detail-single' /tmp/product.html
-          fetch_until_ready 'sample-library-now.html' 'One sample for every catalog product.' /tmp/samples.html
+          fetch_until_ready 'sample-library-now.html' 'See the finished work before you choose a service.' /tmp/samples.html
           fetch_until_ready 'start-request.html' 'What would you like to have when this is finished?' /tmp/request.html
+          fetch_until_ready 'problem-starter.html' 'The Highway 38 Problem Starter' /tmp/problem-starter.html
+
+          fetch_until_ready 'automation-opportunity-planning.html' '<title>Automation Opportunity Planning | Highway 38 Solutions</title>' /tmp/automation.html
+          fetch_until_ready 'digital-file-cleanup-planning.html' '<title>Digital File Cleanup Planning | Highway 38 Solutions</title>' /tmp/digital-cleanup.html
+          fetch_until_ready 'fixture-jig-concept-review.html' '<title>Fixture and Jig Concept Review | Highway 38 Solutions</title>' /tmp/fixture.html
+          fetch_until_ready 'garage-layout-planning.html' '<title>Garage Layout Planning | Highway 38 Solutions</title>' /tmp/garage.html
+          fetch_until_ready 'manufacturing-bottleneck-analysis.html' '<title>Manufacturing Bottleneck Analysis | Highway 38 Solutions</title>' /tmp/bottleneck.html
+          fetch_until_ready 'project-planning-packets.html' '<title>Project Planning Packets | Highway 38 Solutions</title>' /tmp/project.html
+          fetch_until_ready 'robot-tending-concept-planning.html' '<title>Robot Tending Concept Planning | Highway 38 Solutions</title>' /tmp/robot.html
+          fetch_until_ready 'shop-layout-flow-review.html' '<title>Shop Layout and Flow Review | Highway 38 Solutions</title>' /tmp/shop.html
+          fetch_until_ready 'small-business-workflow-cleanup.html' '<title>Small-Business Workflow Cleanup | Highway 38 Solutions</title>' /tmp/workflow.html
+          fetch_until_ready 'vision-inspection-concept-planning.html' '<title>Vision Inspection Concept Planning | Highway 38 Solutions</title>' /tmp/vision.html
+
           grep -Fq 'data-owner-link="true"' /tmp/samples.html
+          if grep -Fq '25,000+ CNC programs' /tmp/home.html /tmp/products.html /tmp/samples.html; then
+            echo 'Prohibited 25,000+ CNC programs claim found on deployed public pages.' >&2
+            exit 1
+          fi
+
           echo 'Production GitHub Pages smoke check passed.'
