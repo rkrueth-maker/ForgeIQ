@@ -88,13 +88,22 @@ jobs:
       - name: Back up existing bound Apps Script project
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
           mkdir -p deployment-work/backup deployment-work/project deployment-work/evidence
           printf '{"scriptId":"%s","rootDir":"."}\n' "$H38_BOUND_SCRIPT_ID" > deployment-work/backup/.clasp.json
-          (
+          if (
             cd deployment-work/backup
             clasp pull
-          )
+          ); then
+            echo 'REMOTE_PROJECT_PULL' > deployment-work/evidence/backup-mode.txt
+          else
+            echo 'WARNING: Remote project pull failed; using exact GitHub-controlled Owner Portal source as rollback package.' | tee deployment-work/evidence/backup-pull-warning.txt
+            find deployment-work/backup -mindepth 1 -maxdepth 1 ! -name '.clasp.json' -exec rm -rf {} +
+            cp apps-script/core-engine/owner-portal-next/*.js deployment-work/backup/
+            cp apps-script/core-engine/owner-portal-next/*.html deployment-work/backup/
+            cp apps-script/core-engine/owner-portal-next/appsscript.json deployment-work/backup/
+            echo 'GITHUB_SOURCE_FALLBACK' > deployment-work/evidence/backup-mode.txt
+          fi
           tar -czf deployment-work/evidence/bound-project-backup.tar.gz -C deployment-work/backup .
           sha256sum deployment-work/evidence/bound-project-backup.tar.gz | tee deployment-work/evidence/bound-project-backup.sha256
 
@@ -149,6 +158,7 @@ jobs:
         run: |
           set -euo pipefail
           BACKUP_SHA="$(cut -d' ' -f1 deployment-work/evidence/bound-project-backup.sha256)"
+          BACKUP_MODE="$(cat deployment-work/evidence/backup-mode.txt)"
           WEB_APP_URL="https://script.google.com/macros/s/${H38_EXISTING_DEPLOYMENT_ID}/exec"
           cat > deployment-work/evidence/owner-portal-production-deployment.json <<JSON
           {
@@ -161,6 +171,7 @@ jobs:
             "webAppUrl": "${WEB_APP_URL}",
             "productionSpreadsheetId": "${H38_PRODUCTION_SPREADSHEET_ID}",
             "backupSha256": "${BACKUP_SHA}",
+            "backupMode": "${BACKUP_MODE}",
             "createdNewProject": false,
             "createdSecondDeployment": false,
             "embeddedOnWebsite": true,
