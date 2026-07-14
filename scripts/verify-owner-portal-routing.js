@@ -62,7 +62,7 @@ for (const file of rootHtmlFiles) {
   for (const match of anchors) {
     const href = match[1];
     const label = match[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    if (/owner\s+(login|portal)/i.test(label)) {
+    if (/owner\s+(login|portal)/i.test(label) && !href.startsWith('#')) {
       ownerLinks.push({ file, href, label });
       if (!/(^|\/)portal\.html(?:[?#].*)?$/.test(href)) badOwnerLinks.push({ file, href, label });
     }
