@@ -72,7 +72,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify proposed public source markers
-        run: bash scripts/verify-issue83-source.sh
+        shell: bash
+        run: |
+          set +e
+          bash scripts/verify-issue83-source.sh > /tmp/issue83-source-report.txt 2>&1
+          status=$?
+          cat /tmp/issue83-source-report.txt
+          exit "$status"
+      - name: Upload Issue 83 source report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue83-source-report
+          path: /tmp/issue83-source-report.txt
+          if-no-files-found: error
 
   production-smoke:
     if: github.event_name != 'pull_request'
