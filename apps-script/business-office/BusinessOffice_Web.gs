@@ -25,15 +25,25 @@ function boInclude_(fileName) {
 }
 
 function boBootstrap_() {
+  const definitions = boGetModuleDefinitions_();
   return {
     context: boGetClientContext(),
     dashboard: boGetDashboard(),
-    modules: boGetModuleDefinitions_(),
+    modules: boGetModuleNavigation_(definitions),
+    definitions: definitions,
     savedViews: {
       quotes: boGetSavedViews('Quotes'),
       invoices: boGetSavedViews('Invoices')
     }
   };
+}
+
+function boGetModuleNavigation_(definitions) {
+  const navigation = [{ key: 'dashboard', label: 'Dashboard' }];
+  Object.keys(definitions || {}).forEach(function (key) {
+    navigation.push({ key: key, label: definitions[key].title || key });
+  });
+  return navigation;
 }
 
 function boApi(request) {
