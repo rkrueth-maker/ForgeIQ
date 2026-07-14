@@ -37,17 +37,11 @@ function boDashboardNeedsApproval_(value) {
   return !/(approved|not required|complete|completed|posted)/.test(status);
 }
 
-function boDashboardSheetUrl_(spreadsheet, sheetName) {
-  const sheet = spreadsheet.getSheetByName(sheetName);
-  return sheet ? spreadsheet.getUrl() + '#gid=' + sheet.getSheetId() : spreadsheet.getUrl();
-}
-
 function boDashboardCard_(spreadsheet, label, value, detail, sheetName) {
   return {
     'Business Area': label,
     'Live Count': value,
-    'What Needs Attention': detail,
-    'Open Records URL': boDashboardSheetUrl_(spreadsheet, sheetName)
+    'What Needs Attention': detail
   };
 }
 
