@@ -10,6 +10,7 @@ on:
       - 'ecosystem.js'
       - 'brand-global.js'
       - 'scripts/verify-public-ecosystem-tools.js'
+      - 'scripts/verify-owner-portal-routing.js'
       - 'apps-script/core-engine/owner-portal-next/**'
       - 'apps-script/business-office/**'
       - 'apps-script/business-office-sync/**'
@@ -47,6 +48,7 @@ jobs:
         run: |
           npm install
           node scripts/verify-public-ecosystem-tools.js
+          node scripts/verify-owner-portal-routing.js
           node scripts/verify-owner-portal-next.js
           node scripts/verify-owner-portal-hard-rule.js
           npm run test:business-office
@@ -78,7 +80,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unified-owner-portal-${{ github.run_id }}
-          path: artifacts/unified-owner-portal/
+          path: |
+            artifacts/unified-owner-portal/
+            artifacts/owner-portal-routing/
           if-no-files-found: error
           retention-days: 90
 
@@ -94,6 +98,9 @@ jobs:
           - Website page: https://rkrueth-maker.github.io/highway-38-solutions/portal.html
           - Owner Operations and Social: embedded live
           - Business Office, PDF upload, and camera capture: embedded live
+          - Owner Login and portal routing audit: PASS
+          - Normal portal actions opening Google Sheets: NONE
+          - Any retained spreadsheet destination: explicitly labeled Administrative spreadsheet with confirmation
           - Existing Apps Script project and both existing deployment IDs updated in place
           - New project or deployment: none
           - Google owner authentication and role controls: preserved
