@@ -39,6 +39,7 @@
     .status.approved,.status.complete,.status.posted,.status.active,.status.recorded { background:var(--good); color:#15552e; }
     .status.required,.status.pending,.status.review,.status.overdue { background:var(--warn); color:#6b4b00; }
     .status.rejected,.status.error,.status.voided { background:var(--bad); color:#7a1515; }
+    .admin-link { font-weight:700; color:#6b4b00; }
     .table-wrap { overflow:auto; border:1px solid var(--border); border-radius:8px; }
     table { border-collapse:collapse; width:100%; min-width:900px; background:white; }
     th,td { border-bottom:1px solid var(--border); padding:9px 10px; text-align:left; vertical-align:top; white-space:nowrap; }
@@ -151,7 +152,7 @@
   function renderDashboard() {
     state.module='dashboard'; renderNav();
     const rows = state.bootstrap.dashboard || [];
-    document.getElementById('content').innerHTML = `<div class="panel quick-upload"><h2>Upload documents and photos</h2><p>Upload a PDF, choose an existing picture, or take a new picture with your device camera.</p><div class="toolbar"><button class="primary" onclick="openUpload()">Upload PDF / Take Picture</button><button class="secondary" onclick="openModule('documents')">View Documents / OCR</button></div></div><div class="panel"><h2>Business Dashboard</h2><p>Every count opens the source records behind it in the private workbook.</p><div class="cards">${rows.map(row => `<div class="card"><div class="label">${escapeHtml(row['Business Area']||row['Portal Area']||'Status')}</div><div class="count">${escapeHtml(row['Live Count']||row['Count / Status']||'0')}</div><div class="detail">${escapeHtml(row['What Needs Attention']||row['Control Rule']||'')}</div>${row['Open Records URL']?`<div style="margin-top:10px"><a href="${safeUrl(row['Open Records URL'])}" target="_blank">Open source records</a></div>`:''}</div>`).join('')}</div></div>`;
+    document.getElementById('content').innerHTML = `<div class="panel quick-upload"><h2>Upload documents and photos</h2><p>Upload a PDF, choose an existing picture, or take a new picture with your device camera.</p><div class="toolbar"><button class="primary" onclick="openUpload()">Upload PDF / Take Picture</button><button class="secondary" onclick="openModule('documents')">View Documents / OCR</button></div></div><div class="panel"><h2>Business Dashboard</h2><p>Use the Owner Portal navigation to open the live records behind these totals.</p><div class="cards">${rows.map(row => `<div class="card"><div class="label">${escapeHtml(row['Business Area']||row['Portal Area']||'Status')}</div><div class="count">${escapeHtml(row['Live Count']||row['Count / Status']||'0')}</div><div class="detail">${escapeHtml(row['What Needs Attention']||row['Control Rule']||'')}</div></div>`).join('')}</div></div>`;
   }
 
   async function loadRows() {
@@ -255,7 +256,15 @@
   function toBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});}
   function mimeFromName(name){const ext=name.split('.').pop().toLowerCase();return {pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',heic:'image/heic',heif:'image/heif'}[ext]||'application/octet-stream';}
 
-  function formatCell(field,value){const v=value==null?'':String(value);if(/Status|Allowed|Approval|Decision|State|Balanced/.test(field)&&v)return `<span class="status ${statusClass(v)}">${escapeHtml(v)}</span>`;if(/^https:\/\//.test(v))return `<a href="${safeUrl(v)}" target="_blank">Open</a>`;return escapeHtml(v);}
+  function formatCell(field,value){
+    const v=value==null?'':String(value);
+    if(/Status|Allowed|Approval|Decision|State|Balanced/.test(field)&&v)return `<span class="status ${statusClass(v)}">${escapeHtml(v)}</span>`;
+    if(/^https:\/\//.test(v)){
+      if(/^https:\/\/docs\.google\.com\/spreadsheets\//i.test(v))return `<a class="admin-link" href="${safeUrl(v)}" target="_blank" onclick="return confirm('Open the administrative spreadsheet outside the Owner Portal?')">Administrative spreadsheet</a>`;
+      return `<a href="${safeUrl(v)}" target="_blank">Open file</a>`;
+    }
+    return escapeHtml(v);
+  }
   function statusClass(value){const v=value.toLowerCase();if(/approved|complete|posted|active|recorded|yes|pass/.test(v))return 'approved';if(/required|pending|review|awaiting|prepared|no/.test(v))return 'required';if(/rejected|error|voided|failed|hold/.test(v))return 'rejected';return '';}
   function safeUrl(value){try{const u=new URL(value);return ['https:'].includes(u.protocol)?u.href:'#';}catch(e){return '#';}}
   function escapeHtml(value){return String(value==null?'':value).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
