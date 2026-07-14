@@ -122,9 +122,20 @@ function boRunLiveAcceptance(payload) {
     boAssert_(Number(job.Revenue) === 1070, 'Job revenue mismatch.');
     boAssert_(Number(job['Total Cost']) >= 1164, 'Job cost did not include connected labor and expense data.');
     boAssert_(Number(job.Profit) === Number(job.Revenue) - Number(job['Total Cost']), 'Job profit formula mismatch.');
+    const bill = boFindRecord_(H38_BO_SHEETS.VENDOR_BILLS, 'BILL-TEST-001', { includeVoided: true }).record;
+    const purchaseOrder = boFindRecord_(H38_BO_SHEETS.PURCHASE_ORDERS, 'PO-TEST-001', { includeVoided: true }).record;
+    boAssert_(Number(bill.Total) === Number(purchaseOrder.Total), 'Controlled vendor bill and purchase order totals must match before acceptance.');
     const matched = boMatchVendorBillToPurchaseOrder('BILL-TEST-001', 'PO-TEST-001');
     boAssert_(matched.matched === true, 'Vendor bill matching failed.');
-    return { records: required.length, jobRevenue: job.Revenue, totalCost: job['Total Cost'], profit: job.Profit };
+    return {
+      records: required.length,
+      jobRevenue: job.Revenue,
+      totalCost: job['Total Cost'],
+      profit: job.Profit,
+      vendorBillTotal: bill.Total,
+      purchaseOrderTotal: purchaseOrder.Total,
+      matchDifference: matched.difference
+    };
   });
 
   run('Role and permission enforcement', function () {
