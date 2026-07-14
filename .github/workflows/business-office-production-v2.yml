@@ -97,24 +97,28 @@ jobs:
           BO_WEB_APP_URL="$(cat "$EVIDENCE/business-office-web-app-url.txt")"
           SYNC_SCRIPT_ID="$(cat "$EVIDENCE/intake-sync-script-id.txt")"
           SYNC_DEPLOYMENT_ID="$(cat "$EVIDENCE/intake-sync-deployment-id.txt")"
-          gh issue comment 85 --repo "$GITHUB_REPOSITORY" --body "## Business Office production acceptance PASS
+          REPORT="$RUNNER_TEMP/issue-85-production-pass.md"
+          cat > "$REPORT" <<EOF
+          ## Business Office production acceptance PASS
 
-- Source commit: ${GITHUB_SHA}
-- Business Office Apps Script project: ${BO_SCRIPT_ID}
-- Business Office deployment: ${BO_DEPLOYMENT_ID}
-- Private logged-in web app: ${BO_WEB_APP_URL}
-- Separate intake-sync project: ${SYNC_SCRIPT_ID}
-- Intake-sync deployment: ${SYNC_DEPLOYMENT_ID}
-- Live receipt image upload and OCR review: PASS
-- Live work-order camera-path image upload and OCR review: PASS
-- Live vendor-invoice PDF upload and extraction: PASS
-- Receipt-to-expense posting: PASS
-- Nine branded Apps Script PDFs: PASS
-- Six-role permission checks: PASS
-- Approval gates and duplicate protection: PASS
-- Accounting, payroll, and tax-preparation verification: PASS
-- Proof, Error, Audit, and rollback evidence: PASS
-- Mobile and desktop deployed-render evidence: PASS
-- Customer actions, payment processing, payroll funding, tax filing, delivery, and publication: NONE
+          - Source commit: ${GITHUB_SHA}
+          - Business Office Apps Script project: ${BO_SCRIPT_ID}
+          - Business Office deployment: ${BO_DEPLOYMENT_ID}
+          - Private logged-in web app: ${BO_WEB_APP_URL}
+          - Separate intake-sync project: ${SYNC_SCRIPT_ID}
+          - Intake-sync deployment: ${SYNC_DEPLOYMENT_ID}
+          - Live receipt image upload and OCR review: PASS
+          - Live work-order camera-path image upload and OCR review: PASS
+          - Live vendor-invoice PDF upload and extraction: PASS
+          - Receipt-to-expense posting: PASS
+          - Nine branded Apps Script PDFs: PASS
+          - Six-role permission checks: PASS
+          - Approval gates and duplicate protection: PASS
+          - Accounting, payroll, and tax-preparation verification: PASS
+          - Proof, Error, Audit, and rollback evidence: PASS
+          - Mobile and desktop deployed-render evidence: PASS
+          - Customer actions, payment processing, payroll funding, tax filing, delivery, and publication: NONE
 
-Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          gh issue comment 85 --repo "$GITHUB_REPOSITORY" --body-file "$REPORT"
