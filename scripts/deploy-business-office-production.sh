@@ -111,6 +111,13 @@ PY"""
 if old_acceptance_setup not in text:
     raise SystemExit('Expected acceptance identity setup block not found')
 text = text.replace(old_acceptance_setup, new_acceptance_setup, 1)
+
+old_work_order_fixture = "await page.setContent(html('Highway 38 Work Order',['Northwoods Sample Customer','Address Grand Rapids MN','Job Number JOB-2026-0001','Work Requested Prepare sample project plan','Assigned Employee Sample Employee','Labor 2 hours','Materials Planning packet','Due Date 2026-07-22','Status Open']));"
+new_work_order_fixture = "await page.setContent(html('Highway 38 Work Order',['Northwoods Sample Customer','Address Grand Rapids MN','Job Number JOB-2026-0001',`Acceptance Run ${run}`,'Work Requested Prepare sample project plan','Assigned Employee Sample Employee','Labor 2 hours','Materials Planning packet','Due Date 2026-07-22','Status Open']));"
+if old_work_order_fixture not in text:
+    raise SystemExit('Expected work-order fixture block not found')
+text = text.replace(old_work_order_fixture, new_work_order_fixture, 1)
+
 path.write_text(text)
 PY
 
