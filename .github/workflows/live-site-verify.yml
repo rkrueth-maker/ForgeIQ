@@ -19,10 +19,10 @@ jobs:
 
     env:
       SITE_URL: https://rkrueth-maker.github.io/highway-38-solutions/index.html
-      SAMPLE_LIBRARY_URL: https://rkrueth-maker.github.io/highway-38-solutions/sample-library.html
-      SAMPLE_RESULTS_URL: https://rkrueth-maker.github.io/highway-38-solutions/sample-workbooks.html
-      SAMPLE_LIBRARY_NOW_URL: https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html?v=v5-ladder-final
-      FORM_URL: https://docs.google.com/forms/d/e/1FAIpQLScTWaK40mNNaf1ek3w4gC3VYwvpNT9fnXlHodKeOZl7lPfCyQ/viewform
+      PRODUCTS_URL: https://rkrueth-maker.github.io/highway-38-solutions/products.html
+      SAMPLE_LIBRARY_URL: https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html
+      PROBLEM_STARTER_URL: https://rkrueth-maker.github.io/highway-38-solutions/problem-starter.html
+      ABOUT_URL: https://rkrueth-maker.github.io/highway-38-solutions/about.html
 
     steps:
       - name: Wait briefly for GitHub Pages propagation
@@ -30,7 +30,7 @@ jobs:
 
       - name: Fetch live pages with retries
         run: |
-          set -e
+          set -euo pipefail
 
           fetch_page () {
             LABEL="$1"
@@ -39,7 +39,7 @@ jobs:
 
             for i in {1..10}; do
               echo "Attempt $i: fetching $LABEL at $URL"
-              STATUS=$(curl -L -s -o "$OUT" -w "%{http_code}" "$URL?v=auto-live-verify-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")
+              STATUS=$(curl -L -s -o "$OUT" -w "%{http_code}" "$URL?verification=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}")
               echo "$LABEL HTTP status: $STATUS"
 
               if [ "$STATUS" = "200" ]; then
@@ -55,18 +55,22 @@ jobs:
           }
 
           fetch_page "home" "$SITE_URL" live-homepage.html
+          fetch_page "products" "$PRODUCTS_URL" live-products.html
           fetch_page "sample library" "$SAMPLE_LIBRARY_URL" live-sample-library.html
-          fetch_page "sample results" "$SAMPLE_RESULTS_URL" live-sample-results.html
+          fetch_page "Problem Starter" "$PROBLEM_STARTER_URL" live-problem-starter.html
+          fetch_page "about" "$ABOUT_URL" live-about.html
 
       - name: Verify required live page text
         run: |
-          set -e
+          set -euo pipefail
           REPORT=live-site-verification-report.txt
 
           echo "Highway 38 live-site verification" > "$REPORT"
           echo "Checked URL: $SITE_URL" >> "$REPORT"
+          echo "Checked URL: $PRODUCTS_URL" >> "$REPORT"
           echo "Checked URL: $SAMPLE_LIBRARY_URL" >> "$REPORT"
-          echo "Checked URL: $SAMPLE_RESULTS_URL" >> "$REPORT"
+          echo "Checked URL: $PROBLEM_STARTER_URL" >> "$REPORT"
+          echo "Checked URL: $ABOUT_URL" >> "$REPORT"
           echo "Run ID: $GITHUB_RUN_ID" >> "$REPORT"
           echo "Run attempt: $GITHUB_RUN_ATTEMPT" >> "$REPORT"
           echo "" >> "$REPORT"
@@ -97,47 +101,41 @@ jobs:
             fi
           }
 
-          check_text live-homepage.html "Problem Snapshot CTA" "Start With a Problem Snapshot"
-          check_text live-homepage.html "Request form link" "$FORM_URL"
-          check_text live-homepage.html "Pricing clarity" '$79 intro / $99 normal'
-          check_text live-homepage.html "Featured service" "Messy Details In → Finished Document Out"
-          check_text live-homepage.html "Under-250 section" 'Under-$250 draft-ready products'
-          check_text live-homepage.html "Basic Layout Snapshot" "Basic Layout Snapshot"
-          check_text live-homepage.html "Project Packet Lite" "Project Packet Lite"
-          check_text live-homepage.html "Business Cleanup Starter" "Business Cleanup Starter"
-          check_text live-homepage.html "Cleanup Rescue Pack" "Cleanup Rescue Pack"
-          check_text live-homepage.html "Workflow Opportunity Snapshot" "Workflow Opportunity Snapshot"
-          check_text live-homepage.html "Approval gate" "Rick Review Required / Owner Approval Required"
-          check_text live-homepage.html "No instant delivery promise" "No instant-delivery promise"
-          check_text live-homepage.html "Safe sample label" "Sample output — not customer work"
+          check_text live-homepage.html "Approved homepage headline" "Big problems. Clear plans."
+          check_text live-homepage.html "Problem Snapshot CTA" 'Start with a $99 Problem Snapshot'
+          check_text live-homepage.html "Finished examples secondary CTA" "See Finished Examples"
+          check_text live-homepage.html "No-charge request assurance" "No charge from submitting a request"
+          check_text live-homepage.html "Personal review assurance" "personally reviewed"
+          reject_text live-homepage.html "No prohibited CNC claim on homepage" "25,000+ CNC programs"
+          reject_text live-homepage.html "No public personal-name attribution on homepage" "Rick Krueth"
           reject_text live-homepage.html "No obvious GitHub Pages 404 on home" "404: File not found"
 
-          check_text live-sample-library.html "Sample library safe label" "Sample output — not customer work"
-          check_text live-sample-library.html "Sample library hypothetical label" "Hypothetical example"
-          check_text live-sample-library.html "Sample library staged label" "Staged demo using sample information"
-          check_text live-sample-library.html "Sample library Basic Layout Snapshot" "Basic Layout Snapshot"
-          check_text live-sample-library.html "Sample library Project Packet Lite" "Project Packet Lite"
-          check_text live-sample-library.html "Sample library Business Cleanup Starter" "Business Cleanup Starter"
-          check_text live-sample-library.html "Sample library Cleanup Rescue Pack" "Cleanup Rescue Pack"
-          check_text live-sample-library.html "Sample library Workflow Opportunity Snapshot" "Workflow Opportunity Snapshot"
-          reject_text live-sample-library.html "Removed sample card: Shop / CNC Concept" "Shop / CNC Concept"
-          reject_text live-sample-library.html "Removed sample card: Digital Setup" "Digital Setup"
-          reject_text live-sample-library.html "Removed sample card: Custom Work Build" "Custom Work Build"
-          reject_text live-sample-library.html "Old exact Project Packet heading removed" "<h2>Project Packet</h2>"
-          reject_text live-sample-library.html "Old exact Business Cleanup heading removed" "<h2>Business Cleanup</h2>"
-          reject_text live-sample-library.html "Old exact Cleanup Rescue heading removed" "<h2>Cleanup Rescue</h2>"
-          reject_text live-sample-library.html "Old exact AI Workflow heading removed" "<h2>AI Workflow</h2>"
-          reject_text live-sample-library.html "No obvious GitHub Pages 404 on sample library" "404: File not found"
+          check_text live-products.html "Approved product discovery headline" "Choose the smallest service that produces the result you need."
+          check_text live-products.html "Approved catalog count" "15 products. 9 recommended bundles."
+          check_text live-products.html "All-products rendering target" 'data-products="plans"'
+          check_text live-products.html "Bundle rendering target" "data-bundles"
+          reject_text live-products.html "No prohibited CNC claim on products" "25,000+ CNC programs"
+          reject_text live-products.html "No obvious GitHub Pages 404 on products" "404: File not found"
 
-          check_text live-sample-results.html "Sample results visible directly" "Product samples and results show directly on the page."
-          check_text live-sample-results.html "Sample results approval language" "Rick Review Required / Owner Approval Required"
-          check_text live-sample-results.html "Sample results Basic Layout Snapshot" "Basic Layout Snapshot"
-          check_text live-sample-results.html "Sample results Workflow Opportunity Snapshot" "Workflow Opportunity Snapshot"
-          reject_text live-sample-results.html "Removed result: Shop / CNC Concept" "Shop / CNC Concept"
-          reject_text live-sample-results.html "Removed result: Digital Setup" "Digital Setup"
-          reject_text live-sample-results.html "Removed result: Custom Work Build" "Custom Work Build"
-          reject_text live-sample-results.html "Old exact AI Workflow heading removed from results" "<span>AI Workflow</span>"
-          reject_text live-sample-results.html "No obvious GitHub Pages 404 on sample results" "404: File not found"
+          check_text live-sample-library.html "Sample Library current headline" "See the finished work before you choose a service."
+          check_text live-sample-library.html "Fifteen-sample path" "Browse 15 samples"
+          check_text live-sample-library.html "Hypothetical proof classification" "Hypothetical examples"
+          check_text live-sample-library.html "Owner Portal control" 'data-owner-link="true"'
+          check_text live-sample-library.html "Owner Portal link" "Owner Portal"
+          check_text live-sample-library.html "All-samples rendering target" 'data-samples="all"'
+          reject_text live-sample-library.html "No prohibited CNC claim in samples" "25,000+ CNC programs"
+          reject_text live-sample-library.html "No obvious GitHub Pages 404 on samples" "404: File not found"
+
+          check_text live-problem-starter.html "Problem Starter resource" "The Highway 38 Problem Starter"
+          check_text live-problem-starter.html "Problem Starter request route" "Start a $99 Problem Snapshot"
+          check_text live-problem-starter.html "Problem Starter no-charge assurance" "No charge from submitting a request"
+          reject_text live-problem-starter.html "No obvious GitHub Pages 404 on Problem Starter" "404: File not found"
+
+          check_text live-about.html "Approved interim CNC wording" "Programmed and maintained thousands of CNC jobs over many years"
+          check_text live-about.html "Owner attribution" "The Owner spent 20 years"
+          reject_text live-about.html "No prohibited CNC claim on About" "25,000+ CNC programs"
+          reject_text live-about.html "No public personal-name attribution on About" "Rick Krueth"
+          reject_text live-about.html "No obvious GitHub Pages 404 on About" "404: File not found"
 
           echo "" >> "$REPORT"
           echo "Live verification completed successfully." >> "$REPORT"
@@ -162,5 +160,7 @@ jobs:
           path: |
             live-site-verification-report.txt
             live-homepage.html
+            live-products.html
             live-sample-library.html
-            live-sample-results.html
+            live-problem-starter.html
+            live-about.html
