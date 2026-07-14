@@ -11,6 +11,7 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: write
 
 jobs:
   verify-live-site:
@@ -23,6 +24,8 @@ jobs:
       SAMPLE_LIBRARY_URL: https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html
       PROBLEM_STARTER_URL: https://rkrueth-maker.github.io/highway-38-solutions/problem-starter.html
       ABOUT_URL: https://rkrueth-maker.github.io/highway-38-solutions/about.html
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
 
     steps:
       - name: Wait briefly for GitHub Pages propagation
@@ -164,3 +167,32 @@ jobs:
             live-sample-library.html
             live-problem-starter.html
             live-about.html
+
+      - name: Record Issue 83 live verification
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_url="https://github.com/${REPO}/actions/runs/${GITHUB_RUN_ID}"
+          cat > /tmp/issue83-live-pass.md <<EOF
+          <!-- h38-issue83-live-pass -->
+          ## Issue #83 LIVE_PAGES verification PASS
+
+          - Homepage, Products & Pricing, Sample Library, Problem Starter, and About returned HTTP 200.
+          - Approved headline and \$99 Problem Snapshot path: PASS.
+          - Controlled 15-product / 9-bundle presentation markers: PASS.
+          - Sample proof classification and Owner Portal control: PASS.
+          - Approved interim CNC wording: PASS.
+          - Prohibited **25,000+ CNC programs** claim: ABSENT.
+          - Public personal-name attribution: ABSENT.
+          - Verification run: ${run_url}
+          - Verification source commit: \`${GITHUB_SHA}\`
+
+          Final LIVE_PAGES disposition: **PASS**.
+          EOF
+          existing="$(gh api "repos/${REPO}/issues/83/comments" --paginate --jq '.[] | select(.body | contains("<!-- h38-issue83-live-pass -->")) | .id' | tail -n 1)"
+          if [[ -n "$existing" ]]; then
+            gh api --method PATCH "repos/${REPO}/issues/comments/${existing}" -f body="$(cat /tmp/issue83-live-pass.md)" >/dev/null
+          else
+            gh issue comment 83 --repo "$REPO" --body-file /tmp/issue83-live-pass.md >/dev/null
+          fi
