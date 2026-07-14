@@ -47,6 +47,9 @@ trap finish_production_run EXIT
 # clasp pulls server-side .gs files as .js. Remove any previously pulled
 # BusinessOffice_* modules from each temporary project before copying the
 # current source, so two extensions never represent the same Apps Script file.
+# The temporary token-protected acceptance deployment executes as the deploying
+# owner. Patch only that temporary copy to identify the effective deployment
+# owner; the final private deployment retains normal active-user enforcement.
 python3 - <<'PY'
 from pathlib import Path
 path = Path('scripts/deploy-business-office-owner-web-harness.sh')
@@ -69,6 +72,40 @@ for old, new in replacements.items():
     if old not in text:
         raise SystemExit(f'Expected harness block not found: {old.splitlines()[0]}')
     text = text.replace(old, new, 1)
+
+old_acceptance_setup = """python3 - \"$ACCEPT/BusinessOffice_Web.gs\" \"$ACCEPT/BusinessOffice_AcceptanceHarness.gs\" \"$TOKEN\" <<'PY'
+from pathlib import Path
+import sys
+web=Path(sys.argv[1]); acceptance=Path(sys.argv[2]); token=sys.argv[3]
+web.write_text(web.read_text().replace('function doGet() {','function boAcceptanceDoGet_() {'))
+text=acceptance.read_text()
+text=text.replace(\"const H38_BO_ACCEPTANCE_TOKEN_PROPERTY = 'H38_BUSINESS_OFFICE_ACCEPTANCE_TOKEN';\", \"const H38_BO_ACCEPTANCE_TOKEN = '\"+token+\"';\")
+text=text.replace(\"const expected = PropertiesService.getScriptProperties().getProperty(H38_BO_ACCEPTANCE_TOKEN_PROPERTY) || '';\", \"const expected = H38_BO_ACCEPTANCE_TOKEN;\")
+acceptance.write_text(text)
+PY"""
+new_acceptance_setup = """python3 - \"$ACCEPT/BusinessOffice_Web.gs\" \"$ACCEPT/BusinessOffice_AcceptanceHarness.gs\" \"$ACCEPT/BusinessOffice_Installer.gs\" \"$ACCEPT/BusinessOffice_Auth.gs\" \"$TOKEN\" <<'PY'
+from pathlib import Path
+import sys
+web=Path(sys.argv[1]); acceptance=Path(sys.argv[2]); installer=Path(sys.argv[3]); auth=Path(sys.argv[4]); token=sys.argv[5]
+web.write_text(web.read_text().replace('function doGet() {','function boAcceptanceDoGet_() {'))
+text=acceptance.read_text()
+text=text.replace(\"const H38_BO_ACCEPTANCE_TOKEN_PROPERTY = 'H38_BUSINESS_OFFICE_ACCEPTANCE_TOKEN';\", \"const H38_BO_ACCEPTANCE_TOKEN = '\"+token+\"';\")
+text=text.replace(\"const expected = PropertiesService.getScriptProperties().getProperty(H38_BO_ACCEPTANCE_TOKEN_PROPERTY) || '';\", \"const expected = H38_BO_ACCEPTANCE_TOKEN;\")
+acceptance.write_text(text)
+installer_text=installer.read_text()
+installer_needle=\"const activeEmail = boNormalizeText_(Session.getActiveUser().getEmail()).toLowerCase();\"
+installer_replacement=\"const activeEmail = boNormalizeText_(Session.getEffectiveUser().getEmail()).toLowerCase();\"
+if installer_needle not in installer_text: raise SystemExit('Installer owner identity check not found')
+installer.write_text(installer_text.replace(installer_needle,installer_replacement,1))
+auth_text=auth.read_text()
+auth_needle=\"return boNormalizeText_(Session.getActiveUser().getEmail()).toLowerCase();\"
+auth_replacement=\"return boNormalizeText_(Session.getEffectiveUser().getEmail()).toLowerCase();\"
+if auth_needle not in auth_text: raise SystemExit('Auth active-email function not found')
+auth.write_text(auth_text.replace(auth_needle,auth_replacement,1))
+PY"""
+if old_acceptance_setup not in text:
+    raise SystemExit('Expected acceptance identity setup block not found')
+text = text.replace(old_acceptance_setup, new_acceptance_setup, 1)
 path.write_text(text)
 PY
 
