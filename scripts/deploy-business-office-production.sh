@@ -6,18 +6,20 @@ EVIDENCE="$REPO_ROOT/artifacts/business-office-production-v2"
 BO_PROJECT="$RUNNER_TEMP/h38-business-office"
 SYNC_PROJECT="$RUNNER_TEMP/h38-business-office-sync"
 FIXTURES="$RUNNER_TEMP/business-office-fixtures"
+SYNC_CONTROL_ID="${H38_SYNC_CONTROL_SPREADSHEET_ID:-1uOhpRVpwJY3g_BD6fnZd1MZqTeQXouZ3RhNezGKUQ6o}"
 mkdir -p "$EVIDENCE" "$FIXTURES"
 
-create_project() {
+create_bound_project() {
   local project_dir="$1"
-  local title="$2"
-  local source_dir="$3"
-  local prefix="$4"
+  local parent_id="$2"
+  local title="$3"
+  local source_dir="$4"
+  local prefix="$5"
   rm -rf "$project_dir"
   mkdir -p "$project_dir"
   (
     cd "$project_dir"
-    clasp create-script --type standalone --title "$title" --rootDir . 2>&1 | tee "$EVIDENCE/${prefix}-create.txt"
+    clasp create-script --type sheets --parentId "$parent_id" --title "$title" --rootDir . 2>&1 | tee "$EVIDENCE/${prefix}-create.txt"
     test -s .clasp.json
     cp "$source_dir"/*.gs .
     if compgen -G "$source_dir/*.html" >/dev/null; then cp "$source_dir"/*.html .; fi
@@ -37,7 +39,7 @@ create_project() {
   )
 }
 
-create_project "$BO_PROJECT" "Highway 38 Business Office" "$REPO_ROOT/apps-script/business-office" "business-office"
+create_bound_project "$BO_PROJECT" "$H38_BO_SPREADSHEET_ID" "Highway 38 Business Office" "$REPO_ROOT/apps-script/business-office" "business-office"
 printf 'https://script.google.com/macros/s/%s/exec' "$(cat "$EVIDENCE/business-office-deployment-id.txt")" > "$EVIDENCE/business-office-web-app-url.txt"
 
 BO_BOOTSTRAP_PARAMS="$(node - <<'NODE'
@@ -55,9 +57,11 @@ const config={
 process.stdout.write(JSON.stringify([config]));
 NODE
 )"
-(cd "$BO_PROJECT" && clasp run-function boBootstrapInstall --params "$BO_BOOTSTRAP_PARAMS") 2>&1 | tee "$EVIDENCE/business-office-bootstrap.txt"
+(cd "$BO_PROJECT" && clasp run-function boBootstrapInstall --params "$BO_BOOTSTRAP_PARAMS" --nondev) 2>&1 | tee "$EVIDENCE/business-office-bootstrap.txt"
 
-create_project "$SYNC_PROJECT" "Highway 38 Business Office Intake Sync" "$REPO_ROOT/apps-script/business-office-sync" "intake-sync"
+grep -F '"valid":true' "$EVIDENCE/business-office-bootstrap.txt" >/dev/null
+
+create_bound_project "$SYNC_PROJECT" "$SYNC_CONTROL_ID" "Highway 38 Business Office Intake Sync" "$REPO_ROOT/apps-script/business-office-sync" "intake-sync"
 SYNC_BOOTSTRAP_PARAMS="$(node - <<'NODE'
 const config={
   ownerEmail:process.env.H38_BO_OWNER_EMAIL,
@@ -68,8 +72,9 @@ const config={
 process.stdout.write(JSON.stringify([config]));
 NODE
 )"
-(cd "$SYNC_PROJECT" && clasp run-function h38BusinessOfficeBootstrapSync --params "$SYNC_BOOTSTRAP_PARAMS") 2>&1 | tee "$EVIDENCE/intake-sync-bootstrap.txt"
+(cd "$SYNC_PROJECT" && clasp run-function h38BusinessOfficeBootstrapSync --params "$SYNC_BOOTSTRAP_PARAMS" --nondev) 2>&1 | tee "$EVIDENCE/intake-sync-bootstrap.txt"
 (cd "$SYNC_PROJECT" && clasp run-function h38BusinessOfficeSyncAcceptance --nondev) 2>&1 | tee "$EVIDENCE/intake-sync-acceptance.txt"
+grep -F '"status":"PASS"' "$EVIDENCE/intake-sync-acceptance.txt" >/dev/null
 
 node <<'NODE'
 const fs=require('fs');
@@ -77,34 +82,37 @@ const path=require('path');
 const {chromium}=require('playwright');
 const out=path.join(process.env.RUNNER_TEMP,'business-office-fixtures');
 const run=process.env.GITHUB_RUN_ID;
-const shell=(title,lines)=>`<!doctype html><html><head><meta charset="utf-8"><style>body{background:#fff;color:#000;font-family:Arial,sans-serif;margin:45px}h1{font-size:38px;margin:0 0 28px}p{font-size:28px;line-height:1.55;margin:8px 0;border-bottom:1px solid #ddd;padding-bottom:5px}</style></head><body><h1>${title}</h1>${lines.map(x=>`<p>${x}</p>`).join('')}</body></html>`;
+const shell=(title,lines)=>`<!doctype html><html><head><meta charset="utf-8"><style>body{background:#fff;color:#000;font-family:Arial,sans-serif;margin:30px}h1{font-size:28px;margin:0 0 18px}p{font-size:21px;line-height:1.35;margin:6px 0;border-bottom:1px solid #ddd;padding-bottom:4px}</style></head><body><h1>${title}</h1>${lines.map(x=>`<p>${x}</p>`).join('')}</body></html>`;
 (async()=>{
   const browser=await chromium.launch({headless:true});
-  const page=await browser.newPage({viewport:{width:1000,height:900},deviceScaleFactor:1});
+  const page=await browser.newPage({viewport:{width:700,height:650},deviceScaleFactor:1});
   await page.setContent(shell('Highway 38 Test Supply Receipt',[
     'Vendor Highway 38 Test Supply','Date 2026-07-14',`Receipt LIVE-${run}`,
     'Sales Amount 20.00','Fee 1.40','Total 21.40','Payment Method Business Card'
   ]));
-  await page.screenshot({path:path.join(out,`receipt-${run}.png`),fullPage:true});
+  await page.screenshot({path:path.join(out,`receipt-${run}.jpg`),type:'jpeg',quality:38,fullPage:true});
   await page.setContent(shell('Highway 38 Work Order',[
     'Northwoods Sample Customer','Address Grand Rapids MN','Job Number JOB-2026-0001',
     'Work Requested Prepare sample project plan','Assigned Employee Sample Employee',
     'Labor 2 hours','Materials Planning packet','Due Date 2026-07-22','Status Open'
   ]));
-  await page.screenshot({path:path.join(out,`work-order-${run}.png`),fullPage:true});
+  await page.screenshot({path:path.join(out,`work-order-${run}.jpg`),type:'jpeg',quality:38,fullPage:true});
   await page.setContent(shell('Vendor Invoice',[
     'Vendor Highway 38 Test Supply',`Invoice Number VINV-${run}`,'Date 2026-07-14',
     'Due Date 2026-08-13','Terms Net 30','PO Reference PO-2026-0001',
     'Subtotal 50.00','Fee 3.50','Total 53.50'
   ]));
-  await page.pdf({path:path.join(out,`vendor-invoice-${run}.pdf`),format:'Letter',printBackground:true});
+  await page.pdf({path:path.join(out,`vendor-invoice-${run}.pdf`),width:'7in',height:'8in',printBackground:true});
   await browser.close();
   const payload={
-    receiptImage:{fileName:`receipt-${run}.png`,mimeType:'image/png',base64Data:fs.readFileSync(path.join(out,`receipt-${run}.png`)).toString('base64')},
-    workOrderImage:{fileName:`work-order-${run}.png`,mimeType:'image/png',base64Data:fs.readFileSync(path.join(out,`work-order-${run}.png`)).toString('base64')},
+    receiptImage:{fileName:`receipt-${run}.jpg`,mimeType:'image/jpeg',base64Data:fs.readFileSync(path.join(out,`receipt-${run}.jpg`)).toString('base64')},
+    workOrderImage:{fileName:`work-order-${run}.jpg`,mimeType:'image/jpeg',base64Data:fs.readFileSync(path.join(out,`work-order-${run}.jpg`)).toString('base64')},
     vendorInvoicePdf:{fileName:`vendor-invoice-${run}.pdf`,mimeType:'application/pdf',base64Data:fs.readFileSync(path.join(out,`vendor-invoice-${run}.pdf`)).toString('base64')}
   };
-  fs.writeFileSync(path.join(out,'live-acceptance-params.json'),JSON.stringify([payload]));
+  const params=JSON.stringify([payload]);
+  if(Buffer.byteLength(params)>100000) throw new Error(`Fixture parameters remain too large: ${Buffer.byteLength(params)} bytes`);
+  fs.writeFileSync(path.join(out,'live-acceptance-params.json'),params);
+  fs.writeFileSync(path.join(out,'fixture-size.txt'),String(Buffer.byteLength(params)));
 })().catch(error=>{console.error(error);process.exit(1)});
 NODE
 cp "$FIXTURES"/* "$EVIDENCE/"
@@ -161,8 +169,9 @@ cat > "$EVIDENCE/production-deployment.json" <<JSON
   "businessOfficeWebAppUrl": "$(cat "$EVIDENCE/business-office-web-app-url.txt")",
   "intakeSyncScriptId": "$(cat "$EVIDENCE/intake-sync-script-id.txt")",
   "intakeSyncDeploymentId": "$(cat "$EVIDENCE/intake-sync-deployment-id.txt")",
+  "intakeSyncControlSpreadsheetId": "${SYNC_CONTROL_ID}",
   "spreadsheetId": "${H38_BO_SPREADSHEET_ID}",
-  "separateProjects": true,
+  "separateBoundProjects": true,
   "externalActionsEnabled": false,
   "customerActionsOccurred": false,
   "paymentProcessed": false,
