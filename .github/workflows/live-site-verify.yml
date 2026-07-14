@@ -127,7 +127,7 @@ jobs:
           reject_text live-sample-library.html "No obvious GitHub Pages 404 on samples" "404: File not found"
 
           check_text live-problem-starter.html "Problem Starter resource" "The Highway 38 Problem Starter"
-          check_text live-problem-starter.html "Problem Starter request route" "Start a $99 Problem Snapshot"
+          check_text live-problem-starter.html "Problem Starter request route" 'Start a $99 Problem Snapshot'
           check_text live-problem-starter.html "Problem Starter no-charge assurance" "No charge from submitting a request"
           reject_text live-problem-starter.html "No obvious GitHub Pages 404 on Problem Starter" "404: File not found"
 
