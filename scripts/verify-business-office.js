@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const { execFileSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
@@ -84,7 +85,7 @@ for (const fn of requiredFunctions) assert(`function ${fn}`, new RegExp(`functio
 assert('separate Business Office spreadsheet property', allSource.includes('H38_BUSINESS_OFFICE_SPREADSHEET_ID'));
 assert('source-preserving intake sync', bridgeHelper.includes('h38BusinessOfficeSyncRequests') && bridgeHelper.includes('Backend Requests'));
 assert('sync trigger installer', bridgeHelper.includes('h38BusinessOfficeInstallSyncTrigger') && bridgeHelper.includes('everyMinutes(5)'));
-assert('live acceptance executes intake synchronization', allSource.includes('Existing intake additive synchronization') && allSource.includes('h38BusinessOfficeSyncRequests'));
+assert('live acceptance executes intake synchronization', allSource.includes("Existing intake additive synchronization") && allSource.includes('h38BusinessOfficeSyncRequests'));
 assert('intake bridge idempotency', bridgeHelper.includes('DUPLICATE_PREVENTED'));
 assert('intake survives mirror failure', bridgeHelper.includes("return { status: 'HOLD'"));
 
@@ -122,7 +123,7 @@ const configSource = read(path.join(boDir, 'BusinessOffice_Config.gs'));
 const sheetNames = [...configSource.matchAll(/:\s*'BO [^']+'/g)].map(match => match[0]);
 assert('complete workbook schema represented in source', sheetNames.length >= 75, `${sheetNames.length} configured sheets`);
 
-const manifest = JSON.parse(read(path.join(boDir, 'appsscript.json'));
+const manifest = JSON.parse(read(path.join(boDir, 'appsscript.json')));
 assert('API executable configured', manifest.executionApi && manifest.executionApi.access === 'ANYONE');
 assert('manifest V8 runtime', manifest.runtimeVersion === 'V8');
 assert('Drive advanced service configured', manifest.dependencies && manifest.dependencies.enabledAdvancedServices.some(service => service.serviceId === 'drive'));
