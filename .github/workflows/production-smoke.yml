@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/production-smoke.yml'
+      - 'scripts/verify-issue83-source.sh'
       - 'index.html'
       - 'products.html'
       - 'product.html'
@@ -34,6 +35,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/production-smoke.yml'
+      - 'scripts/verify-issue83-source.sh'
       - 'docs/commercial-system/production-smoke-request.md'
       - 'index.html'
       - 'products.html'
@@ -70,43 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify proposed public source markers
-        shell: bash
-        run: |
-          set -euo pipefail
-          grep -Fq 'Big problems. Clear plans.' index.html
-          grep -Fq 'Start with a $99 Problem Snapshot' index.html
-          grep -Fq 'Choose the smallest service that produces the result you need.' products.html
-          grep -Fq 'data-product-detail-single' product.html
-          grep -Fq 'See the finished work before you choose a service.' sample-library-now.html
-          grep -Fq 'What would you like to have when this is finished?' start-request.html
-          grep -Fq 'The Highway 38 Problem Starter' problem-starter.html
-          grep -Fq 'data-owner-link="true"' sample-library-now.html
-          grep -Fq 'product_detail_view' product-detail.js
-
-          service_pages=(
-            automation-opportunity-planning.html
-            digital-file-cleanup-planning.html
-            fixture-jig-concept-review.html
-            garage-layout-planning.html
-            manufacturing-bottleneck-analysis.html
-            project-planning-packets.html
-            robot-tending-concept-planning.html
-            shop-layout-flow-review.html
-            small-business-workflow-cleanup.html
-            vision-inspection-concept-planning.html
-          )
-          for page in "${service_pages[@]}"; do
-            grep -Fq '<title>' "$page"
-            slug="${page%.html}"
-            grep -Fq "data-service=\"$slug\"" "$page"
-          done
-
-          if grep -Fq '25,000+ CNC programs' ./*.html; then
-            echo 'Prohibited 25,000+ CNC programs claim found in public HTML.' >&2
-            exit 1
-          fi
-
-          echo 'Pull-request public source smoke check passed.'
+        run: bash scripts/verify-issue83-source.sh
 
   production-smoke:
     if: github.event_name != 'pull_request'
