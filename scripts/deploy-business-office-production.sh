@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+copy_evidence() {
+  local source="$GITHUB_WORKSPACE/artifacts/business-office-owner-web"
+  local target="$GITHUB_WORKSPACE/artifacts/business-office-production-v2"
+  rm -rf "$target"
+  mkdir -p "$target"
+  if [[ -d "$source" ]]; then cp -a "$source/." "$target/"; fi
+  if [[ -f "$target/production-result.json" ]]; then
+    node <<'NODE'
+const fs=require('fs');
+const dir='artifacts/business-office-production-v2';
+const result=JSON.parse(fs.readFileSync(`${dir}/production-result.json`,'utf8'));
+fs.writeFileSync(`${dir}/business-office-script-id.txt`,result.authorizedProjectId);
+fs.writeFileSync(`${dir}/business-office-deployment-id.txt`,result.businessOfficeDeploymentId);
+fs.writeFileSync(`${dir}/business-office-web-app-url.txt`,result.businessOfficeWebAppUrl);
+fs.writeFileSync(`${dir}/intake-sync-script-id.txt`,result.authorizedProjectId);
+fs.writeFileSync(`${dir}/intake-sync-deployment-id.txt`,'TIME-TRIGGER-5-MINUTES');
+NODE
+  fi
+}
+trap copy_evidence EXIT
+
 # clasp pulls server-side .gs files as .js. Remove any previously pulled
 # BusinessOffice_* modules from each temporary project before copying the
 # current source, so two extensions never represent the same Apps Script file.
@@ -30,17 +51,5 @@ path.write_text(text)
 PY
 
 bash "${GITHUB_WORKSPACE:?}/scripts/deploy-business-office-owner-web-harness.sh"
-
-rm -rf "$GITHUB_WORKSPACE/artifacts/business-office-production-v2"
-mkdir -p "$GITHUB_WORKSPACE/artifacts/business-office-production-v2"
-cp -a "$GITHUB_WORKSPACE/artifacts/business-office-owner-web/." "$GITHUB_WORKSPACE/artifacts/business-office-production-v2/"
-node <<'NODE'
-const fs=require('fs');
-const dir='artifacts/business-office-production-v2';
-const result=JSON.parse(fs.readFileSync(`${dir}/production-result.json`,'utf8'));
-fs.writeFileSync(`${dir}/business-office-script-id.txt`,result.authorizedProjectId);
-fs.writeFileSync(`${dir}/business-office-deployment-id.txt`,result.businessOfficeDeploymentId);
-fs.writeFileSync(`${dir}/business-office-web-app-url.txt`,result.businessOfficeWebAppUrl);
-fs.writeFileSync(`${dir}/intake-sync-script-id.txt`,result.authorizedProjectId);
-fs.writeFileSync(`${dir}/intake-sync-deployment-id.txt`,'TIME-TRIGGER-5-MINUTES');
-NODE
+copy_evidence
+trap - EXIT
