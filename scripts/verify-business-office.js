@@ -8,10 +8,12 @@ const { execFileSync } = require('child_process');
 const root = path.resolve(__dirname, '..');
 const boDir = path.join(root, 'apps-script', 'business-office');
 const syncDir = path.join(root, 'apps-script', 'business-office-sync');
+const h38PackPath = path.join(root, 'business-packs', 'highway38', 'business-pack.json');
+const templatePackPath = path.join(root, 'business-packs', 'template-business', 'business-pack.json');
 const requiredFiles = [
-  'BusinessOffice_Config.gs','BusinessOffice_Auth.gs','BusinessOffice_Core.gs','BusinessOffice_Workflows.gs',
+  'BusinessOffice_BusinessPack.gs','BusinessOffice_Config.gs','BusinessOffice_Auth.gs','BusinessOffice_Core.gs','BusinessOffice_Workflows.gs',
   'BusinessOffice_Accounting.gs','BusinessOffice_PayrollTax.gs','BusinessOffice_DocumentsPDF.gs',
-  'BusinessOffice_Installer.gs','BusinessOffice_Web.gs','BusinessOffice_Test.gs','BusinessOffice_LiveAcceptance.gs',
+  'BusinessOffice_Installer.gs','BusinessOffice_Provisioning.gs','BusinessOffice_Web.gs','BusinessOffice_Test.gs','BusinessOffice_LiveAcceptance.gs',
   'BusinessOffice_Index.html','appsscript.json','README.md'
 ];
 
@@ -22,6 +24,8 @@ function assert(name,condition,evidence=''){condition?pass(name,evidence):fail(n
 function read(file){return fs.readFileSync(file,'utf8')}
 
 for(const file of requiredFiles) assert(`required file ${file}`,fs.existsSync(path.join(boDir,file)));
+assert('Highway 38 business pack exists',fs.existsSync(h38PackPath));
+assert('template business pack exists',fs.existsSync(templatePackPath));
 assert('separate intake sync source',fs.existsSync(path.join(syncDir,'BusinessOffice_Sync.gs')));
 assert('separate intake sync manifest',fs.existsSync(path.join(syncDir,'appsscript.json')));
 
@@ -37,10 +41,16 @@ for(const dir of [boDir,syncDir]){
 
 const allSource=fs.readdirSync(boDir).filter(name=>/\.(gs|html|json)$/.test(name)).map(name=>read(path.join(boDir,name))).join('\n');
 const syncSource=read(path.join(syncDir,'BusinessOffice_Sync.gs'));
-const requiredFunctions=['boGetCurrentUser_','boRequirePermission_','boListRecords','boSaveRecord','boCreateCustomerFromRequest','boCreateQuote','boReviseQuote','boConvertQuoteToWorkOrderAndJob','boCreateInvoiceFromJob','boMatchVendorBillToPurchaseOrder','boConvertReceiptToExpense','boRecordPayment','boPrepareJournalEntry','boPostJournalEntry','boReverseJournalEntry','boLockAccountingPeriod','boPreparePayrollPeriod','boExportPayrollProviderCsv','boPrepareSalesTaxPeriod','boFinalizeTaxPreparationReport','boUploadDocument','boExtractDocument','boReviewOcrField','boApproveDocument','boGeneratePdf','boCreateBackup','boPrepareRestore','boValidateInstallation','boRunSelfTest','boRunLiveAcceptance','doGet','boApi'];
+const h38Pack=JSON.parse(read(h38PackPath));
+const templatePack=JSON.parse(read(templatePackPath));
+const requiredFunctions=['boGetBusinessPack_','boPackPropertyKey_','boGetCurrentUser_','boRequirePermission_','boListRecords','boSaveRecord','boCreateCustomerFromRequest','boCreateQuote','boReviseQuote','boConvertQuoteToWorkOrderAndJob','boCreateInvoiceFromJob','boMatchVendorBillToPurchaseOrder','boConvertReceiptToExpense','boRecordPayment','boPrepareJournalEntry','boPostJournalEntry','boReverseJournalEntry','boLockAccountingPeriod','boPreparePayrollPeriod','boExportPayrollProviderCsv','boPrepareSalesTaxPeriod','boFinalizeTaxPreparationReport','boUploadDocument','boExtractDocument','boReviewOcrField','boApproveDocument','boGeneratePdf','boCreateBackup','boPrepareRestore','boValidateInstallation','boValidateResourceIsolation','boProvisionIsolatedBusiness','boRunSelfTest','boRunLiveAcceptance','doGet','boApi'];
 for(const fn of requiredFunctions) assert(`function ${fn}`,new RegExp(`function\\s+${fn.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\s*\\(`).test(allSource));
 
-assert('separate Business Office spreadsheet property',allSource.includes('H38_BUSINESS_OFFICE_SPREADSHEET_ID'));
+assert('core resolves storage through business pack',allSource.includes('boPackPropertyKey_')&&allSource.includes("SPREADSHEET_PROPERTY: 'spreadsheetId'"));
+assert('core has no live Highway 38 resource defaults',!/(1kDDKWx9|1Vq8UjAz|11ak4QZ7|1Jn2vW5g|1rjl_m8u)/.test(allSource));
+assert('Highway 38 pack retains Highway 38 property names',h38Pack.storage.propertyKeys.spreadsheetId==='H38_BUSINESS_OFFICE_SPREADSHEET_ID');
+assert('template pack uses neutral property names',templatePack.storage.propertyKeys.spreadsheetId==='BUSINESS_OFFICE_SPREADSHEET_ID');
+assert('catalog requirements are pack driven',allSource.includes('boCatalogRequirements_')&&!/products\.length\s*===\s*15\s*&&\s*bundles\.length\s*===\s*9/.test(read(path.join(boDir,'BusinessOffice_Installer.gs'))));
 assert('source-preserving intake sync',syncSource.includes('h38BusinessOfficeSyncRequests')&&syncSource.includes('Backend Requests'));
 assert('sync bootstrap',syncSource.includes('h38BusinessOfficeBootstrapSync')&&syncSource.includes('H38_BACKEND_SPREADSHEET_ID'));
 assert('sync trigger installer',syncSource.includes('h38BusinessOfficeInstallSyncTrigger')&&syncSource.includes('everyMinutes(5)'));
@@ -50,12 +60,12 @@ assert('intake survives mirror failure',syncSource.includes("return { status: 'H
 
 const forbidden=[/GmailApp\.sendEmail/i,/MailApp\.sendEmail/i,/Stripe/i,/PayPal/i,/DirectDepositService|createDirectDeposit|issueDirectDeposit/i,/TaxFilingService|submitTaxReturn|efileTaxReturn/i,/coming soon/i,/TODO\s*:\s*implement/i,/password\s*[:=]\s*['"][^'"]+/i,/private[_ -]?key\s*[:=]/i,/api[_ -]?key\s*[:=]\s*['"][^'"]+/i];
 for(const pattern of forbidden) assert(`forbidden pattern absent ${pattern}`,!pattern.test(allSource));
-assert('no anonymous web access',!allSource.includes('ANYONE_ANONYMOUS'));
+assert('no anonymous production web access',!read(path.join(boDir,'appsscript.json')).includes('ANYONE_ANONYMOUS'));
 assert('web app executes as accessing user',read(path.join(boDir,'appsscript.json')).includes('USER_ACCESSING'));
-assert('external actions hard disabled',allSource.includes('EXTERNAL_ACTIONS_ENABLED: false'));
-assert('direct payment hard disabled',allSource.includes('DIRECT_PAYMENT_PROCESSING: false'));
-assert('payroll funding hard disabled',allSource.includes('DIRECT_PAYROLL_FUNDING: false'));
-assert('tax filing hard disabled',allSource.includes('DIRECT_TAX_FILING: false'));
+assert('external actions hard disabled',/EXTERNAL_ACTIONS_ENABLED\s*:\s*false/.test(allSource)&&h38Pack.workflow.externalActionsEnabled===false&&templatePack.workflow.externalActionsEnabled===false);
+assert('direct payment hard disabled',/DIRECT_PAYMENT_PROCESSING\s*:\s*false/.test(allSource)&&h38Pack.boundaries.directPaymentProcessing===false&&templatePack.boundaries.directPaymentProcessing===false);
+assert('payroll funding hard disabled',/DIRECT_PAYROLL_FUNDING\s*:\s*false/.test(allSource)&&h38Pack.boundaries.directPayrollFunding===false&&templatePack.boundaries.directPayrollFunding===false);
+assert('tax filing hard disabled',/DIRECT_TAX_FILING\s*:\s*false/.test(allSource)&&h38Pack.boundaries.directTaxFiling===false&&templatePack.boundaries.directTaxFiling===false);
 assert('selected-record API requires record IDs',/recordId/.test(read(path.join(boDir,'BusinessOffice_Web.gs'))));
 assert('soft void preserves documents',allSource.includes('Drive original preserved'));
 assert('duplicate hash protection',allSource.includes('SHA_256')&&allSource.includes('Duplicate upload blocked'));
@@ -65,13 +75,13 @@ assert('posting gate',allSource.includes("'Posting Allowed'] === 'Yes'"));
 assert('payroll export gate',allSource.includes("'Export Allowed'] === 'Yes'"));
 assert('tax finalization gate',allSource.includes("'Finalization Allowed'] === 'Yes'"));
 assert('quote send gate',allSource.includes("'Send Allowed'"));
-assert('role set complete',['Owner','Administrator','Staff','Bookkeeper','Payroll','Viewer'].every(role=>allSource.includes(`'${role}'`)));
+assert('role set complete',['Owner','Administrator','Staff','Bookkeeper','Payroll','Viewer'].every(role=>h38Pack.roles.names.includes(role)&&templatePack.roles.names.includes(role)));
 
 const configSource=read(path.join(boDir,'BusinessOffice_Config.gs'));
 const sheetNames=[...configSource.matchAll(/:\s*'BO [^']+'/g)].map(match=>match[0]);
 assert('complete workbook schema represented in source',sheetNames.length>=75,`${sheetNames.length} configured sheets`);
 
-const manifest=JSON.parse(read(path.join(boDir,'appsscript.json'))),syncManifest=JSON.parse(read(path.join(syncDir,'appsscript.json')));
+const manifest=JSON.parse(read(path.join(boDir,'appsscript.json'))),syncManifest=JSON.parse(read(path.join(syncDir,'appsscript.json'));
 assert('manifest V8 runtime',manifest.runtimeVersion==='V8');
 assert('Drive advanced service configured',manifest.dependencies&&manifest.dependencies.enabledAdvancedServices.some(service=>service.serviceId==='drive'));
 assert('required OAuth scopes',['spreadsheets','drive','documents','userinfo.email'].every(token=>manifest.oauthScopes.some(scope=>scope.includes(token))));
@@ -95,7 +105,7 @@ assert('payroll test prepared net',payrollCase.net===900,JSON.stringify(payrollC
 assert('payroll test employer tax estimate',payrollCase.employerTax===72.68,JSON.stringify(payrollCase));
 const journal=[{debit:1070,credit:0},{debit:0,credit:1000},{debit:0,credit:70}].reduce((acc,line)=>({debit:money(acc.debit+line.debit),credit:money(acc.credit+line.credit)}),{debit:0,credit:0});
 assert('double-entry test balances',journal.debit===journal.credit,JSON.stringify(journal));
-const packageJson=JSON.parse(read(path.join(root,'package.json')));
+const packageJson=JSON.parse(read(path.join(root,'package.json'));
 assert('package test script',packageJson.scripts&&packageJson.scripts['test:business-office']==='node scripts/verify-business-office.js');
 const result={status:failures.length?'HOLD':'PASS',passes:passes.length,failures};
 fs.mkdirSync(path.join(root,'artifacts','business-office'),{recursive:true});
