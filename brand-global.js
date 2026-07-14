@@ -37,6 +37,16 @@
       footer.insertBefore(wrap,footer.firstChild);
     });
   }
-  function run(){ensureHeader();ensureFooter();}
+  function routeLegacyOwnerLinks(){
+    document.querySelectorAll('a[href*="script.google.com/macros/s/"]').forEach(link=>{
+      if(link.hasAttribute('data-owner-app'))return;
+      const label=(link.textContent||'').replace(/\s+/g,' ').trim();
+      if(!/owner\s+(portal|login)/i.test(label))return;
+      link.href='portal.html';
+      link.removeAttribute('target');
+      link.removeAttribute('rel');
+    });
+  }
+  function run(){ensureHeader();ensureFooter();routeLegacyOwnerLinks();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
 })();
