@@ -11,6 +11,7 @@ function boApplyInstallationProperties_(values){
   if(backend)safe[backendKey]=String(backend);
   if(values.businessPackJson)safe.BUSINESS_OFFICE_PACK_JSON=typeof values.businessPackJson==='string'?values.businessPackJson:JSON.stringify(values.businessPackJson);
   if(values.installationId)safe.BUSINESS_OFFICE_INSTALLATION_ID=String(values.installationId);
+  if(Array.isArray(values.protectedResourceIds))safe.BUSINESS_OFFICE_PROTECTED_RESOURCE_IDS_JSON=JSON.stringify(values.protectedResourceIds.filter(Boolean).map(String));
   boGetProperties_().setProperties(safe,false);BO_PACK_CACHE_=null;return safe;
 }
 function boBootstrapInstall(config){const values=config||{},activeEmail=boNormalizeText_(Session.getActiveUser().getEmail()).toLowerCase(),expectedOwner=boNormalizeText_(values.ownerEmail).toLowerCase();boAssert_(activeEmail,'A signed-in deployment owner is required.');boAssert_(expectedOwner&&activeEmail===expectedOwner,'Only the expected deploying owner may bootstrap this project.');const safe=boApplyInstallationProperties_(values),validation=boValidateInstallation();boAssert_(validation.valid,'Bootstrap validation failed: '+JSON.stringify(validation));boProof_('BOOTSTRAP INSTALL','System',boGetBusinessId_(),'PASS',JSON.stringify(validation),activeEmail);return validation;}
