@@ -13,8 +13,10 @@
     button.secondary { background:#e7eef5; color:var(--navy); }
     button.danger { background:#8f1d1d; color:white; }
     button:disabled { opacity:.55; cursor:not-allowed; }
-    header { background:var(--navy); color:white; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; position:sticky; top:0; z-index:5; }
+    header { background:var(--navy); color:white; padding:12px 18px; display:flex; align-items:center; justify-content:space-between; gap:14px; position:sticky; top:0; z-index:5; }
     header h1 { font-size:20px; margin:0; }
+    .header-actions { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
+    .header-upload { background:white; color:var(--navy); border:2px solid white; white-space:nowrap; }
     .user { font-size:13px; text-align:right; }
     .layout { display:grid; grid-template-columns:250px minmax(0,1fr); min-height:calc(100vh - 64px); }
     nav { background:white; border-right:1px solid var(--border); padding:12px; overflow:auto; }
@@ -26,6 +28,8 @@
     .toolbar input,.toolbar select { min-height:44px; padding:8px 10px; border:1px solid var(--border); border-radius:8px; background:white; }
     .toolbar input { min-width:240px; flex:1; }
     .panel { background:white; border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+    .quick-upload { border:2px solid var(--blue); background:var(--light); }
+    .quick-upload h2 { margin-top:0; }
     .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
     .card { border:1px solid var(--border); border-radius:10px; padding:14px; background:white; }
     .card .count { font-size:28px; font-weight:800; color:var(--navy); }
@@ -60,8 +64,10 @@
     .boundary { color:var(--muted); font-size:12px; line-height:1.4; margin-top:8px; }
     @media (max-width:800px) {
       header { align-items:flex-start; }
+      .header-actions { flex-direction:column-reverse; align-items:flex-end; gap:6px; }
+      .header-upload { min-height:48px; }
       .layout { grid-template-columns:1fr; }
-      nav { display:flex; overflow:auto; border-right:0; border-bottom:1px solid var(--border); padding:8px; position:sticky; top:64px; z-index:4; }
+      nav { display:flex; overflow:auto; border-right:0; border-bottom:1px solid var(--border); padding:8px; position:sticky; top:78px; z-index:4; }
       nav button { min-width:max-content; width:auto; margin-right:4px; }
       main { padding:12px; }
       .form-grid { grid-template-columns:1fr; }
@@ -73,7 +79,10 @@
 <body>
 <header>
   <h1>Highway 38 Business Office</h1>
-  <div class="user" id="userBox">Loading authorized account…</div>
+  <div class="header-actions">
+    <button class="header-upload" onclick="openUpload()">Upload PDF / Take Picture</button>
+    <div class="user" id="userBox">Loading authorized account…</div>
+  </div>
 </header>
 <div class="layout">
   <nav id="nav"></nav>
@@ -90,10 +99,11 @@
   <div class="dialog-actions"><button class="secondary" onclick="closeDialog()">Cancel</button><button class="primary" id="saveButton" onclick="saveDialogRecord()">Save record</button></div>
 </dialog>
 <dialog id="uploadDialog">
-  <div class="dialog-head"><strong>Upload private document</strong><button class="secondary" onclick="closeUpload()">Close</button></div>
+  <div class="dialog-head"><strong>Upload PDF or take a picture</strong><button class="secondary" onclick="closeUpload()">Close</button></div>
   <div class="dialog-body">
     <div class="form-grid">
-      <label class="full">File<input id="uploadFile" type="file" accept=".pdf,.jpg,.jpeg,.png,.heic,.heif" capture="environment" onchange="previewUpload()"></label>
+      <label class="full">Choose a PDF or picture / Open camera<input id="uploadFile" type="file" accept="application/pdf,image/jpeg,image/png,image/heic,image/heif,.pdf,.jpg,.jpeg,.png,.heic,.heif" capture="environment" onchange="previewUpload()"></label>
+      <div class="full boundary">On a phone or tablet, this opens the camera or photo choices. On a Chromebook or computer, choose a PDF/photo from Files or select the Camera option when offered.</div>
       <label>Document type<select id="uploadType"><option>Receipt</option><option>Vendor Invoice</option><option>Purchase Order</option><option>Quote</option><option>Estimate</option><option>Work Order</option><option>Customer Request</option><option>Delivery Ticket</option><option>Statement</option><option>Contract</option><option>Timecard</option><option>W-9</option><option>Tax Document</option><option>Equipment Record</option><option>Mileage Record</option><option>Other</option></select></label>
       <label>Source type<input id="uploadSourceType" value="Other"></label>
       <label>Source record ID<input id="uploadSourceId"></label>
@@ -127,7 +137,7 @@
 
   function renderNav() {
     const nav = document.getElementById('nav');
-    nav.innerHTML = state.bootstrap.modules.map(module => `<button class="${state.module===module.key?'active':''}" onclick="openModule('${module.key}')">${escapeHtml(module.label)}</button>`).join('');
+    nav.innerHTML = state.bootstrap.modules.map(module => `<button class="${state.module===module.key?'active':''}" onclick="openModule('${module.key}')">${escapeHtml(module.key==='documents'?'Documents / Upload':module.label)}</button>`).join('');
   }
 
   async function openModule(module) {
@@ -141,7 +151,7 @@
   function renderDashboard() {
     state.module='dashboard'; renderNav();
     const rows = state.bootstrap.dashboard || [];
-    document.getElementById('content').innerHTML = `<div class="panel"><h2>Business Dashboard</h2><p>Every count opens the source records behind it in the private workbook.</p><div class="cards">${rows.map(row => `<div class="card"><div class="label">${escapeHtml(row['Business Area']||row['Portal Area']||'Status')}</div><div class="count">${escapeHtml(row['Live Count']||row['Count / Status']||'0')}</div><div class="detail">${escapeHtml(row['What Needs Attention']||row['Control Rule']||'')}</div>${row['Open Records URL']?`<div style="margin-top:10px"><a href="${safeUrl(row['Open Records URL'])}" target="_blank">Open source records</a></div>`:''}</div>`).join('')}</div></div>`;
+    document.getElementById('content').innerHTML = `<div class="panel quick-upload"><h2>Upload documents and photos</h2><p>Upload a PDF, choose an existing picture, or take a new picture with your device camera.</p><div class="toolbar"><button class="primary" onclick="openUpload()">Upload PDF / Take Picture</button><button class="secondary" onclick="openModule('documents')">View Documents / OCR</button></div></div><div class="panel"><h2>Business Dashboard</h2><p>Every count opens the source records behind it in the private workbook.</p><div class="cards">${rows.map(row => `<div class="card"><div class="label">${escapeHtml(row['Business Area']||row['Portal Area']||'Status')}</div><div class="count">${escapeHtml(row['Live Count']||row['Count / Status']||'0')}</div><div class="detail">${escapeHtml(row['What Needs Attention']||row['Control Rule']||'')}</div>${row['Open Records URL']?`<div style="margin-top:10px"><a href="${safeUrl(row['Open Records URL'])}" target="_blank">Open source records</a></div>`:''}</div>`).join('')}</div></div>`;
   }
 
   async function loadRows() {
@@ -154,7 +164,7 @@
 
   function renderTable(def) {
     const fields = [def.primaryKey].concat(def.fields.filter(f => f!==def.primaryKey));
-    document.getElementById('content').innerHTML = `<div class="panel"><h2>${escapeHtml(def.title)}</h2><div class="toolbar"><input id="searchBox" placeholder="Search ${escapeHtml(def.title.toLowerCase())}" value="${escapeHtml(state.query)}" onkeydown="if(event.key==='Enter')searchRows()"><select id="savedViews" aria-label="Saved views" onchange="applySavedView(this.value)"><option value="">Saved views</option>${state.savedViews.map(view=>`<option value="${escapeHtml(view['Saved View ID'])}" ${state.savedViewId===view['Saved View ID']?'selected':''}>${escapeHtml(view['View Name'])}</option>`).join('')}</select><button class="secondary" onclick="searchRows()">Search</button><button class="secondary" onclick="clearView()">Clear view</button><button class="secondary" onclick="loadRows()">Refresh</button>${canCreate(state.module)?'<button class="primary" onclick="openNewRecord()">New record</button>':''}${state.module==='documents'?'<button class="primary" onclick="openUpload()">Upload document</button>':''}</div><div id="selectionActions"></div><div class="table-wrap">${state.rows.length?`<table><thead><tr>${fields.map(f=>`<th>${escapeHtml(f)}</th>`).join('')}</tr></thead><tbody>${state.rows.map((row,index)=>`<tr onclick="selectRow(${index})" class="${state.selected===index?'selected':''}">${fields.map(f=>`<td>${formatCell(f,row[f])}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<div class="empty"><strong>No records match this view.</strong><br>Use New record, upload a document, or adjust the search.</div>'}</div></div>`;
+    document.getElementById('content').innerHTML = `<div class="panel"><h2>${escapeHtml(def.title)}</h2><div class="toolbar"><input id="searchBox" placeholder="Search ${escapeHtml(def.title.toLowerCase())}" value="${escapeHtml(state.query)}" onkeydown="if(event.key==='Enter')searchRows()"><select id="savedViews" aria-label="Saved views" onchange="applySavedView(this.value)"><option value="">Saved views</option>${state.savedViews.map(view=>`<option value="${escapeHtml(view['Saved View ID'])}" ${state.savedViewId===view['Saved View ID']?'selected':''}>${escapeHtml(view['View Name'])}</option>`).join('')}</select><button class="secondary" onclick="searchRows()">Search</button><button class="secondary" onclick="clearView()">Clear view</button><button class="secondary" onclick="loadRows()">Refresh</button>${canCreate(state.module)?'<button class="primary" onclick="openNewRecord()">New record</button>':''}${state.module==='documents'?'<button class="primary" onclick="openUpload()">Upload PDF / Take Picture</button>':''}</div><div id="selectionActions"></div><div class="table-wrap">${state.rows.length?`<table><thead><tr>${fields.map(f=>`<th>${escapeHtml(f)}</th>`).join('')}</tr></thead><tbody>${state.rows.map((row,index)=>`<tr onclick="selectRow(${index})" class="${state.selected===index?'selected':''}">${fields.map(f=>`<td>${formatCell(f,row[f])}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<div class="empty"><strong>No records match this view.</strong><br>Use New record, upload a document, or adjust the search.</div>'}</div></div>`;
     renderSelectionActions();
   }
 
@@ -173,7 +183,7 @@
     if(state.module==='invoices') { buttons.push(`<button class="primary" onclick="approveSelected('Invoice','Send')">Owner decision</button>`); buttons.push(`<button class="secondary" onclick="generatePdf('Invoice','${js(id)}')">Generate PDF</button>`); }
     if(state.module==='payroll') { buttons.push(`<button class="primary" onclick="approveSelected('Payroll Period','Export')">Owner decision</button>`); buttons.push(`<button class="secondary" onclick="generatePdf('Payroll Summary','${js(id)}')">Generate PDF</button>`); buttons.push(`<button class="secondary" onclick="runAction('exportPayroll',{periodId:'${js(id)}'})">Export approved CSV</button>`); }
     if(state.module==='tax') { buttons.push(`<button class="primary" onclick="approveSelected('Tax Period','Finalize')">Owner decision</button>`); buttons.push(`<button class="secondary" onclick="generatePdf('Tax Preparation Packet','${js(id)}')">Generate preparation PDF</button>`); buttons.push(`<button class="secondary" onclick="runAction('finalizeTax',{periodId:'${js(id)}'})">Finalize approved report</button>`); }
-    if(state.module==='documents') { buttons.push(`<button class="secondary" onclick="runAction('documentPreview',{documentId:'${js(id)}'})">Open preview details</button>`); buttons.push(`<button class="secondary" onclick="runAction('extractDocument',{documentId:'${js(id)}'})">Run OCR assist</button>`); buttons.push(`<button class="primary" onclick="runAction('approveDocument',{documentId:'${js(id)}'})">Approve reviewed fields</button>`); }
+    if(state.module==='documents') { buttons.push(`<button class="secondary" onclick="runAction('previewDocument',{documentId:'${js(id)}'})">Open preview details</button>`); buttons.push(`<button class="secondary" onclick="runAction('extractDocument',{documentId:'${js(id)}'})">Run OCR assist</button>`); buttons.push(`<button class="primary" onclick="runAction('approveDocument',{documentId:'${js(id)}'})">Approve reviewed fields</button>`); }
     if(state.module==='accounting') { buttons.push(`<button class="primary" onclick="approveSelected('Journal Entry','Post')">Owner decision</button>`); buttons.push(`<button class="secondary" onclick="runAction('postJournal',{entryId:'${js(id)}'})">Post approved entry</button>`); }
     if(state.module==='approvals') buttons.push(`<button class="primary" onclick="approveQueueRow()">Record Owner decision</button>`);
     if(canVoid(state.module)) buttons.push(`<button class="danger" onclick="voidSelected()">Void selected</button>`);
@@ -238,9 +248,9 @@
   function closeUpload(){document.getElementById('uploadDialog').close();}
   function previewUpload(){const f=document.getElementById('uploadFile').files[0],host=document.getElementById('uploadPreview');host.innerHTML='';if(!f)return;if(f.type.startsWith('image/')){const img=document.createElement('img');img.className='upload-preview';img.src=URL.createObjectURL(f);host.appendChild(img);}else host.textContent=`Selected: ${f.name} (${Math.round(f.size/1024)} KB)`;}
   async function uploadDocument(){
-    const file=document.getElementById('uploadFile').files[0]; if(!file)return showToast('Choose a file first.',true);
+    const file=document.getElementById('uploadFile').files[0]; if(!file)return showToast('Choose a PDF or picture first.',true);
     const base64=await toBase64(file); const payload={fileName:file.name,mimeType:file.type||mimeFromName(file.name),base64Data:base64,documentType:document.getElementById('uploadType').value,sourceType:document.getElementById('uploadSourceType').value,sourceId:document.getElementById('uploadSourceId').value,accessClassification:document.getElementById('uploadClass').value};
-    await runAction('uploadDocument',{payload},false); closeUpload(); if(state.module==='documents')await loadRows();
+    await runAction('uploadDocument',{payload},false); closeUpload(); showToast('Private document uploaded.'); await openModule('documents');
   }
   function toBase64(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});}
   function mimeFromName(name){const ext=name.split('.').pop().toLowerCase();return {pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',heic:'image/heic',heif:'image/heif'}[ext]||'application/octet-stream';}
