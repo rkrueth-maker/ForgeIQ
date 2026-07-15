@@ -1,0 +1,105 @@
+name: Bounded Business Office HTML Cleanup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bounded-business-office-index-cleanup.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bounded-business-office-index-cleanup
+  cancel-in-progress: false
+
+jobs:
+  patch-five-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Add exact title and viewport markers
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+
+          files = [
+              "artifacts/business-office-separation/builds/highway38-combined/BusinessOffice_Index.html",
+              "artifacts/business-office-separation/builds/template-business-standalone/BusinessOffice_Index.html",
+              "artifacts/separate-business-office-platform/builds/highway38-combined/BusinessOffice_Index.html",
+              "artifacts/separate-business-office-platform/builds/template-business-standalone/BusinessOffice_Index.html",
+              "packages/shared-ui/BusinessOffice_Index.html",
+          ]
+          expected_blob = "d68340d6d27d0eada1622bb30a2feb0e0c6dad5d"
+          needle = '  <meta charset="utf-8">\n'
+          replacement = (
+              '  <meta charset="utf-8">\n'
+              '  <meta name="viewport" content="width=device-width, initial-scale=1">\n'
+              '  <title>Business Office</title>\n'
+          )
+
+          for rel in files:
+              path = Path(rel)
+              data = path.read_bytes()
+              blob = hashlib.sha1(f"blob {len(data)}\0".encode() + data).hexdigest()
+              if blob != expected_blob:
+                  raise SystemExit(f"HOLD — unexpected source content for {rel}: {blob}")
+              text = data.decode("utf-8")
+              if text.count(needle) != 1:
+                  raise SystemExit(f"HOLD — charset marker is not unique in {rel}")
+              if '<title>' in text.lower() or 'name="viewport"' in text.lower():
+                  raise SystemExit(f"HOLD — scanner markers already exist unexpectedly in {rel}")
+              path.write_text(text.replace(needle, replacement, 1), encoding="utf-8")
+
+          Path(".github/workflows/bounded-business-office-index-cleanup.yml").unlink()
+          PY
+
+      - name: Verify bounded change set
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(cat <<'EOF'
+          .github/workflows/bounded-business-office-index-cleanup.yml
+          artifacts/business-office-separation/builds/highway38-combined/BusinessOffice_Index.html
+          artifacts/business-office-separation/builds/template-business-standalone/BusinessOffice_Index.html
+          artifacts/separate-business-office-platform/builds/highway38-combined/BusinessOffice_Index.html
+          artifacts/separate-business-office-platform/builds/template-business-standalone/BusinessOffice_Index.html
+          packages/shared-ui/BusinessOffice_Index.html
+          EOF
+          )"
+          actual="$(git diff --name-only | sort)"
+          test "$actual" = "$expected"
+          for file in \
+            artifacts/business-office-separation/builds/highway38-combined/BusinessOffice_Index.html \
+            artifacts/business-office-separation/builds/template-business-standalone/BusinessOffice_Index.html \
+            artifacts/separate-business-office-platform/builds/highway38-combined/BusinessOffice_Index.html \
+            artifacts/separate-business-office-platform/builds/template-business-standalone/BusinessOffice_Index.html \
+            packages/shared-ui/BusinessOffice_Index.html; do
+            grep -Fq '<meta name="viewport" content="width=device-width, initial-scale=1">' "$file"
+            grep -Fq '<title>Business Office</title>' "$file"
+          done
+          git diff --check
+
+      - name: Commit bounded cleanup to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            .github/workflows/bounded-business-office-index-cleanup.yml \
+            artifacts/business-office-separation/builds/highway38-combined/BusinessOffice_Index.html \
+            artifacts/business-office-separation/builds/template-business-standalone/BusinessOffice_Index.html \
+            artifacts/separate-business-office-platform/builds/highway38-combined/BusinessOffice_Index.html \
+            artifacts/separate-business-office-platform/builds/template-business-standalone/BusinessOffice_Index.html \
+            packages/shared-ui/BusinessOffice_Index.html
+          git commit -m "Fix Business Office HTML scanner markers"
+          git push origin HEAD:main
