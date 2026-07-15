@@ -149,3 +149,26 @@ jobs:
             git commit -m 'Reconcile Business Office separation on controlling branch'
           fi
           git push origin HEAD:separate-business-office-platform
+
+      - name: Record reconciliation result
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          HEAD_SHA="$(git rev-parse HEAD 2>/dev/null || true)"
+          node - "$RUNNER_TEMP/reconcile-result.json" "$JOB_STATUS" "$HEAD_SHA" <<'NODE'
+          const fs=require('fs');
+          const [out,status,head]=process.argv.slice(2);
+          fs.writeFileSync(out,JSON.stringify({status:status==='success'?'PASS':'HOLD',controllingBranch:'separate-business-office-platform',headSha:head||'',runUrl:`${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,highway38DeploymentModified:false},null,2)+'\n');
+          NODE
+          CONTENT="$(base64 -w0 "$RUNNER_TEMP/reconcile-result.json")"
+          API_PATH="repos/${GITHUB_REPOSITORY}/contents/launch-control/business-office/reconcile-result.json"
+          CURRENT_SHA="$(gh api "$API_PATH?ref=main" --jq .sha 2>/dev/null || true)"
+          if [[ -n "$CURRENT_SHA" ]]; then
+            gh api "$API_PATH" -X PUT -f message='Record PR 94 reconciliation result' -f content="$CONTENT" -f branch=main -f sha="$CURRENT_SHA" >/dev/null
+          else
+            gh api "$API_PATH" -X PUT -f message='Record PR 94 reconciliation result' -f content="$CONTENT" -f branch=main >/dev/null
+          fi
