@@ -1,15 +1,6 @@
 name: Deploy Clean Standalone Business Office
 
 on:
-  push:
-    branches: [business-office-separation]
-    paths:
-      - '.github/workflows/deploy-clean-business-office.yml'
-      - 'launch-control/clean-install/deploy-request.json'
-      - 'scripts/deploy-business-office-clean-acceptance.sh'
-      - 'scripts/assemble-business-office-app.sh'
-      - 'apps-script/business-office/**'
-      - 'business-packs/template-business/**'
   workflow_dispatch:
 
 permissions:
