@@ -1,22 +1,30 @@
-/** Temporary token-protected acceptance endpoint for a newly provisioned Business Office installation. */
+/** Temporary authenticated acceptance controller for a newly provisioned Business Office installation. */
 const BO_CLEAN_ACCEPTANCE_TOKEN = '__BO_CLEAN_ACCEPTANCE_TOKEN__';
+
+function boCleanExecute(request) {
+  const req = request || {};
+  if (!req.token || req.token !== BO_CLEAN_ACCEPTANCE_TOKEN) {
+    throw new Error('Unauthorized clean-install acceptance request.');
+  }
+  const payload = req.payload || {};
+  let result;
+  if (req.action === 'health') result = boCleanHealth_();
+  else if (req.action === 'provisionWorkbook') result = boProvisionNeutralWorkbook_(payload);
+  else if (req.action === 'bootstrap') result = boBootstrapInstall(payload);
+  else if (req.action === 'callableProof') result = boCleanCallableProof_();
+  else if (req.action === 'validate') result = boValidateInstallation();
+  else if (req.action === 'selfTest') result = boRunSelfTest();
+  else if (req.action === 'render') result = { html: boGetRenderedWebAppHtml() };
+  else if (req.action === 'liveAccept') result = boRunCleanLiveAcceptance_(payload);
+  else if (req.action === 'backup') result = boCreateBackup('Clean Installation Acceptance');
+  else throw new Error('Unsupported clean-install acceptance action: ' + req.action);
+  return { ok: true, result: result };
+}
 
 function doPost(e) {
   try {
     const request = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (!request.token || request.token !== BO_CLEAN_ACCEPTANCE_TOKEN) {
-      throw new Error('Unauthorized clean-install acceptance request.');
-    }
-    const payload = request.payload || {};
-    let result;
-    if (request.action === 'health') result = boCleanHealth_();
-    else if (request.action === 'bootstrap') result = boBootstrapInstall(payload);
-    else if (request.action === 'validate') result = boValidateInstallation();
-    else if (request.action === 'selfTest') result = boRunSelfTest();
-    else if (request.action === 'render') result = { html: boGetRenderedWebAppHtml() };
-    else if (request.action === 'liveAccept') result = boRunCleanLiveAcceptance_(payload);
-    else throw new Error('Unsupported clean-install acceptance action: ' + request.action);
-    return ContentService.createTextOutput(JSON.stringify({ ok: true, result: result }))
+    return ContentService.createTextOutput(JSON.stringify(boCleanExecute(request)))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({
@@ -31,6 +39,7 @@ function boCleanHealth_() {
   const pack = boGetBusinessPack_();
   return {
     status: 'PASS',
+    projectId: ScriptApp.getScriptId(),
     installationId: pack.installationId,
     businessId: pack.business.id,
     businessName: pack.branding.businessName,
@@ -39,6 +48,29 @@ function boCleanHealth_() {
     directPaymentProcessing: BO_PLATFORM.DIRECT_PAYMENT_PROCESSING,
     directPayrollFunding: BO_PLATFORM.DIRECT_PAYROLL_FUNDING,
     directTaxFiling: BO_PLATFORM.DIRECT_TAX_FILING
+  };
+}
+
+function boCleanCallableProof_() {
+  const owner = boRequireOwner_();
+  const proofRecordId = 'CALLABLE-' + Utilities.getUuid().slice(0, 12).toUpperCase();
+  boProof_('CLEAN CALLABLE PROOF', 'System', boGetBusinessId_(), 'PASS', proofRecordId, owner.Email);
+  const proofRows = boReadTable_(BO_SHEETS.PROOF_LOG, { includeVoided: true }).filter(function (row) {
+    return String(row.Operation || '') === 'CLEAN CALLABLE PROOF' && String(row.Details || '').indexOf(proofRecordId) >= 0;
+  });
+  const criticalErrors = boReadTable_(BO_SHEETS.ERROR_LOG, { includeVoided: true }).filter(function (row) {
+    return row.Status !== 'Resolved' && row.Severity !== 'Warning';
+  });
+  boAssert_(proofRows.length > 0, 'Authenticated callable proof was not written to the isolated Proof Log.');
+  boAssert_(criticalErrors.length === 0, 'Error Log is not clear after authenticated callable proof.');
+  return {
+    status: 'PASS',
+    projectId: ScriptApp.getScriptId(),
+    businessId: boGetBusinessId_(),
+    authenticatedEmail: owner.Email,
+    proofRecordId: proofRecordId,
+    proofRows: proofRows.length,
+    criticalErrors: criticalErrors.length
   };
 }
 
@@ -113,6 +145,7 @@ function boRunCleanLiveAcceptance_(payload) {
 
   return {
     status: 'PASS',
+    projectId: ScriptApp.getScriptId(),
     installationId: boGetInstallationId_(),
     businessId: boGetBusinessId_(),
     businessName: boGetBranding_().businessName,
