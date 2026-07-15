@@ -37,7 +37,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           ORIGINAL_HEAD="$(git rev-parse HEAD)"
           printf '%s' "$ORIGINAL_HEAD" > "$RUNNER_TEMP/original-feature-head.txt"
-          git fetch origin main business-office-separation
+          git fetch origin main
           if ! git merge --no-edit -X ours origin/main; then
             echo 'Resolving remaining conflicts in favor of the controlling PR 94 architecture.'
             git checkout --ours -- .
