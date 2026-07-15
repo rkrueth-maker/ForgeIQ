@@ -70,12 +70,16 @@ update('apps-script/business-office/BusinessOffice_Web.gs', text => {
 
 update('apps-script/business-office/README.md', () => `# Business Office Platform\n\nPrivate, role-aware operations platform for customers, vendors, quotes, work orders, jobs, purchasing, billing, payments, receipts, expenses, document intake, OCR-assisted review, accounting preparation, payroll preparation, tax-preparation support, approvals, reports, backups, proof logs, and error logs.\n\n## Business pack\n\nEvery deployment must assemble exactly one business pack. The pack supplies business identity, branding, contacts, URLs, enabled modules, roles, approval language, catalog requirements, tax settings, document labels, property-key names, deployment mode, and isolation rules. The reusable core contains no live business resource IDs.\n\n## Storage and deployment isolation\n\nEach installation requires a dedicated Apps Script project, deployment, spreadsheet, root folder, document folder, PDF folder, export folder, backup folder, user records, audit log, proof log, and error log. Resource IDs are stored in Script Properties or encrypted deployment inputs, never public source.\n\n## Safety boundaries\n\nExternal actions default to disabled. The platform does not directly process payments, fund payroll, initiate direct deposit, file tax returns, or bypass selected-record approval controls. Original uploads are preserved and duplicate hashes are blocked.\n\n## Deployment modes\n\n- Combined: configured website, owner portal, and Business Office.\n- Standalone: private Business Office with separate authentication, configuration, storage, and deployment.\n\nUse the repository assembly and installation scripts with a selected business pack. Do not copy another installation's data or resource IDs.\n`);
 
-const coreText = fs.readdirSync(dir)
-  .filter(name => /\.(gs|html|md|json)$/.test(name))
-  .map(name => fs.readFileSync(path.join(dir, name), 'utf8'))
-  .join('\n');
 const forbidden = ['Highway 38 Solutions','1kDDKWx9jfObWm8EmaXm5weDCTJbQ8RTf7-sq4RDEYlA','1Vq8UjAzxW4hIKYoodkf1hfqkATWiXjVC','11ak4QZ7ag8daYO1_uO6NTCVXIO7Kh6j3','AKfycb'];
-const leaks = forbidden.filter(value => coreText.includes(value));
-if (leaks.length) throw new Error(`Reusable core still contains protected identity or resource markers: ${leaks.join(', ')}`);
+const leakLocations = [];
+for (const name of fs.readdirSync(dir).filter(name => /\.(gs|html|md|json)$/.test(name))) {
+  const text = fs.readFileSync(path.join(dir, name), 'utf8');
+  for (const value of forbidden) {
+    if (!text.includes(value)) continue;
+    const line = text.slice(0, text.indexOf(value)).split('\n').length;
+    leakLocations.push({ file: name, marker: value, line });
+  }
+}
+if (leakLocations.length) throw new Error(`Reusable core still contains protected identity or resource markers: ${JSON.stringify(leakLocations)}`);
 
 console.log(JSON.stringify({ status: 'PASS', changed }, null, 2));
