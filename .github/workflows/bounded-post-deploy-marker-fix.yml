@@ -1,0 +1,66 @@
+name: Bounded Post-Deploy Proof Marker Fix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/bounded-post-deploy-marker-fix.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bounded-post-deploy-proof-marker-fix
+  cancel-in-progress: false
+
+jobs:
+  patch-verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Replace only the stale proof marker
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/post-deploy-acceptance.yml')
+          text = workflow.read_text(encoding='utf-8')
+          old = "          check_page 'proof-center.html' 'public-proof-manifest'"
+          new = "          check_page 'proof-center.html' 'Public proof now has one home.'"
+          if text.count(old) != 1:
+              raise SystemExit('HOLD — expected stale proof marker was not found exactly once.')
+          workflow.write_text(text.replace(old, new, 1), encoding='utf-8')
+          Path('.github/workflows/bounded-post-deploy-marker-fix.yml').unlink()
+          PY
+
+      - name: Verify bounded change set
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(cat <<'EOF'
+          .github/workflows/bounded-post-deploy-marker-fix.yml
+          .github/workflows/post-deploy-acceptance.yml
+          EOF
+          )"
+          actual="$(git diff --name-only | sort)"
+          test "$actual" = "$expected"
+          grep -Fq "check_page 'proof-center.html' 'Public proof now has one home.'" .github/workflows/post-deploy-acceptance.yml
+          ! grep -Fq "check_page 'proof-center.html' 'public-proof-manifest'" .github/workflows/post-deploy-acceptance.yml
+          git diff --check
+
+      - name: Commit verifier-only correction to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/workflows/post-deploy-acceptance.yml .github/workflows/bounded-post-deploy-marker-fix.yml
+          git commit -m "Align post-deploy proof marker with unified Proof Library"
+          git push origin HEAD:main
