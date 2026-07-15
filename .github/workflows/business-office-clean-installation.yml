@@ -10,6 +10,7 @@ on:
       - 'scripts/deploy-clean-business-office-installation-v2.sh'
       - 'scripts/deploy-clean-business-office-installation-v3.sh'
       - 'scripts/deploy-clean-business-office-installation-v4.sh'
+      - 'scripts/deploy-clean-business-office-installation-v5.sh'
       - 'scripts/provision-clean-business-office-resources.js'
       - 'scripts/build-business-office-installation.js'
       - 'scripts/verify-business-office-isolation.js'
@@ -96,7 +97,7 @@ jobs:
 
       - name: Provision and deploy clean standalone installation
         shell: bash
-        run: bash scripts/deploy-clean-business-office-installation-v2.sh
+        run: bash scripts/deploy-clean-business-office-installation-v5.sh
 
       - name: Record safe failure metadata
         if: failure()
