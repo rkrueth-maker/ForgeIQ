@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 concurrency:
   group: clean-business-office-installation
@@ -29,6 +30,7 @@ jobs:
       CLASP_CREDENTIALS_B64: ${{ secrets.CLASP_CREDENTIALS_B64 }}
       GOOGLE_CLASPRC_JSON: ${{ secrets.GOOGLE_CLASPRC_JSON }}
       GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,3 +77,38 @@ jobs:
             artifacts/business-office-clean-deployment/
           if-no-files-found: error
           retention-days: 90
+      - name: Record installation PASS
+        if: success()
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/clean-install-pass.md" <<EOF
+          <!-- clean-business-office-installation -->
+          ## Clean standalone Business Office installed — PASS
+
+          - Business: North Star Test Company
+          - Business ID: NORTHSTAR_TEST
+          - Mode: standalone
+          - Separate Apps Script project: yes
+          - Separate deployment: yes
+          - Highway 38 modified: no
+          - External actions: disabled
+          - Direct payment movement: disabled
+          - Payroll funding: disabled
+          - Direct tax filing: disabled
+          - Live URL: https://script.google.com/macros/s/${BO_ACCEPTANCE_DEPLOYMENT_ID}/exec?app=business-office
+          - Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          gh issue comment 31 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/clean-install-pass.md"
+      - name: Record installation HOLD
+        if: failure()
+        shell: bash
+        run: |
+          cat > "$RUNNER_TEMP/clean-install-hold.md" <<EOF
+          <!-- clean-business-office-installation -->
+          ## Clean standalone Business Office installation — HOLD
+
+          The isolated installation did not pass. Highway 38 was not modified.
+
+          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          gh issue comment 31 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/clean-install-hold.md"
