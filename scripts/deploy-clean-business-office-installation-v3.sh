@@ -91,6 +91,11 @@ trap 'delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID" || true' EXIT'''
 replacement='''printf '%s' "$ACCEPT_DEPLOYMENT_ID" > "$EVIDENCE/acceptance-deployment-id.txt"
 ACCEPT_URL="https://script.google.com/macros/s/${ACCEPT_DEPLOYMENT_ID}/exec"
 printf '%s' "$ACCEPT_URL" > "$EVIDENCE/acceptance-url.txt"
+(cd "$PROJECT" && clasp list-deployments --json) > "$EVIDENCE/acceptance-deployments.json"
+ACCESS_TOKEN="$(apps_script_access_token)"
+curl -sS -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  "https://script.googleapis.com/v1/projects/${SCRIPT_ID}/deployments/${ACCEPT_DEPLOYMENT_ID}" \
+  > "$EVIDENCE/acceptance-deployment-api.json" || true
 trap 'delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID" || true' EXIT'''
 if needle not in text:
     raise SystemExit('HOLD — expected acceptance deployment block was not found.')
