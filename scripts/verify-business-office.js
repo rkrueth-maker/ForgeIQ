@@ -88,7 +88,7 @@ const configSource=read(path.join(boDir,'BusinessOffice_Config.gs'));
 const sheetNames=[...configSource.matchAll(/:\s*'BO [^']+'/g)].map(match=>match[0]);
 assert('complete workbook schema represented in source',sheetNames.length>=75,`${sheetNames.length} configured sheets`);
 
-const manifest=JSON.parse(read(path.join(boDir,'appsscript.json'))),syncManifest=JSON.parse(read(path.join(syncDir,'appsscript.json'));
+const manifest=JSON.parse(read(path.join(boDir,'appsscript.json'))),syncManifest=JSON.parse(read(path.join(syncDir,'appsscript.json')));
 assert('manifest V8 runtime',manifest.runtimeVersion==='V8');
 assert('Drive advanced service configured',manifest.dependencies&&manifest.dependencies.enabledAdvancedServices.some(service=>service.serviceId==='drive'));
 assert('required OAuth scopes',['spreadsheets','drive','documents','userinfo.email'].every(token=>manifest.oauthScopes.some(scope=>scope.includes(token))));
