@@ -52,6 +52,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          mkdir -p artifacts/business-office-separation artifacts/business-office-clean-install
           npm run test:business-office-separation 2>&1 | tee artifacts/business-office-separation/test-output.txt
       - name: Assemble Highway 38 combined source
         run: |
@@ -59,13 +60,15 @@ jobs:
           bash scripts/assemble-business-office-app.sh artifacts/assembled-highway38 business-packs/highway38/apps-script/BusinessOffice_Pack.gs "$GITHUB_WORKSPACE"
           grep -F "packId:'highway38'" artifacts/assembled-highway38/BusinessOffice_00_Pack.gs
           grep -F 'function boRunLiveAcceptance' artifacts/assembled-highway38/BusinessOffice_Highway38Acceptance.gs
+          grep -F 'function doPost' artifacts/assembled-highway38/BusinessOffice_Highway38AcceptanceHarness.gs
       - name: Assemble neutral standalone source
         run: |
           mkdir -p artifacts/assembled-template
           bash scripts/assemble-business-office-app.sh artifacts/assembled-template business-packs/template-business/apps-script/BusinessOffice_Pack.gs "$GITHUB_WORKSPACE"
           grep -F "packId:'template-business'" artifacts/assembled-template/BusinessOffice_00_Pack.gs
           test ! -e artifacts/assembled-template/BusinessOffice_Highway38Acceptance.gs
-          ! grep -R -E 'Highway 38 Solutions|rkrueth|AKfyc|1kDDKW|1Vq8Uj|11ak4Q' artifacts/assembled-template/BusinessOffice_00_Pack.gs
+          test ! -e artifacts/assembled-template/BusinessOffice_Highway38AcceptanceHarness.gs
+          ! grep -R -E 'Highway 38 Solutions|rkrueth|AKfyc|1kDDKW|1Vq8Uj|11ak4Q' artifacts/assembled-template/BusinessOffice_*.gs artifacts/assembled-template/BusinessOffice_Index.html
       - name: Upload separation evidence
         if: always()
         uses: actions/upload-artifact@v4
