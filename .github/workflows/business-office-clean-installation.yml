@@ -31,7 +31,7 @@ permissions:
 
 concurrency:
   group: business-office-clean-installation
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   provision-deploy-and-verify:
