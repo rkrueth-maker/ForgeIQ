@@ -30,6 +30,7 @@ concurrency:
 
 jobs:
   provision-deploy-and-verify:
+    # Command Center installation request: provision a fully isolated clean second installation.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
