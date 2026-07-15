@@ -44,6 +44,7 @@ jobs:
       CLEAN_INSTALLATION_ID: north-star-test-${{ github.run_id }}
       CLEAN_BUSINESS_PACK: north-star-test
       CLEAN_TEMPLATE_TITLE: North Star Test Company — Business Office
+      CLEAN_SCRIPT_ID: 1w6x2THxN-QjMi8G5ItTjejM6blVJuvPQRy_G-FVQcdrW5u3R-ZrnfVti
       CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
       CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
       CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
@@ -95,7 +96,7 @@ jobs:
 
       - name: Provision and deploy clean standalone installation
         shell: bash
-        run: bash scripts/deploy-clean-business-office-installation-v4.sh
+        run: bash scripts/deploy-clean-business-office-installation-v3.sh
 
       - name: Record safe failure metadata
         if: failure()
