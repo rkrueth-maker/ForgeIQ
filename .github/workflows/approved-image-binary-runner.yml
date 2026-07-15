@@ -1,0 +1,197 @@
+name: Approved Website Image Binary Runner
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: approved-website-image-binary-runner
+  cancel-in-progress: false
+
+jobs:
+  add-approved-assets:
+    runs-on: ubuntu-latest
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
+      CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
+      CLASP_CREDENTIALS_B64: ${{ secrets.CLASP_CREDENTIALS_B64 }}
+      GOOGLE_CLASPRC_JSON: ${{ secrets.GOOGLE_CLASPRC_JSON }}
+      GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out implementation branch
+        uses: actions/checkout@v4
+        with:
+          ref: approved-website-image-implementation
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Load encrypted Google credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME"
+          if [[ -n "${CLASPRC_JSON}" ]]; then printf '%s' "${CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASPRC_JSON_B64}" ]]; then printf '%s' "${CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS}" ]]; then printf '%s' "${CLASP_CREDENTIALS}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS_B64}" ]]; then printf '%s' "${CLASP_CREDENTIALS_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON_B64}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          else echo 'HOLD — no encrypted Google credential is configured.'; exit 78; fi
+          chmod 600 "$HOME/.clasprc.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8'));console.log('Encrypted Google credential loaded.')"
+
+      - name: Download exact approved Drive files and optimize
+        id: assets
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m pip install --disable-pip-version-check pillow 2>&1 | tee "$RUNNER_TEMP/approved-image-assets.log"
+          mkdir -p "$RUNNER_TEMP/h38-approved-images" assets/approved-website-images
+          ACCESS_TOKEN="$(node <<'NODE'
+          const fs=require('fs'),https=require('https'),querystring=require('querystring');
+          const raw=JSON.parse(fs.readFileSync(process.env.HOME+'/.clasprc.json','utf8'));
+          function walk(o){if(!o||typeof o!=='object')return [];return [o,...Object.values(o).flatMap(walk)]}
+          const auth=walk(raw).find(o=>o&&typeof o==='object'&&(o.refresh_token||o.refreshToken)&&(o.client_id||o.clientId)&&(o.client_secret||o.clientSecret));
+          if(!auth) throw new Error('No refreshable OAuth credential found.');
+          const body=querystring.stringify({client_id:auth.client_id||auth.clientId,client_secret:auth.client_secret||auth.clientSecret,refresh_token:auth.refresh_token||auth.refreshToken,grant_type:'refresh_token'});
+          const req=https.request({method:'POST',hostname:'oauth2.googleapis.com',path:'/token',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}},res=>{let data='';res.on('data',c=>data+=c);res.on('end',()=>{const parsed=JSON.parse(data);if(!parsed.access_token)throw new Error(data);process.stdout.write(parsed.access_token)})});
+          req.on('error',e=>{throw e});req.end(body);
+          NODE
+          )"
+
+          download_drive_file() {
+            local id="$1" output="$2"
+            curl --fail --silent --show-error --location --max-time 180 \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              "https://www.googleapis.com/drive/v3/files/${id}?alt=media&supportsAllDrives=true" \
+              -o "$output"
+          }
+
+          download_drive_file '1BoHiogcPfhszUhh1L3FAzSrSR0V59ndN' "$RUNNER_TEMP/h38-approved-images/H38_01_Homepage_Hero_Garage_Workspace.jpg"
+          download_drive_file '1rJOclbDzqwPKor-UA1wdtXZTH5-0Mos6' "$RUNNER_TEMP/h38-approved-images/H38_02_Project_Planning_Desk.jpg"
+          download_drive_file '1aPzCqO9RE40huOo60k-aKKSscU2cqDLt' "$RUNNER_TEMP/h38-approved-images/H38_03_Business_Workflow_Office.jpg"
+          download_drive_file '1NjgisuWkRUzrcxg0LJOitNlcYr6abNTS' "$RUNNER_TEMP/h38-approved-images/H38_04_Manufacturing_Automation.jpg"
+
+          python <<'PY' 2>&1 | tee -a "$RUNNER_TEMP/approved-image-assets.log"
+          from pathlib import Path
+          from PIL import Image
+          import hashlib, json, os
+
+          source = Path(os.environ['RUNNER_TEMP']) / 'h38-approved-images'
+          target = Path('assets/approved-website-images')
+          files = {
+              'H38_01_Homepage_Hero_Garage_Workspace.jpg': 'homepage-hero-garage-workspace.jpg',
+              'H38_02_Project_Planning_Desk.jpg': 'project-planning-desk.jpg',
+              'H38_03_Business_Workflow_Office.jpg': 'business-workflow-office.jpg',
+              'H38_04_Manufacturing_Automation.jpg': 'manufacturing-automation.jpg',
+          }
+          evidence = []
+          for source_name, target_name in files.items():
+              source_path = source / source_name
+              with Image.open(source_path) as image:
+                  image.verify()
+              with Image.open(source_path) as image:
+                  if image.format != 'JPEG' or image.size != (1600, 900):
+                      raise SystemExit(f'Unexpected approved source: {source_name} {image.format} {image.size}')
+                  image = image.convert('RGB').resize((1200, 675), Image.Resampling.LANCZOS)
+                  output = target / target_name
+                  image.save(output, 'JPEG', quality=76, optimize=True, progressive=True, subsampling='4:2:0')
+              evidence.append({'source': source_name, 'path': str(output), 'width': 1200, 'height': 675, 'bytes': output.stat().st_size, 'sha256': hashlib.sha256(output.read_bytes()).hexdigest()})
+          Path('artifacts/approved-website-images').mkdir(parents=True, exist_ok=True)
+          Path('artifacts/approved-website-images/optimization.json').write_text(json.dumps(evidence, indent=2) + '\n')
+          PY
+
+          node scripts/verify-commercial-system.js 2>&1 | tee -a "$RUNNER_TEMP/approved-image-assets.log"
+          node scripts/verify-highway38-final-polish.js 2>&1 | tee -a "$RUNNER_TEMP/approved-image-assets.log"
+          git diff --check
+
+          python <<'PY' 2>&1 | tee -a "$RUNNER_TEMP/approved-image-assets.log"
+          from pathlib import Path
+          from PIL import Image
+          import re
+          expected = {
+              'assets/approved-website-images/homepage-hero-garage-workspace.jpg': ('index.html', 'Organized garage workshop with workbench, storage, and clear working space.', False),
+              'assets/approved-website-images/project-planning-desk.jpg': ('index.html', 'Project layout documents, measuring tape, and planning notes arranged on a worktable.', True),
+              'assets/approved-website-images/business-workflow-office.jpg': ('solutions.html', 'Laptop on a clean work desk displaying an organized business workflow dashboard.', True),
+              'assets/approved-website-images/manufacturing-automation.jpg': ('solutions.html', 'Industrial automation cell with robotic equipment and manufacturing fixtures.', True),
+          }
+          for image_path, (page_path, alt, lazy) in expected.items():
+              path = Path(image_path)
+              if not path.exists(): raise SystemExit(f'Missing image: {image_path}')
+              with Image.open(path) as image:
+                  if image.format != 'JPEG' or image.size != (1200,675): raise SystemExit(f'Bad optimized image: {image_path}')
+              page = Path(page_path).read_text()
+              tag = next((tag for tag in re.findall(r'<img\b[^>]+>', page) if image_path in tag), '')
+              if not tag or f'alt="{alt}"' not in tag: raise SystemExit(f'Missing reference or alt: {image_path}')
+              if lazy != ('loading="lazy"' in tag): raise SystemExit(f'Loading policy mismatch: {image_path}')
+              if 'width="1200"' not in tag or 'height="675"' not in tag: raise SystemExit(f'Missing dimensions: {image_path}')
+          PY
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/approved-website-images artifacts/approved-website-images/optimization.json
+          git commit -m 'Add optimized approved Highway 38 website images'
+          git push origin HEAD:approved-website-image-implementation
+          git rev-parse HEAD > "$RUNNER_TEMP/approved-image-final-sha.txt"
+
+      - name: Report asset result to Issue 100
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="$RUNNER_TEMP/approved-image-binary-report.md"
+          if [[ "${{ steps.assets.outcome }}" == "success" ]]; then
+            SHA="$(cat "$RUNNER_TEMP/approved-image-final-sha.txt")"
+            {
+              echo '## Approved image binary assets PASS'
+              echo
+              echo "Exact branch head: \`${SHA}\`"
+              echo
+              echo '- All four Drive files authenticated and verified as 1600×900 JPEG sources.'
+              echo '- All four optimized to 1200×675 progressive JPEGs.'
+              echo '- Commercial and final-polish source verification passed.'
+            } > "$REPORT"
+          else
+            {
+              echo '## Approved image binary assets HOLD'
+              echo
+              echo '```text'
+              tail -c 50000 "$RUNNER_TEMP/approved-image-assets.log" || true
+              echo
+              echo '```'
+            } > "$REPORT"
+          fi
+          gh issue comment 100 --repo "$GITHUB_REPOSITORY" --body-file "$REPORT"
+
+      - name: Remove temporary runner from main
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git worktree add "$RUNNER_TEMP/h38-main-cleanup" origin/main
+          cd "$RUNNER_TEMP/h38-main-cleanup"
+          git checkout -B main origin/main
+          rm -f .github/workflows/approved-image-binary-runner.yml
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/approved-image-binary-runner.yml
+          git commit -m 'Remove approved image binary runner'
+          git push origin HEAD:main
+
+      - name: Preserve failure conclusion
+        if: steps.assets.outcome == 'failure'
+        run: exit 1
