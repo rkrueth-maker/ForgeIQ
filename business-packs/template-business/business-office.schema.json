@@ -1,1 +1,10 @@
-PLACEHOLDER
+{
+  "schemaVersion": 1,
+  "strategy": "neutral-drive-template-copy",
+  "templateTitle": "Business Office Platform — Neutral Workbook Template",
+  "requiredSheetCount": 81,
+  "templateContainsLiveResourceIds": false,
+  "templateContainsCustomerData": false,
+  "templateContainsFinancialTransactions": false,
+  "provisioningRule": "Copy the neutral template, create fresh installation resources, replace the business and owner rows, then deploy before any user access."
+}
