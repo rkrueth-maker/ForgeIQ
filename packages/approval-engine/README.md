@@ -1,3 +1,3 @@
-# Approval Engine
+# Approval engine package
 
-Selected-record approval gates for customer actions, financial posting, payroll export, tax finalization, delivery, publishing, and advertising spend.
+Owns approval queue records, role gates, allowed flags, and customer-action controls. Approval language is selected from the installation business pack.

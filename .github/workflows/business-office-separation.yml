@@ -1,84 +1,71 @@
-name: Verify Business Office Separation
+name: Business Office Separation Materialization
 
 on:
   push:
-    branches: [business-office-separation]
+    branches:
+      - separate-business-office-platform
     paths:
-      - 'apps-script/business-office/**'
-      - 'apps/business-office/**'
-      - 'apps/highway38-website/**'
-      - 'apps/highway38-owner-portal/**'
-      - 'packages/**'
-      - 'business-packs/**'
-      - 'scripts/business-office/**'
-      - 'scripts/assemble-business-office-app.sh'
-      - 'scripts/deploy-business-office-standalone.sh'
-      - 'scripts/verify-business-office.js'
-      - 'scripts/verify-business-office-separation.js'
-      - 'scripts/verify-business-office-clean-install.js'
-      - 'package.json'
       - '.github/workflows/business-office-separation.yml'
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
     paths:
-      - 'apps-script/business-office/**'
-      - 'apps/**'
-      - 'packages/**'
-      - 'business-packs/**'
-      - 'scripts/**business-office**'
-      - 'package.json'
+      - '.github/workflows/business-office-separation.yml'
+      - 'scripts/materialize-business-office-platform.js'
+      - 'scripts/.materialize-parts/**'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: business-office-separation-materialization
+  cancel-in-progress: false
 
 jobs:
-  separation-and-clean-install:
+  materialize-test-and-commit:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: separate-business-office-platform
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Install dependencies
-        run: npm install
-      - name: Verify current Business Office source
+      - name: Check whether materialization is pending
+        id: pending
         shell: bash
         run: |
-          set -o pipefail
-          mkdir -p artifacts/business-office
-          npm run test:business-office 2>&1 | tee artifacts/business-office/test-output.txt
-      - name: Verify product separation and clean installation plan
+          if [[ -f scripts/materialize-business-office-platform.js ]]; then
+            echo 'run=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'run=false' >> "$GITHUB_OUTPUT"
+            echo 'Platform is already materialized.'
+          fi
+      - name: Materialize separated platform
+        if: steps.pending.outputs.run == 'true'
+        run: node scripts/materialize-business-office-platform.js
+      - name: Verify neutral platform and data isolation
+        if: steps.pending.outputs.run == 'true'
+        run: |
+          node scripts/verify-business-office-isolation.js
+          node scripts/verify-business-office-separation.js
+      - name: Verify existing Highway 38 Business Office
+        if: steps.pending.outputs.run == 'true'
+        run: |
+          npm install
+          npm run test:business-office
+      - name: Commit generated architecture
+        if: steps.pending.outputs.run == 'true'
         shell: bash
         run: |
-          set -o pipefail
-          mkdir -p artifacts/business-office-separation artifacts/business-office-clean-install
-          npm run test:business-office-separation 2>&1 | tee artifacts/business-office-separation/test-output.txt
-      - name: Assemble Highway 38 combined source
-        run: |
-          mkdir -p artifacts/assembled-highway38
-          bash scripts/assemble-business-office-app.sh artifacts/assembled-highway38 business-packs/highway38/apps-script/BusinessOffice_Pack.gs "$GITHUB_WORKSPACE"
-          grep -F "packId:'highway38'" artifacts/assembled-highway38/BusinessOffice_00_Pack.gs
-          grep -F 'function boRunLiveAcceptance' artifacts/assembled-highway38/BusinessOffice_Highway38Acceptance.gs
-          grep -F 'function doPost' artifacts/assembled-highway38/BusinessOffice_Highway38AcceptanceHarness.gs
-      - name: Assemble neutral standalone source
-        run: |
-          mkdir -p artifacts/assembled-template
-          bash scripts/assemble-business-office-app.sh artifacts/assembled-template business-packs/template-business/apps-script/BusinessOffice_Pack.gs "$GITHUB_WORKSPACE"
-          grep -F "packId:'template-business'" artifacts/assembled-template/BusinessOffice_00_Pack.gs
-          test ! -e artifacts/assembled-template/BusinessOffice_Highway38Acceptance.gs
-          test ! -e artifacts/assembled-template/BusinessOffice_Highway38AcceptanceHarness.gs
-          ! grep -R -E 'Highway 38 Solutions|rkrueth|AKfyc|1kDDKW|1Vq8Uj|11ak4Q' artifacts/assembled-template/BusinessOffice_*.gs artifacts/assembled-template/BusinessOffice_Index.html
-      - name: Upload separation evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: business-office-separation-${{ github.run_id }}
-          path: |
-            artifacts/business-office/
-            artifacts/business-office-separation/
-            artifacts/business-office-clean-install/
-            artifacts/assembled-highway38/
-            artifacts/assembled-template/
-          if-no-files-found: error
-          retention-days: 90
+          set -euo pipefail
+          git checkout HEAD -- .github/workflows/business-office-separation.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Materialize separated Business Office platform'
+          git push origin HEAD:separate-business-office-platform

@@ -1,3 +1,3 @@
-# PDF Generation
+# PDF generation package
 
-Business-neutral document rendering. Business name, logo, colors, labels, and footer text come from the selected business pack.
+Owns branded PDF creation. All business identity is supplied by the selected business pack. Runtime source is assembled from the document-intake module until physical source splitting is completed.

@@ -1,0 +1,165 @@
+name: Business Office Clean Installation
+
+on:
+  push:
+    branches:
+      - separate-business-office-platform
+    paths:
+      - '.github/workflows/business-office-clean-installation.yml'
+      - 'scripts/deploy-clean-business-office-installation.sh'
+      - 'scripts/deploy-clean-business-office-installation-v2.sh'
+      - 'scripts/deploy-clean-business-office-installation-v3.sh'
+      - 'scripts/deploy-clean-business-office-installation-v4.sh'
+      - 'scripts/deploy-clean-business-office-installation-v5.sh'
+      - 'scripts/deploy-clean-business-office-installation-v6.sh'
+      - 'scripts/deploy-clean-business-office-installation-v7.sh'
+      - 'scripts/deploy-clean-business-office-installation-v8.sh'
+      - 'scripts/provision-clean-business-office-resources.js'
+      - 'scripts/build-business-office-installation.js'
+      - 'scripts/verify-business-office-isolation.js'
+      - 'scripts/verify-business-office-separation.js'
+      - 'tests/business-office-clean-installation/**'
+      - 'apps/business-office/**'
+      - 'packages/**'
+      - 'business-packs/template-business/**'
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: business-office-clean-installation
+  cancel-in-progress: true
+
+jobs:
+  provision-deploy-and-verify:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      CLEAN_OWNER_EMAIL: rkrueth@gmail.com
+      CLEAN_BUSINESS_NAME: North Star Test Company
+      CLEAN_BUSINESS_ID: NORTHSTAR_TEST
+      CLEAN_INSTALLATION_ID: north-star-test-${{ github.run_id }}
+      CLEAN_BUSINESS_PACK: north-star-test
+      CLEAN_TEMPLATE_TITLE: North Star Test Company — Business Office
+      CLEAN_SCRIPT_ID: 1w6x2THxN-QjMi8G5ItTjejM6blVJuvPQRy_G-FVQcdrW5u3R-ZrnfVti
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
+      CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
+      CLASP_CREDENTIALS_B64: ${{ secrets.CLASP_CREDENTIALS_B64 }}
+      GOOGLE_CLASPRC_JSON: ${{ secrets.GOOGLE_CLASPRC_JSON }}
+      GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: separate-business-office-platform
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify separated source before provisioning
+        run: |
+          npm install
+          node scripts/verify-business-office-isolation.js
+          node scripts/verify-business-office-separation.js
+          npm run test:business-office
+
+      - name: Generate isolated North Star business pack
+        run: |
+          rm -rf business-packs/north-star-test
+          node scripts/create-new-business.js --slug north-star-test --business-name "North Star Test Company" --business-id NORTHSTAR_TEST --owner-email "${CLEAN_OWNER_EMAIL}" --time-zone America/Chicago
+
+      - name: Install tested deployment tools
+        run: |
+          npm install --global @google/clasp@3.1.0
+          npx playwright install --with-deps chromium
+
+      - name: Load encrypted Google credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME"
+          if [[ -n "${CLASPRC_JSON}" ]]; then printf '%s' "${CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASPRC_JSON_B64}" ]]; then printf '%s' "${CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS}" ]]; then printf '%s' "${CLASP_CREDENTIALS}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS_B64}" ]]; then printf '%s' "${CLASP_CREDENTIALS_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON_B64}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          else echo 'HOLD — no encrypted Google credential is configured.'; exit 78; fi
+          chmod 600 "$HOME/.clasprc.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8'));console.log('Encrypted clasp credential loaded.')"
+
+      - name: Provision and deploy clean standalone installation
+        shell: bash
+        run: bash scripts/deploy-clean-business-office-installation-v8.sh
+
+      - name: Record safe failure metadata
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p artifacts/business-office-clean-installation
+          if [[ ! -f artifacts/business-office-clean-installation/failure-metadata.json ]]; then
+            cat > artifacts/business-office-clean-installation/failure-metadata.json <<JSON
+          {"status":"HOLD","sourceCommit":"${GITHUB_SHA}","externalActionsOccurred":false,"paymentProcessed":false,"payrollFundsMoved":false,"taxReturnFiled":false,"customerMessageSent":false,"deliveryOccurred":false}
+          JSON
+          fi
+
+      - name: Upload clean-install acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: business-office-clean-installation-${{ github.run_id }}
+          path: artifacts/business-office-clean-installation/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Report clean installation PASS to PR 94
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '<!-- business-office-clean-installation -->'
+            echo '## Clean standalone installation — PASS'
+            echo
+            echo '```json'
+            cat artifacts/business-office-clean-installation/acceptance-result.json
+            echo '```'
+            echo
+            echo "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > "$RUNNER_TEMP/clean-pass.md"
+          gh pr comment 94 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/clean-pass.md"
+
+      - name: Report clean installation HOLD to PR 94
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo '<!-- business-office-clean-installation -->'
+            echo '## Clean standalone installation — HOLD'
+            echo
+            if [[ -f artifacts/business-office-clean-installation/authorization-required-url.txt ]]; then
+              echo '**One-time Google authorization is required:**'
+              echo
+              cat artifacts/business-office-clean-installation/authorization-required-url.txt
+              echo
+              echo 'Open the link, choose Review Permissions, approve it for rkrueth@gmail.com, then rerun this workflow.'
+              echo
+            fi
+            if [[ -f artifacts/business-office-clean-installation/failure-metadata.json ]]; then
+              echo '```json'
+              cat artifacts/business-office-clean-installation/failure-metadata.json
+              echo '```'
+            fi
+            echo
+            echo "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > "$RUNNER_TEMP/clean-hold.md"
+          gh pr comment 94 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/clean-hold.md"

@@ -3,7 +3,7 @@
   "authority": "01 Command Center",
   "controllingBranch": "separate-business-office-platform",
   "baseBranch": "main",
-  "legacyBranch": "business-office-separation",
+  "legacyBranch": "separate-business-office-platform",
   "mergePolicy": "preserve PR 94 architecture on conflicts; include non-conflicting current-main changes",
   "cleanInstallation": {
     "businessName": "North Star Test Company",

@@ -1,3 +1,3 @@
-# Roles and Permissions
+# Roles and permissions package
 
-Reusable role and permission evaluation. Default roles come from the selected business pack and are stored in each installation's isolated records.
+Owns business-local users, roles, module permissions, restricted-area access, and owner authorization. Runtime implementation is in `packages/authentication/apps-script/BusinessOffice_Auth.gs`.

@@ -1,68 +1,35 @@
 #!/usr/bin/env node
 'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const { execFileSync } = require('child_process');
-const { loadPack, validatePack } = require('./business-office/lib/business-pack');
-const root = path.resolve(__dirname, '..');
-const failures = [];
-const passes = [];
-const check = (name, condition, detail='') => (condition ? passes : failures).push({name, detail});
-const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
-const json = rel => JSON.parse(read(rel));
-
-for (const packName of ['highway38','template-business']) {
-  try {
-    const pack = loadPack(root, packName);
-    check(`${packName} pack validates`, validatePack(pack).length === 0);
-  } catch (error) { check(`${packName} pack validates`, false, error.message); }
+const fs=require('fs');
+const path=require('path');
+const cp=require('child_process');
+const root=path.resolve(__dirname,'..');
+const failures=[]; const passes=[];
+function check(name,condition,detail=''){(condition?passes:failures).push({name,detail});console.log(`${condition?'PASS':'FAIL'}: ${name}${detail?' — '+detail:''}`);}
+function read(p){return fs.readFileSync(path.join(root,p),'utf8');}
+const neutralRoots=['packages/business-office-core','packages/authentication','packages/document-intake','packages/accounting','packages/payroll-preparation','packages/shared-ui','apps/business-office'];
+let neutral='';
+for(const start of neutralRoots){
+  const stack=[path.join(root,start)];
+  while(stack.length){const p=stack.pop();for(const n of fs.readdirSync(p)){const f=path.join(p,n);if(fs.statSync(f).isDirectory())stack.push(f);else neutral+=fs.readFileSync(f,'utf8')+'\n';}}
 }
-
-const templateText = read('business-packs/template-business/business-pack.json') + read('business-packs/template-business/apps-script/BusinessOffice_Pack.gs');
-const coreText = fs.readdirSync(path.join(root,'apps-script','business-office'))
-  .filter(name => /\.(gs|html|md|json)$/.test(name))
-  .map(name => read(path.join('apps-script','business-office',name)))
-  .join('\n');
-const h38Deployment = json('business-packs/highway38/deployment.json');
-const templateDeployment = json('business-packs/template-business/deployment.json');
-
-check('template contains no Highway 38 identity', !/Highway 38|rkrueth|AKfyc|1kDDKW|1Vq8Uj|11ak4Q/i.test(templateText));
-check('reusable core contains no live Highway 38 identity or resource ID', !/Highway 38 Solutions|1kDDKW|1Vq8Uj|11ak4Q|AKfycb/i.test(coreText));
-check('template catalog starts empty', /"requiredProductCount": 0/.test(templateText) && /"requiredBundleCount": 0/.test(templateText));
-check('template uses generic property keys', /BUSINESS_OFFICE_SPREADSHEET_ID/.test(templateText) && !/H38_BUSINESS_OFFICE_SPREADSHEET_ID/.test(templateText));
-check('Highway 38 pack keeps approved catalog counts', /"requiredProductCount": 15/.test(read('business-packs/highway38/business-pack.json')) && /"requiredBundleCount": 9/.test(read('business-packs/highway38/business-pack.json')));
-check('Highway 38 deployment map is complete', [
-  h38Deployment.businessId,
-  h38Deployment.ownerEmail,
-  h38Deployment.resources?.businessOfficeSpreadsheetId,
-  h38Deployment.resources?.rootFolderId,
-  h38Deployment.resources?.documentFolderId,
-  h38Deployment.resources?.pdfFolderId,
-  h38Deployment.resources?.exportFolderId,
-  h38Deployment.resources?.backupFolderId,
-  h38Deployment.appsScript?.ownerPortalProjectId,
-  h38Deployment.appsScript?.ownerPortalDeploymentId,
-  h38Deployment.appsScript?.businessOfficeDeploymentId,
-  h38Deployment.website?.ownerPortalUrl
-].every(Boolean));
-check('Highway 38 deployment map updates only existing installation', h38Deployment.controls?.updateExistingProjectOnly === true && h38Deployment.controls?.createNewProject === false && h38Deployment.controls?.createNewProductionDeployment === false && h38Deployment.controls?.externalActionsEnabled === false);
-check('template deployment map requires new isolated resources', Object.values(templateDeployment.resources || {}).every(value => value === '') && Object.values(templateDeployment.appsScript || {}).every(value => value === '') && templateDeployment.controls?.createNewProject === true && templateDeployment.controls?.createNewProductionDeployment === true);
-check('template deployment map contains no Highway 38 references', !/Highway 38|rkrueth|AKfyc|1kDDKW|1Vq8Uj|11ak4Q/i.test(JSON.stringify(templateDeployment)));
-check('deployment configuration loader validates Highway 38 map', (() => { try { const output=execFileSync(process.execPath,[path.join(root,'scripts/load-highway38-deployment-config.js')],{encoding:'utf8'}); return JSON.parse(output).status==='PASS'; } catch(error) { return false; } })());
-check('architecture application boundaries exist', ['apps/highway38-website/README.md','apps/highway38-owner-portal/README.md','apps/business-office/README.md'].every(rel => fs.existsSync(path.join(root, rel))));
-check('shared package boundaries exist', ['core-engine','authentication','roles-permissions','document-intake','ocr','pdf-generation','accounting','payroll-preparation','tax-preparation','approval-engine','audit-logging','error-logging','shared-ui'].every(name => fs.existsSync(path.join(root,'packages',name,'README.md'))));
-check('core business pack loader exists', fs.existsSync(path.join(root,'apps-script/business-office/BusinessOffice_BusinessPack.gs')));
-check('Highway 38 deployment assembles Highway 38 pack', /business-packs\/highway38\/apps-script\/BusinessOffice_Pack\.gs/.test(read('scripts/deploy-unified-owner-portal-web.sh')));
-check('Highway 38 production path loads deployment configuration', /load-highway38-deployment-config\.js/.test(read('.github/workflows/business-office-production-v2.yml')));
-check('legacy automatic project creation is retired', !/create-script --type standalone/.test(read('.github/workflows/business-office.yml')) && /Production V2/.test(read('.github/workflows/business-office.yml')));
-check('standalone deployment script exists', fs.existsSync(path.join(root,'scripts/deploy-business-office-standalone.sh')));
-check('clean authenticated acceptance deployment exists', fs.existsSync(path.join(root,'scripts/deploy-business-office-clean-acceptance.sh')) && /clasp run/.test(read('scripts/deploy-business-office-clean-acceptance.sh')));
-check('clean installation generator exists', fs.existsSync(path.join(root,'scripts/business-office/create-installation-plan.js')));
-
-const result = {status:failures.length?'HOLD':'PASS', passes, failures};
-const out = path.join(root,'artifacts','business-office-separation');
-fs.mkdirSync(out,{recursive:true});
-fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(result,null,2)+'\n');
-console.log(JSON.stringify(result,null,2));
-process.exit(failures.length?1:0);
+check('neutral core contains no Highway 38 identity',!/Highway\s*38|rkrueth|highway-38-solutions/i.test(neutral));
+check('neutral core contains no H38 identifiers',!(/\bH38(?:_|\b)/.test(neutral)));
+check('neutral core contains no live resource IDs',!/[A-Za-z0-9_-]{25,}/.test(neutral.match(/(?:SPREADSHEET|FOLDER|DEPLOYMENT)[^\n]{0,80}/gi)?.join('\n')||''));
+const h38=JSON.parse(read('business-packs/highway38/business-office.config.json'));
+const template=JSON.parse(read('business-packs/template-business/business-office.config.json'));
+check('Highway 38 pack carries Highway 38 identity',h38.business.id==='H38'&&/Highway 38/.test(h38.branding.businessName));
+check('Highway 38 pack uses property references rather than embedded resource IDs',Object.values(h38.resources.propertyKeys).every(v=>/^[A-Z0-9_]+$/.test(v)));
+check('template pack is neutral',!/Highway\s*38|rkrueth|highway-38-solutions|H38_/i.test(JSON.stringify(template)));
+check('template pack has empty catalog',template.catalog.mode==='empty'&&template.validation.expectedProductCount===0&&template.validation.expectedBundleCount===0);
+check('template pack retains safety boundaries',template.tax.directFiling===false);
+for(const [pack,mode] of [['highway38','combined'],['template-business','standalone']]){
+  const out=path.join(root,'artifacts','separate-business-office-platform','builds',`${pack}-${mode}`);
+  cp.execFileSync(process.execPath,[path.join(root,'scripts/build-business-office-installation.js'),'--pack',pack,'--mode',mode,'--out',out],{stdio:'inherit'});
+  check(`${pack} ${mode} bundle generated`,fs.existsSync(path.join(out,'installation-manifest.json')));
+  const all=fs.readdirSync(out).filter(n=>/\.(gs|html|json)$/.test(n)).map(n=>fs.readFileSync(path.join(out,n),'utf8')).join('\n');
+  if(pack==='template-business') check('clean bundle has no Highway 38 leakage',!/Highway\s*38|rkrueth|highway-38-solutions|H38_|AKfyc/i.test(all));
+}
+const result={status:failures.length?'HOLD':'PASS',passes,failures};
+const outDir=path.join(root,'artifacts','separate-business-office-platform');fs.mkdirSync(outDir,{recursive:true});fs.writeFileSync(path.join(outDir,'separation-verification.json'),JSON.stringify(result,null,2)+'\n');
+console.log(`RESULT: ${result.status}`);process.exit(failures.length?1:0);

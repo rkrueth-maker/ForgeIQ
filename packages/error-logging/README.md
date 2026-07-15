@@ -1,3 +1,3 @@
-# Error Logging
+# Error logging package
 
-Installation-scoped error capture, status, resolution evidence, and diagnostics.
+Owns installation-local error records. No error log is shared across business installations.

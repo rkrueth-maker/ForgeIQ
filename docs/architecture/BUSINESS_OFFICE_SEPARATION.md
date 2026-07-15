@@ -1,39 +1,28 @@
-# Business Office Product Separation
+# Business Office separation architecture
 
-## Products
+## Product boundaries
 
-### Highway 38 Solutions Business System
+- `apps/business-office`: deployable Business Office web application and installer.
+- `packages/*`: business-neutral runtime modules.
+- `business-packs/highway38`: Highway 38 identity, property-key mapping, catalog expectations, approval language, and website connection.
+- `business-packs/template-business`: neutral empty installation configuration.
+- `apps-script/business-office`: unchanged live Highway 38 implementation during migration.
 
-The public website, Highway 38 Owner Portal, approved Highway 38 catalog, customer intake, business-specific workflows, and the configured Highway 38 Business Office installation remain one live system.
+## Isolation model
 
-### Business Office Platform
-
-The Business Office core is business-neutral. It receives identity, branding, storage references, enabled modules, approval language, product rules, tax settings, numbering, and document templates from a selected business pack.
-
-## Repository layout
-
-- `apps/highway38-website` — ownership and deployment boundary for the public site.
-- `apps/highway38-owner-portal` — ownership and deployment boundary for the configured owner workspace.
-- `apps/business-office` — standalone Business Office application boundary.
-- `packages/*` — reusable modules with no Highway 38 data or branding.
-- `business-packs/highway38` — the live Highway 38 configuration.
-- `business-packs/template-business` — a clean reusable starting point.
-
-The existing root website and `apps-script/business-office` sources remain in place during the compatibility migration. Deployment scripts assemble those proven sources with exactly one business pack.
-
-## Configuration rule
-
-The core never contains live workbook IDs, Drive folder IDs, deployment IDs, customer records, product prices, or business identity. The selected pack contains non-secret defaults and Script Property references. Live resource IDs remain in encrypted deployment variables or Apps Script Script Properties.
-
-## Data isolation
-
-Every installation must have a unique installation ID, business ID, Apps Script project, spreadsheet, root folder, document folder, PDF folder, export folder, backup folder, users table, proof log, error log, audit log, and backup history. The installer rejects an installation plan that reuses a protected Highway 38 resource ID.
+Every installation receives its own Apps Script project and deployment, Google Sheet, Drive root, document, PDF, export, and backup folders, user table, Proof Log, Error Log, and Script Properties. Business packs contain property-key names only; live IDs remain in installation Script Properties and deployment secrets.
 
 ## Deployment modes
 
-- Combined: public website + owner portal + Business Office + one business pack.
-- Standalone: Business Office + one business pack + separate authentication and storage.
+- Standalone: build with `node scripts/build-business-office-installation.js --pack template-business --mode standalone`.
+- Combined: build with `--pack highway38 --mode combined`; the manifest records website and Owner Portal connection points.
 
-## Compatibility migration
+## Migration strategy
 
-`H38_BO` remains as a temporary internal namespace so the proven Apps Script modules continue to work. Its values now come from the selected business pack; it no longer owns Highway 38 identity or live resource defaults. A later product release may rename the namespace after the separated platform is stable.
+1. Build and verify neutral bundles beside the live implementation.
+2. Provision a clean second installation with separate resources.
+3. Run clean-install acceptance.
+4. Deploy the Highway 38 bundle to a temporary acceptance deployment using current live resources.
+5. Compare behavior and generated documents with the current deployment.
+6. Update the existing live deployment only after regression PASS.
+7. Retain the previous deployment version and workbook backup as rollback points.

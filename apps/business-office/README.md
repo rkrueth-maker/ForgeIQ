@@ -1,10 +1,3 @@
-# Business Office Application
+# Business Office application
 
-Business-neutral private operations application assembled from `apps-script/business-office`, reusable packages, and exactly one selected business pack.
-
-Supported deployment modes:
-
-- `combined` — embedded in a configured owner portal.
-- `standalone` — separate authenticated Business Office deployment.
-
-No installation may share records, storage, users, logs, or deployment references with another installation.
+This application is assembled from business-neutral packages and one selected business pack. It may be deployed standalone or connected to a public website and Owner Portal. Live IDs and credentials are supplied through Script Properties and deployment secrets, never committed in a business pack.

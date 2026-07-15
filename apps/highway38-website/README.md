@@ -1,5 +1,5 @@
-# Highway 38 Website
+# Highway 38 website application
 
-This application boundary owns the public Highway 38 Solutions website, approved branding, products, pricing, samples, customer request routes, and public-safe proof.
+The live public website remains at the repository root during the no-interruption migration. This application boundary owns Highway 38 branding, products, pricing, Sample Library, public intake routes, public proof, and website-specific deployment checks.
 
-The current production files remain at repository root during migration. This directory records the ownership boundary and will become the build root only after route-parity verification.
+The reusable Business Office packages must not import files from this application.

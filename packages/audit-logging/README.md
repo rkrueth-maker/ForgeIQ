@@ -1,3 +1,3 @@
-# Audit Logging
+# Audit logging package
 
-Installation-scoped immutable activity and proof evidence.
+Owns immutable audit entries for create, update, access, posting, and controlled workflow actions. Each installation writes only to its configured workbook.

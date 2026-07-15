@@ -1,3 +1,5 @@
-# Highway 38 Owner Portal
+# Highway 38 Owner Portal application
 
-This application boundary owns the configured Highway 38 owner workspace, social and operating controls, and the combined Business Office route. It consumes the Highway 38 business pack and does not define reusable Business Office core behavior.
+The live Owner Portal remains in `portal.html` and `apps-script/core-engine/owner-portal-next` during migration. This application boundary owns Highway 38 operations, social, website controls, Business Office embedding, and Highway 38-specific approval presentation.
+
+The Business Office platform may be deployed without this application.
