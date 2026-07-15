@@ -72,11 +72,31 @@ if needle not in text: raise SystemExit('HOLD — acceptance copy marker missing
 text=text.replace(needle,insert,1)
 
 needle='''printf '%s' "$ACCEPT_DEPLOYMENT_ID" > "$EVIDENCE/acceptance-deployment-id.txt"
+trap 'delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID" || true' EXIT
 '''
-insert=needle+'''ACCEPT_URL="https://script.google.com/macros/s/${ACCEPT_DEPLOYMENT_ID}/exec"
+insert='''printf '%s' "$ACCEPT_DEPLOYMENT_ID" > "$EVIDENCE/acceptance-deployment-id.txt"
+ACCEPT_URL="https://script.google.com/macros/s/${ACCEPT_DEPLOYMENT_ID}/exec"
 printf '%s' "$ACCEPT_URL" > "$EVIDENCE/acceptance-url.txt"
+ACCEPT_ACCESS_TOKEN="$(apps_script_access_token)"
+ACCEPT_PERMISSION_STATUS="$(curl -sS -o "$EVIDENCE/acceptance-public-permission.json" -w '%{http_code}' -X POST \\
+  -H "Authorization: Bearer ${ACCEPT_ACCESS_TOKEN}" \\
+  -H 'Content-Type: application/json' \\
+  --data '{"type":"anyone","role":"reader","allowFileDiscovery":false}' \\
+  "https://www.googleapis.com/drive/v3/files/${SCRIPT_ID}/permissions?supportsAllDrives=true&fields=id,type,role" || true)"
+printf '%s' "$ACCEPT_PERMISSION_STATUS" > "$EVIDENCE/acceptance-public-permission-status.txt"
+test "$ACCEPT_PERMISSION_STATUS" = "200"
+ACCEPT_PUBLIC_PERMISSION_ID="$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).id||'')" "$EVIDENCE/acceptance-public-permission.json")"
+test -n "$ACCEPT_PUBLIC_PERMISSION_ID"
+cleanup_acceptance() {
+  if [[ -n "${ACCEPT_PUBLIC_PERMISSION_ID:-}" ]]; then
+    curl -sS -o /dev/null -X DELETE -H "Authorization: Bearer $(apps_script_access_token)" \\
+      "https://www.googleapis.com/drive/v3/files/${SCRIPT_ID}/permissions/${ACCEPT_PUBLIC_PERMISSION_ID}?supportsAllDrives=true" || true
+  fi
+  delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID" || true
+}
+trap cleanup_acceptance EXIT
 '''
-if needle not in text: raise SystemExit('HOLD — acceptance deployment marker missing.')
+if needle not in text: raise SystemExit('HOLD — acceptance deployment/trap marker missing.')
 text=text.replace(needle,insert,1)
 
 needle='''cp "$WORK/final-appsscript.json" "$PROJECT/appsscript.json"
@@ -85,6 +105,20 @@ insert=needle+'''cp "$WORK/final-auth.gs" "$PROJECT/BusinessOffice_Auth.gs"
 cp "$WORK/final-installer.gs" "$PROJECT/BusinessOffice_Installer.gs"
 '''
 if needle not in text: raise SystemExit('HOLD — final source restore marker missing.')
+text=text.replace(needle,insert,1)
+
+needle='''delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID"
+trap - EXIT
+'''
+insert='''curl -sS -o "$EVIDENCE/acceptance-public-permission-delete.txt" -w '%{http_code}' -X DELETE \\
+  -H "Authorization: Bearer $(apps_script_access_token)" \\
+  "https://www.googleapis.com/drive/v3/files/${SCRIPT_ID}/permissions/${ACCEPT_PUBLIC_PERMISSION_ID}?supportsAllDrives=true" \\
+  > "$EVIDENCE/acceptance-public-permission-delete-status.txt" || true
+ACCEPT_PUBLIC_PERMISSION_ID=""
+delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID"
+trap - EXIT
+'''
+if needle not in text: raise SystemExit('HOLD — acceptance cleanup marker missing.')
 text=text.replace(needle,insert,1)
 
 path.write_text(text)
