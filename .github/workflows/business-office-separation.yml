@@ -42,7 +42,15 @@ jobs:
           node-version: '24'
       - name: Inventory Highway 38 coupling
         run: node scripts/inventory-business-office-separation.js
-      - name: Upload separation inventory
+      - name: Stage source snapshot
+        run: |
+          mkdir -p artifacts/business-office-separation/source
+          cp -R apps-script/business-office artifacts/business-office-separation/source/business-office
+          cp -R apps-script/business-office-sync artifacts/business-office-separation/source/business-office-sync
+          cp apps-script/integrated-backend/H38_Business_Office_Bridge.gs artifacts/business-office-separation/source/
+          cp scripts/verify-business-office.js artifacts/business-office-separation/source/
+          cp scripts/deploy-business-office-production.sh artifacts/business-office-separation/source/
+      - name: Upload separation inventory and source
         uses: actions/upload-artifact@v4
         with:
           name: business-office-separation-inventory-${{ github.run_id }}
