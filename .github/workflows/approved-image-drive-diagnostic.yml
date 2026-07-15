@@ -1,0 +1,88 @@
+name: Approved Image Drive Diagnostic
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
+      CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
+      CLASP_CREDENTIALS_B64: ${{ secrets.CLASP_CREDENTIALS_B64 }}
+      GOOGLE_CLASPRC_JSON: ${{ secrets.GOOGLE_CLASPRC_JSON }}
+      GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Diagnose credential and one file
+        id: diag
+        continue-on-error: true
+        shell: bash
+        run: |
+          exec > >(tee "$RUNNER_TEMP/drive-diag.log") 2>&1
+          set -euxo pipefail
+          mkdir -p "$HOME"
+          if [[ -n "${CLASPRC_JSON}" ]]; then printf '%s' "${CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASPRC_JSON_B64}" ]]; then printf '%s' "${CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS}" ]]; then printf '%s' "${CLASP_CREDENTIALS}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS_B64}" ]]; then printf '%s' "${CLASP_CREDENTIALS_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON_B64}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          else echo 'No credential configured'; exit 78; fi
+          chmod 600 "$HOME/.clasprc.json"
+          node - <<'NODE' > "$RUNNER_TEMP/token.json"
+          const fs=require('fs'),https=require('https'),querystring=require('querystring');
+          const raw=JSON.parse(fs.readFileSync(process.env.HOME+'/.clasprc.json','utf8'));
+          function walk(o){if(!o||typeof o!=='object')return [];return [o,...Object.values(o).flatMap(walk)]}
+          const auth=walk(raw).find(o=>o&&typeof o==='object'&&(o.refresh_token||o.refreshToken)&&(o.client_id||o.clientId)&&(o.client_secret||o.clientSecret));
+          if(!auth){console.error('No refreshable OAuth credential found. Top-level keys:',Object.keys(raw));process.exit(2)}
+          const body=querystring.stringify({client_id:auth.client_id||auth.clientId,client_secret:auth.client_secret||auth.clientSecret,refresh_token:auth.refresh_token||auth.refreshToken,grant_type:'refresh_token'});
+          const req=https.request({method:'POST',hostname:'oauth2.googleapis.com',path:'/token',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}},res=>{let data='';res.on('data',c=>data+=c);res.on('end',()=>{console.error('OAuth HTTP',res.statusCode);const parsed=JSON.parse(data);if(!parsed.access_token){console.error(data);process.exit(3)};process.stdout.write(JSON.stringify({access_token:parsed.access_token,scope:parsed.scope||'',token_type:parsed.token_type||''}))})});
+          req.on('error',e=>{console.error(e);process.exit(4)});req.end(body);
+          NODE
+          ACCESS_TOKEN="$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).access_token)" "$RUNNER_TEMP/token.json")"
+          SCOPE="$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).scope)" "$RUNNER_TEMP/token.json")"
+          echo "OAuth scope: ${SCOPE}"
+          curl --silent --show-error --location --max-time 60 -D "$RUNNER_TEMP/headers.txt" -o "$RUNNER_TEMP/body.bin" -w 'Drive HTTP %{http_code}\n' -H "Authorization: Bearer ${ACCESS_TOKEN}" 'https://www.googleapis.com/drive/v3/files/1BoHiogcPfhszUhh1L3FAzSrSR0V59ndN?alt=media&supportsAllDrives=true'
+          cat "$RUNNER_TEMP/headers.txt"
+          file "$RUNNER_TEMP/body.bin"
+          wc -c "$RUNNER_TEMP/body.bin"
+          head -c 300 "$RUNNER_TEMP/body.bin" | strings || true
+      - name: Report diagnostic
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Approved image authenticated Drive diagnostic'
+            echo
+            echo '```text'
+            sed -E 's/(access_token|refresh_token|client_secret)[^ ]*/[REDACTED]/g' "$RUNNER_TEMP/drive-diag.log" | tail -c 30000
+            echo
+            echo '```'
+          } > "$RUNNER_TEMP/report.md"
+          gh issue comment 100 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/report.md"
+      - name: Remove diagnostic workflow
+        if: always()
+        shell: bash
+        run: |
+          git fetch origin main
+          git worktree add "$RUNNER_TEMP/main-cleanup" origin/main
+          cd "$RUNNER_TEMP/main-cleanup"
+          git checkout -B main origin/main
+          rm -f .github/workflows/approved-image-drive-diagnostic.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/approved-image-drive-diagnostic.yml
+          git commit -m 'Remove approved image Drive diagnostic'
+          git push origin HEAD:main
+      - name: Preserve diagnostic failure
+        if: steps.diag.outcome == 'failure'
+        run: exit 1
