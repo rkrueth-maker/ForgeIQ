@@ -68,6 +68,19 @@ text=text.replace(needle,replacement,1)
 text=text.replace('''delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID"
 trap - EXIT''','''delete_deployment "$SCRIPT_ID" "$ACCEPT_DEPLOYMENT_ID"
 rm -f "$EVIDENCE/authorization-required-url.txt"''',1)
+final_check=r'''if [[ "$FINAL_STATUS" = "200" ]] && grep -Eqi 'ReferenceError|TypeError|Exception:|Highway[[:space:]]*38|\bH38\b|rkrueth-maker|highway-38-solutions' "$EVIDENCE/final-http.html"; then echo 'Final clean deployment returned an error or Highway 38 leakage.' >&2; exit 1; fi'''
+final_replacement=r'''if [[ "$FINAL_STATUS" = "200" ]]; then
+  if grep -Eqi 'accounts\.google\.com/(v3/)?signin|Google Accounts|identifierId' "$EVIDENCE/final-http.html"; then
+    printf '%s\n' 'AUTHORIZED_SIGN_IN_REQUIRED' > "$EVIDENCE/final-http-classification.txt"
+  elif grep -Eqi 'ReferenceError|TypeError|Exception:|Highway[[:space:]]*38|\bH38\b|rkrueth-maker|highway-38-solutions' "$EVIDENCE/final-http.html"; then
+    echo 'Final clean deployment returned an error or Highway 38 leakage.' >&2
+    exit 1
+  else
+    printf '%s\n' 'APPLICATION_RESPONSE' > "$EVIDENCE/final-http-classification.txt"
+  fi
+fi'''
+if final_check not in text: raise SystemExit('HOLD — final deployment response check missing.')
+text=text.replace(final_check,final_replacement,1)
 path.write_text(text)
 PY
 
