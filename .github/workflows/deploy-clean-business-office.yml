@@ -2,10 +2,11 @@ name: Deploy Clean Standalone Business Office
 
 on:
   push:
-    branches: [main, business-office-separation]
+    branches: [main, separate-business-office-platform]
     paths:
       - 'launch-control/clean-install/deploy-request.json'
       - '.github/workflows/deploy-clean-business-office.yml'
+      - 'scripts/deploy-business-office-clean-acceptance.sh'
   workflow_dispatch:
 
 permissions:
@@ -31,6 +32,9 @@ jobs:
       GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: separate-business-office-platform
+          fetch-depth: 1
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
