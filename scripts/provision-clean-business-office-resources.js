@@ -13,7 +13,14 @@ const ownerEmail = String(process.env.CLEAN_OWNER_EMAIL || '').trim().toLowerCas
 const businessName = String(process.env.CLEAN_BUSINESS_NAME || 'Template Business').trim();
 const businessId = String(process.env.CLEAN_BUSINESS_ID || 'BUSINESS').trim();
 const installationId = String(process.env.CLEAN_INSTALLATION_ID || 'template-business-clean').trim();
+const configuredScriptId = String(process.env.CLEAN_SCRIPT_ID || '').trim();
+const blockedHighway38ScriptIds = new Set([
+  '13Bes6_rs3LD-Sch4Vi5DKssCnlU_qb4hzZpGpDVfoRELRak0htXEj7O-'
+]);
 if (!ownerEmail) throw new Error('CLEAN_OWNER_EMAIL is required.');
+if (configuredScriptId && blockedHighway38ScriptIds.has(configuredScriptId)) {
+  throw new Error('CLEAN_SCRIPT_ID must not reuse a live Highway 38 Apps Script project.');
+}
 let phase = 'startup';
 const partial = {};
 
@@ -104,6 +111,18 @@ async function createScriptProject(token) {
   });
 }
 
+async function resolveScriptProject(token) {
+  if (!configuredScriptId) {
+    const created = await createScriptProject(token);
+    if (!created.scriptId) throw new Error('Apps Script project creation did not return a scriptId.');
+    return { id: created.scriptId, title: created.title || '', reused: false, created: true };
+  }
+  const project = await google(token, 'GET', 'script.googleapis.com', `/v1/projects/${encodeURIComponent(configuredScriptId)}`, null);
+  const returnedId = String(project.scriptId || configuredScriptId);
+  if (returnedId !== configuredScriptId) throw new Error('Configured Apps Script project ID did not match the authorized project response.');
+  return { id: configuredScriptId, title: project.title || '', reused: true, created: false };
+}
+
 (async () => {
   phase = 'verify-neutral-schema';
   const schema = verifyNeutralSchema();
@@ -124,23 +143,32 @@ async function createScriptProject(token) {
   phase = 'create-backup-folder';
   const backupFolder = await createFolder(token, 'Backups', rootFolder.id);
   partial.backupFolder = backupFolder;
-  phase = 'create-apps-script-project';
-  const scriptProject = await createScriptProject(token);
-  if (!scriptProject.scriptId) throw new Error('Apps Script project creation did not return a scriptId.');
-  partial.appsScriptProject = { id: scriptProject.scriptId };
+  phase = configuredScriptId ? 'verify-isolated-apps-script-project' : 'create-apps-script-project';
+  const scriptProject = await resolveScriptProject(token);
+  partial.appsScriptProject = scriptProject;
   const result = {
     status: 'RESOURCES PROVISIONED — WORKBOOK AND ACCEPTANCE REQUIRED',
     installationId, businessId, businessName, ownerEmail,
     neutralSchema: { source: 'repository', verifiedSheetCount: schema.sheetCount },
     spreadsheet: null,
     rootFolder, documentFolder, pdfFolder, exportFolder, backupFolder,
-    appsScriptProject: { id: scriptProject.scriptId },
+    appsScriptProject: scriptProject,
     externalActionsEnabled: false, directPaymentProcessing: false,
-    directPayrollFunding: false, directTaxFiling: false, sourceBusinessDataCopied: false
+    directPayrollFunding: false, directTaxFiling: false, sourceBusinessDataCopied: false,
+    highway38ProjectReused: false
   };
   phase = 'complete';
   writeEvidence(result);
-  console.log(JSON.stringify({ status: result.status, installationId, businessId, sheetCount: schema.sheetCount, scriptProjectCreated: true }, null, 2));
+  console.log(JSON.stringify({
+    status: result.status,
+    installationId,
+    businessId,
+    sheetCount: schema.sheetCount,
+    scriptProjectId: scriptProject.id,
+    scriptProjectCreated: scriptProject.created,
+    scriptProjectReused: scriptProject.reused,
+    highway38ProjectReused: false
+  }, null, 2));
 })().catch(error => {
   writeEvidence({ status: 'HOLD', phase, installationId, businessId, businessName,
     error: error && error.message ? error.message : String(error), partialResources: partial,
