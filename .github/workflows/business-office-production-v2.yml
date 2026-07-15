@@ -8,6 +8,7 @@ on:
       - 'scripts/deploy-business-office-production.sh'
       - 'scripts/deploy-business-office-owner-web-harness.sh'
       - 'scripts/assemble-business-office-app.sh'
+      - 'scripts/load-highway38-deployment-config.js'
       - 'apps-script/business-office/**'
       - 'apps-script/business-office-sync/**'
       - 'business-packs/highway38/**'
@@ -31,15 +32,6 @@ jobs:
   deploy-and-verify:
     runs-on: ubuntu-latest
     env:
-      H38_BO_SPREADSHEET_ID: 1kDDKWx9jfObWm8EmaXm5weDCTJbQ8RTf7-sq4RDEYlA
-      H38_BO_ROOT_FOLDER_ID: 1kDgnuxRLaJTZoO01O1U1bbeDNNAgdaI6
-      H38_BO_DOCUMENT_FOLDER_ID: 1Vq8UjAzxW4hIKYoodkf1hfqkATWiXjVC
-      H38_BO_PDF_FOLDER_ID: 11ak4QZ7ag8daYO1_uO6NTCVXIO7Kh6j3
-      H38_BO_EXPORT_FOLDER_ID: 1Jn2vW5gwJcaNX0BH1em-v0M9Q3-SwiJQ
-      H38_BO_BACKUP_FOLDER_ID: 1rjl_m8u1YlaXSo29m46apa9dQD1zeucs
-      H38_BO_OWNER_EMAIL: rkrueth@gmail.com
-      H38_BO_BUSINESS_ID: H38
-      H38_BACKEND_SPREADSHEET_ID: 1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo
       CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
       CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
       CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
@@ -54,6 +46,8 @@ jobs:
           node-version: '24'
       - name: Install dependencies
         run: npm install
+      - name: Load configured Highway 38 installation references
+        run: node scripts/load-highway38-deployment-config.js
       - name: Verify reusable core, Highway 38 pack, and clean-install isolation
         run: |
           npm run test:business-office
@@ -121,6 +115,7 @@ jobs:
 
           - Source commit: ${GITHUB_SHA}
           - Business pack: highway38
+          - Deployment configuration: business-packs/highway38/deployment.json
           - Business Office Apps Script project: ${BO_SCRIPT_ID}
           - Business Office deployment: ${BO_DEPLOYMENT_ID}
           - Private logged-in web app: ${BO_WEB_APP_URL}
