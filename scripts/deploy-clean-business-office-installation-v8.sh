@@ -53,7 +53,8 @@ PYRESP
 }
 
 '''
-text,count=re.subn(r'run_action\(\) \{.*?\n\}\n\n(?=apps_script_access_token\(\))',run_action,text,count=1,flags=re.S)
+pattern=r'run_action\(\) \{.*?\n\}\n\n(?=apps_script_access_token\(\))'
+text,count=re.subn(pattern,lambda match: run_action,text,count=1,flags=re.S)
 if count!=1: raise SystemExit('HOLD — v2 run_action block was not found.')
 text=text.replace("m.webapp={executeAs:'USER_ACCESSING',access:'ANYONE'};\nm.executionApi={access:'MYSELF'};", "m.webapp={executeAs:'USER_ACCESSING',access:'ANYONE'};\ndelete m.executionApi;")
 needle='''printf '%s' "$ACCEPT_DEPLOYMENT_ID" > "$EVIDENCE/acceptance-deployment-id.txt"
