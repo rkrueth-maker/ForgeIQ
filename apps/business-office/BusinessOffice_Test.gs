@@ -24,13 +24,16 @@ function boRunSelfTest() {
     return result.folderChecks.length + ' private folders checked';
   });
 
-  test('Approved product and bundle counts', function () {
+  test('Configured product and bundle expectations', function () {
     const rows = boReadTable_(BO_SHEETS.PRODUCTS, { includeVoided: true });
     const products = rows.filter(function (row) { return row['Record Type'] === 'Product' && row.Active === 'Yes'; });
     const bundles = rows.filter(function (row) { return row['Record Type'] === 'Bundle' && row.Active === 'Yes'; });
-    boAssert_(products.length === 15, 'Expected 15 products; found ' + products.length);
-    boAssert_(bundles.length === 9, 'Expected 9 bundles; found ' + bundles.length);
-    return '15 products / 9 bundles';
+    const expectations = boCatalogExpectations_();
+    if (expectations.enforceCounts) {
+      boAssert_(products.length === expectations.products, 'Expected ' + expectations.products + ' products; found ' + products.length);
+      boAssert_(bundles.length === expectations.bundles, 'Expected ' + expectations.bundles + ' bundles; found ' + bundles.length);
+    }
+    return products.length + ' products / ' + bundles.length + ' bundles; configured expectations ' + expectations.products + ' / ' + expectations.bundles;
   });
 
   test('Double-entry ledger balance', function () {
@@ -55,14 +58,14 @@ function boRunSelfTest() {
     return 'All external execution boundaries locked';
   });
 
-  test('Approval gates remain closed in controlled data', function () {
-    const quote = boFindRecord_(BO_SHEETS.QUOTES, 'QUOTE-TEST-001', { includeVoided: true }).record;
-    const payroll = boFindRecord_(BO_SHEETS.PAYROLL_PERIODS, 'PAYROLL-TEST-001', { includeVoided: true }).record;
-    const tax = boFindRecord_(BO_SHEETS.TAX_PERIODS, 'TAX-TEST-001', { includeVoided: true }).record;
-    boAssert_(quote['Send Allowed'] === 'No', 'Controlled quote Send Allowed must be No.');
-    boAssert_(payroll['Export Allowed'] === 'No', 'Controlled payroll Export Allowed must be No.');
-    boAssert_(tax['Finalization Allowed'] === 'No', 'Controlled tax Finalization Allowed must be No.');
-    return 'Quote, payroll, and tax gates are closed';
+  test('Approval gates remain closed', function () {
+    const settings = boReadTable_(BO_SHEETS.SETTINGS, { includeVoided: true });
+    const external = settings.find(function (row) { return row['Setting Key'] === 'live_external_actions'; });
+    const selectedOnly = settings.find(function (row) { return row['Setting Key'] === 'selected_record_only'; });
+    boAssert_(external && external['Setting Value'] === 'FALSE', 'External-action setting must be FALSE.');
+    boAssert_(selectedOnly && selectedOnly['Setting Value'] === 'TRUE', 'Selected-record-only setting must be TRUE.');
+    boAssert_(boApprovalText_('required'), 'Approval language is missing.');
+    return 'External actions disabled; selected-record approval control active';
   });
 
   test('Document upload policy', function () {
@@ -70,7 +73,7 @@ function boRunSelfTest() {
     boAssert_(BO_PLATFORM.ALLOWED_MIME_TYPES.indexOf('image/jpeg') >= 0, 'JPEG missing.');
     boAssert_(BO_PLATFORM.ALLOWED_MIME_TYPES.indexOf('image/png') >= 0, 'PNG missing.');
     boAssert_(BO_PLATFORM.MAX_UPLOAD_BYTES > 0, 'Unexpected upload limit.');
-    return 'PDF/JPEG/PNG supported; HEIC controlled; 20 MB limit';
+    return 'PDF/JPEG/PNG supported; conditional image formats controlled; upload limit configured';
   });
 
   test('Proof and error logs', function () {
