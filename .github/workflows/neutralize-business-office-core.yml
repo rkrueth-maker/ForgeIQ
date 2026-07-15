@@ -1,0 +1,42 @@
+name: Neutralize Business Office Core
+
+on:
+  push:
+    branches: [business-office-separation]
+    paths:
+      - 'launch-control/business-office-core-neutralization.json'
+
+permissions:
+  contents: write
+
+jobs:
+  neutralize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: business-office-separation
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply deterministic neutralization
+        run: node scripts/neutralize-business-office-core.js
+      - name: Verify transformed core
+        run: |
+          npm install
+          npm run test:business-office
+          npm run test:business-office-separation
+      - name: Commit transformed source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add apps-script/business-office
+          if git diff --cached --quiet; then
+            echo 'No neutralization changes were required.'
+          else
+            git commit -m 'Neutralize reusable Business Office core'
+            git push origin HEAD:business-office-separation
+          fi
