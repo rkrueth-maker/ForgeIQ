@@ -31,7 +31,7 @@ NODE
     echo "HOLD — one-time Google authorization is required at ${ACCEPT_URL}" >&2
     return 78
   fi
-  if [[ "$status" != "200" ]]; then
+  if [[ -n "$status" && "$status" != "200" ]]; then
     echo "HOLD — authenticated web execution returned HTTP ${status} for ${action}." >&2
     return 79
   fi
