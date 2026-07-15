@@ -13,6 +13,7 @@ on:
       - 'scripts/deploy-clean-business-office-installation-v5.sh'
       - 'scripts/deploy-clean-business-office-installation-v6.sh'
       - 'scripts/deploy-clean-business-office-installation-v7.sh'
+      - 'scripts/deploy-clean-business-office-installation-v8.sh'
       - 'scripts/provision-clean-business-office-resources.js'
       - 'scripts/build-business-office-installation.js'
       - 'scripts/verify-business-office-isolation.js'
@@ -99,7 +100,7 @@ jobs:
 
       - name: Provision and deploy clean standalone installation
         shell: bash
-        run: bash scripts/deploy-clean-business-office-installation-v7.sh
+        run: bash scripts/deploy-clean-business-office-installation-v8.sh
 
       - name: Record safe failure metadata
         if: failure()
@@ -145,6 +146,14 @@ jobs:
             echo '<!-- business-office-clean-installation -->'
             echo '## Clean standalone installation — HOLD'
             echo
+            if [[ -f artifacts/business-office-clean-installation/authorization-required-url.txt ]]; then
+              echo '**One-time Google authorization is required:**'
+              echo
+              cat artifacts/business-office-clean-installation/authorization-required-url.txt
+              echo
+              echo 'Open the link, choose Review Permissions, approve it for rkrueth@gmail.com, then rerun this workflow.'
+              echo
+            fi
             if [[ -f artifacts/business-office-clean-installation/failure-metadata.json ]]; then
               echo '```json'
               cat artifacts/business-office-clean-installation/failure-metadata.json
