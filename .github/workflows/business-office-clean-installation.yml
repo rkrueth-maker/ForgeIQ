@@ -1,0 +1,101 @@
+name: Business Office Clean Installation
+
+on:
+  push:
+    branches:
+      - separate-business-office-platform
+    paths:
+      - '.github/workflows/business-office-clean-installation.yml'
+      - 'scripts/deploy-clean-business-office-installation.sh'
+      - 'scripts/provision-clean-business-office-resources.js'
+      - 'scripts/build-business-office-installation.js'
+      - 'scripts/verify-business-office-isolation.js'
+      - 'scripts/verify-business-office-separation.js'
+      - 'tests/business-office-clean-installation/**'
+      - 'apps/business-office/**'
+      - 'packages/**'
+      - 'business-packs/template-business/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: business-office-clean-installation
+  cancel-in-progress: false
+
+jobs:
+  provision-deploy-and-verify:
+    runs-on: ubuntu-latest
+    env:
+      CLEAN_OWNER_EMAIL: rkrueth@gmail.com
+      CLEAN_BUSINESS_NAME: Template Business
+      CLEAN_BUSINESS_ID: BUSINESS
+      CLEAN_INSTALLATION_ID: template-business-${{ github.run_id }}
+      CLEAN_TEMPLATE_TITLE: Business Office Platform — Neutral Workbook Template
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
+      CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
+      CLASP_CREDENTIALS_B64: ${{ secrets.CLASP_CREDENTIALS_B64 }}
+      GOOGLE_CLASPRC_JSON: ${{ secrets.GOOGLE_CLASPRC_JSON }}
+      GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: separate-business-office-platform
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify separated source before provisioning
+        run: |
+          npm install
+          node scripts/verify-business-office-isolation.js
+          node scripts/verify-business-office-separation.js
+          npm run test:business-office
+
+      - name: Install tested deployment tools
+        run: |
+          npm install --global @google/clasp@3.1.0
+          npx playwright install --with-deps chromium
+
+      - name: Load encrypted Google credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME"
+          if [[ -n "${CLASPRC_JSON}" ]]; then printf '%s' "${CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASPRC_JSON_B64}" ]]; then printf '%s' "${CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS}" ]]; then printf '%s' "${CLASP_CREDENTIALS}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS_B64}" ]]; then printf '%s' "${CLASP_CREDENTIALS_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON_B64}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          else echo 'HOLD — no encrypted Google credential is configured.'; exit 78; fi
+          chmod 600 "$HOME/.clasprc.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8'));console.log('Encrypted clasp credential loaded.')"
+
+      - name: Provision and deploy clean standalone installation
+        shell: bash
+        run: bash scripts/deploy-clean-business-office-installation.sh
+
+      - name: Record safe failure metadata
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p artifacts/business-office-clean-installation
+          if [[ ! -f artifacts/business-office-clean-installation/failure-metadata.json ]]; then
+            cat > artifacts/business-office-clean-installation/failure-metadata.json <<JSON
+          {"status":"HOLD","sourceCommit":"${GITHUB_SHA}","externalActionsOccurred":false,"paymentProcessed":false,"payrollFundsMoved":false,"taxReturnFiled":false,"customerMessageSent":false,"deliveryOccurred":false}
+          JSON
+          fi
+
+      - name: Upload clean-install acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: business-office-clean-installation-${{ github.run_id }}
+          path: artifacts/business-office-clean-installation/
+          if-no-files-found: error
+          retention-days: 90
