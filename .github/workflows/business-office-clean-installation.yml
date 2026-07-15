@@ -43,7 +43,6 @@ jobs:
       CLEAN_BUSINESS_ID: NORTHSTAR_TEST
       CLEAN_INSTALLATION_ID: north-star-test-${{ github.run_id }}
       CLEAN_BUSINESS_PACK: north-star-test
-      CLEAN_SCRIPT_ID: 1w6x2THxN-QjMi8G5ItTjejM6blVJuvPQRy_G-FVQcdrW5u3R-ZrnfVti
       CLEAN_TEMPLATE_TITLE: North Star Test Company — Business Office
       CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
       CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
