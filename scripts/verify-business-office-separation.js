@@ -24,12 +24,12 @@ check('template pack is neutral',!/Highway\s*38|rkrueth|highway-38-solutions|H38
 check('template pack has empty catalog',template.catalog.mode==='empty'&&template.validation.expectedProductCount===0&&template.validation.expectedBundleCount===0);
 check('template pack retains safety boundaries',template.tax.directFiling===false);
 for(const [pack,mode] of [['highway38','combined'],['template-business','standalone']]){
-  const out=path.join(root,'artifacts','business-office-separation','builds',`${pack}-${mode}`);
+  const out=path.join(root,'artifacts','separate-business-office-platform','builds',`${pack}-${mode}`);
   cp.execFileSync(process.execPath,[path.join(root,'scripts/build-business-office-installation.js'),'--pack',pack,'--mode',mode,'--out',out],{stdio:'inherit'});
   check(`${pack} ${mode} bundle generated`,fs.existsSync(path.join(out,'installation-manifest.json')));
   const all=fs.readdirSync(out).filter(n=>/\.(gs|html|json)$/.test(n)).map(n=>fs.readFileSync(path.join(out,n),'utf8')).join('\n');
   if(pack==='template-business') check('clean bundle has no Highway 38 leakage',!/Highway\s*38|rkrueth|highway-38-solutions|H38_|AKfyc/i.test(all));
 }
 const result={status:failures.length?'HOLD':'PASS',passes,failures};
-const outDir=path.join(root,'artifacts','business-office-separation');fs.mkdirSync(outDir,{recursive:true});fs.writeFileSync(path.join(outDir,'separation-verification.json'),JSON.stringify(result,null,2)+'\n');
+const outDir=path.join(root,'artifacts','separate-business-office-platform');fs.mkdirSync(outDir,{recursive:true});fs.writeFileSync(path.join(outDir,'separation-verification.json'),JSON.stringify(result,null,2)+'\n');
 console.log(`RESULT: ${result.status}`);process.exit(failures.length?1:0);

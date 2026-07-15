@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'artifacts', 'business-office-separation');
+const OUT = path.join(ROOT, 'artifacts', 'separate-business-office-platform');
 const TARGETS = [
   'apps-script/business-office',
   'apps-script/business-office-sync',

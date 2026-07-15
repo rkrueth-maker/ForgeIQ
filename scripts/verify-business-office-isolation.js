@@ -35,7 +35,7 @@ const templateKeys = new Set(Object.values(template.resources.propertyKeys));
 check('Highway 38 and template use different primary resource property namespaces', h38.resources.propertyKeys.BO_SPREADSHEET_ID !== template.resources.propertyKeys.BO_SPREADSHEET_ID);
 check('template has no Highway 38 resource property keys', [...templateKeys].every(key => !key.startsWith('H38_')));
 const result = { status: failures.length ? 'HOLD' : 'PASS', packs: packs.map(item => item.name), passes, failures };
-const out = path.join(root, 'artifacts', 'business-office-separation');
+const out = path.join(root, 'artifacts', 'separate-business-office-platform');
 fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, 'isolation-verification.json'), JSON.stringify(result, null, 2) + '\n');
 console.log(`RESULT: ${result.status}`);
