@@ -26,6 +26,19 @@ function boCleanPatchSeedRow_(schema, sheetName, valuesByHeader) {
   });
 }
 
+function boCleanBindBusinessSeedRows_(schema, businessId) {
+  schema.sheets.forEach(function (sheet) {
+    if (!sheet || !Array.isArray(sheet.rows) || !sheet.rows.length) return;
+    const businessIdIndex = sheet.rows[0].indexOf('Business ID');
+    if (businessIdIndex < 0) return;
+    sheet.rows.slice(1).forEach(function (row) {
+      if (String(row[businessIdIndex] || '').trim() === 'BUSINESS') {
+        row[businessIdIndex] = businessId;
+      }
+    });
+  });
+}
+
 function boProvisionNeutralWorkbook_(payload) {
   const p = payload || {};
   ['rootFolderId', 'documentFolderId', 'pdfFolderId', 'exportFolderId', 'backupFolderId', 'ownerEmail', 'businessId', 'businessName', 'installationId'].forEach(function (key) {
@@ -42,6 +55,7 @@ function boProvisionNeutralWorkbook_(payload) {
       });
     });
   });
+  boCleanBindBusinessSeedRows_(schema, p.businessId);
   boCleanPatchSeedRow_(schema, 'BO Businesses', {
     'Business ID': p.businessId,
     'Legal Name': p.businessName,
