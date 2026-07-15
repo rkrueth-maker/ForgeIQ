@@ -1,0 +1,38 @@
+name: Business Office Separation
+
+on:
+  push:
+    branches:
+      - separate-business-office-platform
+    paths:
+      - '.github/workflows/business-office-separation.yml'
+      - 'scripts/inventory-business-office-separation.js'
+      - 'apps-script/business-office/**'
+      - 'apps-script/business-office-sync/**'
+      - 'apps-script/integrated-backend/**'
+      - 'apps-script/core-engine/owner-portal-next/**'
+      - 'portal.html'
+      - 'ecosystem.js'
+      - 'brand-global.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Inventory Highway 38 coupling
+        run: node scripts/inventory-business-office-separation.js
+      - name: Upload separation inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: business-office-separation-inventory-${{ github.run_id }}
+          path: artifacts/business-office-separation/
+          if-no-files-found: error
+          retention-days: 90
