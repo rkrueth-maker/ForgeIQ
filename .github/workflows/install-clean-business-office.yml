@@ -64,7 +64,9 @@ jobs:
           node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8')); console.log('Encrypted clasp credential loaded.')"
       - name: Install and accept isolated standalone Business Office
         shell: bash
-        run: bash scripts/deploy-business-office-clean-acceptance.sh
+        run: |
+          set -o pipefail
+          bash scripts/deploy-business-office-clean-acceptance.sh 2>&1 | tee "$RUNNER_TEMP/clean-install.log"
       - name: Upload installation evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -99,16 +101,21 @@ jobs:
           - Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
           EOF
           gh issue comment 31 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/clean-install-pass.md"
-      - name: Record installation HOLD
+      - name: Record installation HOLD with failure detail
         if: failure()
         shell: bash
         run: |
-          cat > "$RUNNER_TEMP/clean-install-hold.md" <<EOF
-          <!-- clean-business-office-installation -->
-          ## Clean standalone Business Office installation — HOLD
-
-          The isolated installation did not pass. Highway 38 was not modified.
-
-          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          EOF
+          {
+            echo '<!-- clean-business-office-installation -->'
+            echo '## Clean standalone Business Office installation — HOLD'
+            echo
+            echo 'The isolated installation did not pass. Highway 38 was not modified.'
+            echo
+            echo '### Installer output'
+            echo '```text'
+            if [[ -f "$RUNNER_TEMP/clean-install.log" ]]; then tail -n 80 "$RUNNER_TEMP/clean-install.log"; else echo 'Installer step did not start; inspect the workflow setup steps.'; fi
+            echo '```'
+            echo
+            echo "Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > "$RUNNER_TEMP/clean-install-hold.md"
           gh issue comment 31 --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/clean-install-hold.md"
