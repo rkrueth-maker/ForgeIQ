@@ -56,7 +56,9 @@ function boCleanCallableProof_() {
   const proofRecordId = 'CALLABLE-' + Utilities.getUuid().slice(0, 12).toUpperCase();
   boProof_('CLEAN CALLABLE PROOF', 'System', boGetBusinessId_(), 'PASS', proofRecordId, owner.Email);
   const proofRows = boReadTable_(BO_SHEETS.PROOF_LOG, { includeVoided: true }).filter(function (row) {
-    return String(row.Operation || '') === 'CLEAN CALLABLE PROOF' && String(row.Details || '').indexOf(proofRecordId) >= 0;
+    const action = String(row.Action || row.Operation || '');
+    const evidence = String(row.Evidence || row.Details || '');
+    return action === 'CLEAN CALLABLE PROOF' && evidence.indexOf(proofRecordId) >= 0;
   });
   const criticalErrors = boReadTable_(BO_SHEETS.ERROR_LOG, { includeVoided: true }).filter(function (row) {
     return row.Status !== 'Resolved' && row.Severity !== 'Warning';
