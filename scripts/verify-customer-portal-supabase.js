@@ -19,7 +19,7 @@ const required = [
   'customer-portal-config.js',
   'customer-portal-supabase.js',
   'supabase/migrations/20260716_customer_portal.sql',
-  'supabase/migrations/20260716_customer_portal_invitation_activation.sql',
+  'supabase/migrations/20260716_customer_portal_invite_activation.sql',
   'core-engine/customer-portal/config/customer-portal.supabase.example.json',
   'core-engine/customer-portal/SUPABASE_SETUP.md',
   'apps-script/core-engine/owner-portal-next/Portal_Unified.js'
@@ -36,7 +36,7 @@ const html = exists('customer-portal.html') ? read('customer-portal.html') : '';
 const config = exists('customer-portal-config.js') ? read('customer-portal-config.js') : '';
 const client = exists('customer-portal-supabase.js') ? read('customer-portal-supabase.js') : '';
 const baseSql = exists('supabase/migrations/20260716_customer_portal.sql') ? read('supabase/migrations/20260716_customer_portal.sql') : '';
-const activationSql = exists('supabase/migrations/20260716_customer_portal_invitation_activation.sql') ? read('supabase/migrations/20260716_customer_portal_invitation_activation.sql') : '';
+const activationSql = exists('supabase/migrations/20260716_customer_portal_invite_activation.sql') ? read('supabase/migrations/20260716_customer_portal_invite_activation.sql') : '';
 const sql = baseSql + '\n' + activationSql;
 const portal = exists('apps-script/core-engine/owner-portal-next/Portal_Unified.js') ? read('apps-script/core-engine/owner-portal-next/Portal_Unified.js') : '';
 
