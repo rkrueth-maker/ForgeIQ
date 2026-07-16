@@ -67,7 +67,7 @@ const customer = read('customer-portal.html');
 const customerConfig = read('customer-portal-config.js');
 const customerClient = read('customer-portal-supabase.js');
 const customerMigration = read('supabase/migrations/20260716_customer_portal.sql');
-const customerActivation = read('supabase/migrations/20260716_customer_portal_invitation_activation.sql');
+const customerActivation = read('supabase/migrations/20260716_customer_portal_invite_activation.sql');
 check('customer portal production Supabase configuration is active',
   /enabled:\s*true/.test(customerConfig) &&
   /jqukmwtsgcsaruucnqja\.supabase\.co/.test(customerConfig) &&
