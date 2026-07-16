@@ -7,6 +7,7 @@ on:
   workflow_run:
     workflows:
       - Pages Merge Signal
+      - Highway 38 Solutions Tests
     types:
       - completed
   workflow_dispatch:
