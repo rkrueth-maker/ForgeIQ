@@ -8,7 +8,7 @@ function boRenderWebApp_(){
     .replace('--navy:#243447','--navy:'+branding.primaryColor)
     .replace('--blue:#52677d','--blue:'+branding.secondaryColor)
     .replace('<div class="notice"><strong>Controlled business system:</strong> customer sending, delivery, financial posting, payroll export, and tax report finalization require explicit approval. This system does not move money, fund payroll, file returns, or provide tax advice.</div>','<div class="notice"><strong>Controlled business system:</strong> '+boApprovalNotice_()+' This system does not move money, fund payroll, file returns, or provide tax advice.</div>')
-    .replace('</body>',boInclude_('BusinessOffice_UX')+'</body>');
+     .replace('</body>',boInclude_('BusinessOffice_UX_Client')+'</body>');
   return HtmlService.createHtmlOutput(html).setTitle(title).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL).addMetaTag('viewport','width=device-width, initial-scale=1');
 }
 function boGetRenderedWebAppHtml(){boGetCurrentUser_();return boRenderWebApp_().getContent();}
