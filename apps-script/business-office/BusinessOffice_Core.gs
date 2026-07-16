@@ -110,6 +110,7 @@ function boRejectDuplicate_(sheetName, payload, currentRecordId) {
 }
 
 function boListRecords(moduleKey, options) {
+  boAssertModuleEnabled_(moduleKey);
   const sheetName = H38_BO_MODULES[moduleKey] || moduleKey;
   boRequirePermission_(sheetName, 'View');
   const opts = options || {};
@@ -136,6 +137,7 @@ function boListRecords(moduleKey, options) {
 }
 
 function boSaveRecord(moduleKey, recordId, values) {
+  boAssertModuleEnabled_(moduleKey);
   const sheetName = H38_BO_MODULES[moduleKey] || moduleKey;
   boRequirePermission_(sheetName, recordId ? 'Edit' : 'Create');
   return recordId ? boUpdateRecord_(sheetName, recordId, values, 'Web application') : boAppendRecord_(sheetName, values, 'Web application');
