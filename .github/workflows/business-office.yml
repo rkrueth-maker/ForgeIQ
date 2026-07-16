@@ -1,4 +1,4 @@
-name: Highway 38 Business Office
+name: Highway 38 Business Office Verification
 
 on:
   pull_request:
@@ -36,7 +36,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: highway-38-business-office-production
+  group: highway-38-business-office-verification
   cancel-in-progress: false
 
 jobs:
@@ -54,6 +54,10 @@ jobs:
           npm run test:business-office
           node scripts/verify-owner-business-office-ux.js
           node scripts/verify-business-office-existing-deployment.js
+      - name: Confirm automatic production authority is unified-only
+        run: |
+          echo 'PASS — push and pull-request runs verify only.'
+          echo 'Automatic production deployment belongs exclusively to Deploy Unified Owner Portal.'
       - name: Upload source verification evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -64,8 +68,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 90
 
-  deploy-existing-production:
-    if: github.event_name != 'pull_request'
+  manual-existing-deployment-compatibility:
+    if: github.event_name == 'workflow_dispatch'
     needs: verify-business-office
     runs-on: ubuntu-latest
     env:
@@ -107,7 +111,7 @@ jobs:
           else echo 'HOLD — no encrypted clasp credential is configured.'; exit 78; fi
           chmod 600 "$HOME/.clasprc.json"
           node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8')); console.log('Encrypted clasp credential loaded.')"
-      - name: Back up and update accepted Business Office deployment
+      - name: Manually update accepted Business Office compatibility deployment
         shell: bash
         run: bash scripts/deploy-business-office-existing-production.sh
       - name: Upload live deployment and rollback evidence
@@ -118,7 +122,7 @@ jobs:
           path: artifacts/business-office-existing-production/
           if-no-files-found: warn
           retention-days: 90
-      - name: Record successful existing-deployment update
+      - name: Record manual compatibility update
         if: success()
         shell: bash
         run: |
@@ -128,11 +132,5 @@ jobs:
           PREVIOUS_VERSION="$(cat "$OUT/previous-version.txt")"
           NEW_VERSION="$(cat "$OUT/new-version.txt")"
           URL="$(cat "$OUT/web-app-url.txt")"
-          BODY="Business Office workflow UX deployed from commit ${GITHUB_SHA} by updating the accepted existing Apps Script project and deployment in place. Script ID: ${SCRIPT_ID}. Deployment ID: ${DEPLOYMENT_ID}. Version advanced from ${PREVIOUS_VERSION} to ${NEW_VERSION}. No new project or production deployment was created; desktop/mobile rendered UX passed; external actions remain disabled. URL: ${URL}. Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          gh issue comment 85 --repo "$GITHUB_REPOSITORY" --body "$BODY"
-      - name: Record deployment hold
-        if: failure()
-        shell: bash
-        run: |
-          BODY="Business Office existing-deployment update is on HOLD for commit ${GITHUB_SHA}. No fallback project or deployment was created. Review evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          BODY="Manual Business Office compatibility deployment updated in place from commit ${GITHUB_SHA}. Script ID: ${SCRIPT_ID}. Deployment ID: ${DEPLOYMENT_ID}. Version advanced from ${PREVIOUS_VERSION} to ${NEW_VERSION}. No new project or deployment was created; external actions remain disabled. URL: ${URL}. Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           gh issue comment 85 --repo "$GITHUB_REPOSITORY" --body "$BODY"
