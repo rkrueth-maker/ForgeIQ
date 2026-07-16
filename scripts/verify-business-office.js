@@ -68,7 +68,9 @@ assert('source-preserving intake sync',syncSource.includes('h38BusinessOfficeSyn
 assert('sync bootstrap',syncSource.includes('h38BusinessOfficeBootstrapSync')&&syncSource.includes('H38_BACKEND_SPREADSHEET_ID'));
 assert('sync trigger installer',syncSource.includes('h38BusinessOfficeInstallSyncTrigger')&&syncSource.includes('everyMinutes(5)'));
 assert('sync deployed acceptance',syncSource.includes('h38BusinessOfficeSyncAcceptance'));
-assert('clean standalone acceptance creates fresh acceptance deployment',!cleanDeployWorkflow.includes('BO_ACCEPTANCE_DEPLOYMENT_ID')&&!cleanAcceptanceDeploy.includes('BO_ACCEPTANCE_DEPLOYMENT_ID')&&cleanAcceptanceDeploy.includes("publish_deployment \"$ACCEPT_VERSION\" 'Business Office Clean Acceptance' acceptance"));
+assert('clean standalone workflow does not reuse an acceptance deployment ID',!cleanDeployWorkflow.includes('BO_ACCEPTANCE_DEPLOYMENT_ID'));
+assert('clean standalone acceptance script does not read an acceptance deployment ID',!cleanAcceptanceDeploy.includes('BO_ACCEPTANCE_DEPLOYMENT_ID'));
+assert('clean standalone acceptance creates a fresh acceptance deployment',cleanAcceptanceDeploy.includes("publish_deployment \"$ACCEPT_VERSION\" 'Business Office Clean Acceptance' acceptance"));
 assert('intake bridge idempotency',syncSource.includes('DUPLICATE_PREVENTED'));
 assert('intake survives mirror failure',syncSource.includes("return { status: 'HOLD'"));
 
