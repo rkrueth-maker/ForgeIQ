@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/deploy-owner-portal-hard-rule-production.yml'
+      - '.github/workflows/business-office.yml'
+      - '.github/workflows/business-office-production-v2.yml'
+      - '.github/workflows/business-office-production-repair.yml'
       - 'scripts/deploy-unified-owner-portal-web.sh'
       - 'portal.html'
       - 'ecosystem.js'
@@ -107,9 +110,18 @@ jobs:
           - Any retained spreadsheet destination: explicitly labeled Administrative spreadsheet with confirmation
           - Accepted existing Apps Script project and deployment IDs updated in place
           - New project or deployment: none
+          - Automatic production deployer: this unified workflow only
+          - Legacy Business Office workflows: manual diagnostics only
           - Google owner authentication and role controls: preserved
           - External actions: disabled and approval gated
 
           Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
           EOF
           gh issue comment 31 --repo "$GITHUB_REPOSITORY" --body-file "$REPORT"
+
+      - name: Record unified application deployment HOLD
+        if: failure()
+        shell: bash
+        run: |
+          BODY="Unified Highway 38 Business System deployment is on HOLD for commit ${GITHUB_SHA}. No replacement project or deployment was created. Review evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh issue comment 31 --repo "$GITHUB_REPOSITORY" --body "$BODY"
