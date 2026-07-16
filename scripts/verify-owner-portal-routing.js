@@ -15,6 +15,7 @@ const assert = (name, condition, evidence = '') => {
 const portal = read('portal.html');
 const brand = read('brand-global.js');
 const portalIndex = read('apps-script/core-engine/owner-portal-next/Portal_Index.html');
+const portalRawIncludes = read('apps-script/core-engine/owner-portal-next/Portal_RawIncludes.js');
 const unifiedServer = read('apps-script/core-engine/owner-portal-next/Portal_Unified.js');
 const unifiedShell = read('apps-script/core-engine/owner-portal-next/Portal_UX_Client_Shell.html');
 const nativeBusinessServer = read('apps-script/core-engine/owner-portal-next/Portal_Business.js');
@@ -41,6 +42,8 @@ const representativeBusinessRoutes = [
   ['bo:reports', 'Financial Reports'],
   ['bo:setup', 'Product Controls']
 ];
+const rawFragmentNames = [...portalIndex.matchAll(/h38PortalRawInclude_\('([^']+)'\)/g)].map(match => match[1]);
+const missingRawAllowlistEntries = rawFragmentNames.filter(name => !portalRawIncludes.includes(`'${name}'`));
 
 assert('website Owner Portal page exists', /<title>Owner Portal \| Highway 38 Solutions<\/title>/.test(portal));
 assert('public portal is one automatic secure gateway', portal.includes(`var secure='${ownerAppUrl}'`) && /location\.replace\(target\)/.test(portal));
@@ -51,6 +54,8 @@ assert('portal contains no spreadsheet destination', !/docs\.google\.com\/spread
 
 assert('secure app contains no nested Business Office iframe', !/businessWorkspace|businessFrame|<iframe\b/i.test(portalIndex));
 assert('secure app includes native Business Office styles and client', /Portal_Business_Styles/.test(portalIndex) && /Portal_Business_Client/.test(portalIndex));
+assert('every secure app raw fragment is allowlisted', rawFragmentNames.length > 0 && missingRawAllowlistEntries.length === 0, missingRawAllowlistEntries.length ? missingRawAllowlistEntries.join(', ') : `${rawFragmentNames.length} fragments`);
+assert('native Business Office raw fragments are explicitly allowlisted', portalRawIncludes.includes("'Portal_Business_Styles'") && portalRawIncludes.includes("'Portal_Business_Client'"));
 assert('secure app uses one package-controlled manifest', /function h38PortalUnifiedBootstrap\(\)/.test(unifiedServer) && /packageName/.test(unifiedServer));
 assert('unified manifest declares native Business Office rendering', /nativeBusinessOffice:\s*true/.test(unifiedServer) && /businessDefinitions/.test(unifiedServer));
 assert('unified manifest covers command, sales, work, money, people, documents, growth, and control', ['command','sales','work','money','people','documents','growth','control'].every(id => unifiedServer.includes(`id: '${id}'`)));
@@ -102,7 +107,7 @@ assert('public static pages contain no direct spreadsheet links', sheetLinks.len
 const result = {
   status: failures.length ? 'HOLD' : 'PASS',
   sourceCommit: process.env.GITHUB_SHA || '',
-  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true },
+  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true },
   passes,
   failures
 };
