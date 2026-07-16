@@ -1,6 +1,6 @@
 /** Dashboard, unified tasks, full workspaces, reporting, search, and internal business workflows. */
 function doGet(e) {
-  h38PortalAssertOwner_();
+  h38PortalRequireUnifiedUser_();
   return HtmlService.createTemplateFromFile('Portal_Index').evaluate().setTitle(H38_PORTAL_NEXT.APP_NAME).setSandboxMode(HtmlService.SandboxMode.IFRAME);
 }
 

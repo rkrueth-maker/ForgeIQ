@@ -42,8 +42,8 @@ cp "$REPO_ROOT/apps-script/business-office-sync/BusinessOffice_Sync.gs" "$PROJEC
 python3 - "$PROJECT/Portal_Services.js" "$PROJECT/BusinessOffice_Web.gs" <<'PY'
 from pathlib import Path
 import sys
-portal=Path(sys.argv[1]);business=Path(sys.argv[2]);portal_text=portal.read_text();needle="function doGet(e) {\n  h38PortalAssertOwner_();";replacement="function doGet(e) {\n  if (e && e.parameter && e.parameter.app === 'business-office') {\n    boGetCurrentUser_();\n    return boRenderWebApp_();\n  }\n  h38PortalAssertOwner_();"
-if needle not in portal_text: raise SystemExit('Owner Portal doGet router marker not found')
+portal=Path(sys.argv[1]);business=Path(sys.argv[2]);portal_text=portal.read_text();needle="function doGet(e) {\n  h38PortalRequireUnifiedUser_();";replacement="function doGet(e) {\n  if (e && e.parameter && e.parameter.app === 'business-office') {\n    boGetCurrentUser_();\n    return boRenderWebApp_();\n  }\n  h38PortalRequireUnifiedUser_();"
+if needle not in portal_text: raise SystemExit('Unified user doGet router marker not found')
 portal_text=portal_text.replace(needle,replacement,1);render=".setTitle(H38_PORTAL_NEXT.APP_NAME).setSandboxMode(HtmlService.SandboxMode.IFRAME);";embed=".setTitle(H38_PORTAL_NEXT.APP_NAME).setSandboxMode(HtmlService.SandboxMode.IFRAME).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);"
 if render not in portal_text: raise SystemExit('Owner Portal render marker not found')
 portal.write_text(portal_text.replace(render,embed,1));business_text=business.read_text()
@@ -61,15 +61,16 @@ const fs=require('fs'),root=process.argv[2],controlled=fs.readdirSync(root).filt
 NODE
 
 grep -F "e.parameter.app === 'business-office'" "$PROJECT/Portal_Services.js" >/dev/null
+grep -F "h38PortalRequireUnifiedUser_" "$PROJECT/Portal_Services.js" >/dev/null
 grep -F "packId:'highway38'" "$PROJECT/BusinessOffice_00_Pack.gs" >/dev/null
 (cd "$PROJECT" && clasp push --force) 2>&1 | tee "$EVIDENCE/clasp-push.txt"
-(cd "$PROJECT" && clasp deploy -i "$OWNER_DEPLOYMENT_ID" -d "Highway 38 unified embedded Owner Portal ${GITHUB_SHA}" && clasp deploy -i "$BUSINESS_OFFICE_DEPLOYMENT_ID" -d "Highway 38 unified embedded Business Office ${GITHUB_SHA}" && clasp list-deployments) 2>&1 | tee "$EVIDENCE/deployments-after.txt"
+(cd "$PROJECT" && clasp deploy -i "$OWNER_DEPLOYMENT_ID" -d "Highway 38 unified tasks and messaging ${GITHUB_SHA}" && clasp deploy -i "$BUSINESS_OFFICE_DEPLOYMENT_ID" -d "Highway 38 unified tasks and messaging ${GITHUB_SHA}" && clasp list-deployments) 2>&1 | tee "$EVIDENCE/deployments-after.txt"
 grep -F "$OWNER_DEPLOYMENT_ID" "$EVIDENCE/deployments-after.txt" >/dev/null;grep -F "$BUSINESS_OFFICE_DEPLOYMENT_ID" "$EVIDENCE/deployments-after.txt" >/dev/null
 OWNER_URL="https://script.google.com/macros/s/${OWNER_DEPLOYMENT_ID}/exec";BUSINESS_URL="https://script.google.com/macros/s/${BUSINESS_OFFICE_DEPLOYMENT_ID}/exec?app=business-office"
 printf '%s' "$OWNER_URL" > "$EVIDENCE/owner-portal-url.txt";printf '%s' "$BUSINESS_URL" > "$EVIDENCE/business-office-url.txt"
 OWNER_STATUS="$(curl -L -sS -o "$EVIDENCE/owner-response.html" -w '%{http_code}' "$OWNER_URL" || true)";BUSINESS_STATUS="$(curl -L -sS -o "$EVIDENCE/business-response.html" -w '%{http_code}' "$BUSINESS_URL" || true)"
 printf '%s' "$OWNER_STATUS" > "$EVIDENCE/owner-http-status.txt";printf '%s' "$BUSINESS_STATUS" > "$EVIDENCE/business-http-status.txt";test "$OWNER_STATUS" != "404";test "$BUSINESS_STATUS" != "404"
 cat > "$EVIDENCE/deployment-result.json" <<JSON
-{"status":"PASS","sourceCommit":"${GITHUB_SHA}","businessPack":"highway38","deploymentConfiguration":"business-packs/highway38/deployment.json","scriptId":"${OWNER_SCRIPT_ID}","ownerPortalDeploymentId":"${OWNER_DEPLOYMENT_ID}","businessOfficeDeploymentId":"${BUSINESS_OFFICE_DEPLOYMENT_ID}","ownerPortalUrl":"${OWNER_URL}","businessOfficeUrl":"${BUSINESS_URL}","websitePortalUrl":"${WEBSITE_PORTAL_URL}","updatedExistingDeployments":true,"createdNewProject":false,"createdNewDeployment":false,"embeddedOwnerPortal":true,"embeddedBusinessOffice":true,"googleAuthenticationRequired":true,"externalActionsEnabled":false,"externalActionsOccurred":false}
+{"status":"PASS","sourceCommit":"${GITHUB_SHA}","businessPack":"highway38","deploymentConfiguration":"business-packs/highway38/deployment.json","scriptId":"${OWNER_SCRIPT_ID}","ownerPortalDeploymentId":"${OWNER_DEPLOYMENT_ID}","businessOfficeDeploymentId":"${BUSINESS_OFFICE_DEPLOYMENT_ID}","ownerPortalUrl":"${OWNER_URL}","businessOfficeUrl":"${BUSINESS_URL}","websitePortalUrl":"${WEBSITE_PORTAL_URL}","updatedExistingDeployments":true,"createdNewProject":false,"createdNewDeployment":false,"embeddedOwnerPortal":true,"embeddedBusinessOffice":true,"googleAuthenticationRequired":true,"externalActionsEnabled":false,"externalActionsOccurred":false,"taskAssignmentEnabled":true,"messagingPreparationEnabled":true,"smsProviderReleaseRequired":true}
 JSON
 cat "$EVIDENCE/deployment-result.json"
