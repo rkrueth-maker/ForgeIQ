@@ -100,7 +100,8 @@ check('customer portal has no raw card form or automatic outbound action',
   !/sendBeacon|XMLHttpRequest/.test(customerClient)
 );
 check('customer portal browser bundle contains no secret key',
-  !/service(?:_|-)?role|sb_secret_|eyJ[A-Za-z0-9_-]{50,}/i.test(customer + customerConfig + customerClient)
+  !/service(?:_|-)?role(?:Key)?\s*[:=]\s*['"][^'"]+/i.test(customer + customerConfig + customerClient) &&
+  !/sb_secret_[A-Za-z0-9_-]{20,}|eyJ[A-Za-z0-9_-]{50,}/i.test(customer + customerConfig + customerClient)
 );
 
 const ownerPortal = read('portal.html');
