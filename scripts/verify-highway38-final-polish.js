@@ -58,7 +58,7 @@ check('secure app contains no nested Business Office iframe', !/<iframe\b|busine
 check('secure app includes native Business Office client and styles', /Portal_Business_Client/.test(portalIndex) && /Portal_Business_Styles/.test(portalIndex));
 check('secure app navigation is package controlled', /h38PortalUnifiedBootstrap/.test(portalUnified) && /H38_UNIFIED/.test(portalShell));
 check('secure app declares native Business Office rendering', /nativeBusinessOffice:\s*true/.test(portalUnified));
-check('Business Office links render directly in the main app', /return renderBusinessModule\(module/.test(portalShell) && /function renderBusinessModule/.test(portalBusinessClient));
+check('Business Office links render directly and safely in the main app', /await\s+(?:uxInvokeBusinessModule|renderBusinessModule)\(module/.test(portalShell) && /typeof renderBusinessModule!==['"]function['"]/.test(portalShell) && /uxWorkspaceHasContent/.test(portalShell) && /uxRenderWorkspaceFailure/.test(portalShell) && /function renderBusinessModule/.test(portalBusinessClient));
 check('native Business Office supports list open edit save and upload', ['h38PortalBusinessModule','h38PortalBusinessWorkspace','h38PortalBusinessSave','h38PortalBusinessUpload'].every(name => portalBusinessServer.includes(`function ${name}`)) && ['openBusinessRecord','openBusinessRecordForm','openBusinessUpload'].every(name => portalBusinessClient.includes(`function ${name}`)));
 check('Business Office modules are enforced server-side', /boGuardApiRequest_\(action,args\)/.test(businessWeb) && /MODULE NOT INCLUDED/.test(businessGate));
 check('Owner Portal contains no spreadsheet destination', !/docs\.google\.com\/spreadsheets/i.test(portal));
