@@ -67,9 +67,35 @@ function uxShowNativeWorkspace(){
   var view=document.getElementById('view');
   if(view)view.style.display='';
 }
+function uxWorkspaceHasContent(){
+  var view=document.getElementById('view');
+  return !!(view&&uxText(view.innerHTML).replace(/\s+/g,'').length);
+}
+function uxRenderWorkspaceFailure(error,message){
+  var detail=uxText(error&&error.message||error||'Unknown workspace failure.');
+  try{
+    if(typeof ownerSafeFailure==='function'){
+      ownerSafeFailure(error,message);
+      if(uxWorkspaceHasContent())return;
+    }
+  }catch(fallbackError){
+    detail+=' | Error renderer: '+uxText(fallbackError&&fallbackError.message||fallbackError);
+  }
+  var noticeNode=document.getElementById('notice');
+  if(noticeNode){noticeNode.className='notice bad';noticeNode.innerHTML='<b>HOLD:</b> '+esc(message);}
+  var view=document.getElementById('view');
+  if(view){
+    view.style.display='';
+    view.innerHTML='<div class="owner-safe-error" data-h38-workspace-state="error"><h2>Workspace could not be displayed.</h2><p>'+esc(message)+'</p><p>No record or external system was changed.</p><div class="toolbar"><button class="btn" onclick="refresh()">Refresh</button><button class="btn" onclick="show(\'errors\')">Open Error Log</button></div><code>'+esc(detail)+'</code></div>';
+  }
+}
 async function uxShowBusinessModule(module){
   uxShowNativeWorkspace();
-  return renderBusinessModule(module,BO_NATIVE&&BO_NATIVE.module===module?BO_NATIVE.query:'');
+  if(typeof renderBusinessModule!=='function')throw new Error('Native Business Office client is unavailable in this application build.');
+  var nativeState=typeof BO_NATIVE==='undefined'?null:BO_NATIVE;
+  var result=await renderBusinessModule(module,nativeState&&nativeState.module===module?nativeState.query:'');
+  if(!uxWorkspaceHasContent())throw new Error('Business Office returned without a visible workspace.');
+  return result;
 }
 function uxNormalizeModule(module){
   var redirects={money:'bo:invoices',quotes:'bo:quotes',invoices:'bo:invoices',payments:'bo:payments',expenses:'bo:expenses',customers:'bo:customers',jobs:'bo:jobs',reports:'bo:reports',documents:'bo:documents',upload:'bo:documents','business-office':'bo:requests'};
@@ -98,11 +124,13 @@ async function refresh(){
 async function show(module){
   module=uxNormalizeModule(module);
   CURRENT=module;renderNav();document.getElementById('side').classList.remove('open');
-  if(String(module).indexOf('bo:')===0)return uxShowBusinessModule(String(module).slice(3));
   uxShowNativeWorkspace();
-  history.replaceState(null,'','#module='+encodeURIComponent(module));
-  var view=document.getElementById('view');view.innerHTML='<div class="card">Loading selected operating surface…</div>';
+  var hashModule=String(module).indexOf('bo:')===0?String(module).slice(3):module;
+  history.replaceState(null,'','#module='+encodeURIComponent(hashModule));
+  var view=document.getElementById('view');
+  if(view)view.innerHTML='<div class="card" data-h38-workspace-state="loading">Loading selected operating surface…</div>';
   try{
+    if(String(module).indexOf('bo:')===0)return await uxShowBusinessModule(String(module).slice(3));
     if(module==='today'||module==='dashboard')return renderDashboard();
     if(module==='decisions')return renderTaskSurface('Needs my approval',EXPERIENCE.views.decisions.tasks,'Approve, revise, hold, or reject one selected record.');
     if(module==='active')return renderTaskSurface('Active work',EXPERIENCE.views.activeWork.tasks,'Open work with a current stage and next action.');
@@ -116,7 +144,12 @@ async function show(module){
     if(module==='errors')return renderRecords('Error Log',await call('h38PortalErrorLog',['']),null);
     var entity=module==='products'?'catalog':module;
     return renderRecords(TITLES[module]||module,await call('h38PortalList',[entity,{}]),entity);
-  }catch(error){ownerSafeFailure(error,'This workspace opened without all related data. The selected record is safe; review the Error Log for technical details.');}
+  }catch(error){
+    uxRenderWorkspaceFailure(error,'This workspace opened without all related data. The selected record is safe; review the Error Log for technical details.');
+    return null;
+  }finally{
+    if(!uxWorkspaceHasContent())uxRenderWorkspaceFailure(new Error('The selected route completed without rendering content.'),'The selected workspace did not produce a visible result.');
+  }
 }
 function uxMetric(label,value,detail,action,currency){
   return '<button class="ux-metric" onclick="'+action+'"><b>'+esc(label)+'</b><strong>'+(currency?uxMoney(value):esc(value))+'</strong><small>'+esc(detail)+'</small></button>';
