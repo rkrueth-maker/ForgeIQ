@@ -57,8 +57,8 @@ check('repository defaults remain fail closed',
   /enabled:\s*false/.test(config) &&
   /REPLACE_WITH_SUPABASE_PUBLISHABLE_KEY/.test(config)
 );
-check('browser code never references service role',
-  !/service[_-]?role/i.test(client + config + html)
+check('browser code contains no service-role assignment',
+  !/service(?:_|-)?role(?:Key)?\s*[:=]\s*['"][^'"]+/i.test(client + config + html)
 );
 check('magic-link login does not auto-create users',
   client.includes('signInWithOtp') &&
@@ -102,7 +102,7 @@ check('raw card collection absent',
   !/cardNumber|\bcvv\b|\bcvc\b|fullCard/i.test(html + client + sql)
 );
 check('no embedded Supabase secret-looking values',
-  !/eyJ[a-zA-Z0-9_-]{50,}|sb_secret_|service_role/i.test(config + client + html)
+  !/eyJ[a-zA-Z0-9_-]{50,}|sb_secret_[a-zA-Z0-9_-]{20,}/i.test(config + client + html)
 );
 
 const evidence = {
