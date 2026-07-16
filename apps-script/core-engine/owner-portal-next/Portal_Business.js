@@ -66,6 +66,50 @@ function h38PortalBusinessSave(moduleKey, recordId, values) {
   };
 }
 
+function h38PortalBusinessSaveFromDocument(moduleKey, recordId, values, documentId) {
+  h38PortalAssertOwner_();
+  boGetCurrentUser_();
+  moduleKey = boNormalizeText_(moduleKey);
+  documentId = boNormalizeText_(documentId);
+  boAssertModuleEnabled_(moduleKey);
+  boAssertModuleEnabled_('documents');
+  boAssert_(documentId, 'The uploaded source document is missing.');
+
+  var definitions = boGetModuleDefinitions_();
+  var definition = definitions[moduleKey];
+  boAssert_(definition, 'Business Office module is not supported: ' + moduleKey);
+  var documentRecord = boFindRecord_(H38_BO_SHEETS.DOCUMENTS, documentId, { includeVoided:true }).record;
+  var payload = Object.assign({}, values || {});
+  var fields = definition.fields || [];
+  var evidenceNote = 'Started from source document ' + documentId + (documentRecord['File Name'] ? ' (' + documentRecord['File Name'] + ')' : '') + '.';
+
+  if (fields.indexOf('Document ID') >= 0 && !payload['Document ID']) payload['Document ID'] = documentId;
+  if (fields.indexOf('Source') >= 0 && !payload.Source) payload.Source = 'Photo / PDF upload';
+  if (fields.indexOf('Approval Status') >= 0 && !payload['Approval Status']) payload['Approval Status'] = 'Owner Review Required';
+  if (fields.indexOf('Next Action') >= 0 && !payload['Next Action']) payload['Next Action'] = 'Review uploaded evidence';
+  if (fields.indexOf('OCR Status') >= 0 && !payload['OCR Status']) payload['OCR Status'] = documentRecord['OCR State'] || 'Not Started';
+  if (fields.indexOf('Notes') >= 0) payload.Notes = [boNormalizeText_(payload.Notes), evidenceNote].filter(Boolean).join(' | ');
+
+  var saved = boSaveRecord(moduleKey, recordId || '', payload);
+  var savedId = boNormalizeText_(saved[definition.primaryKey]);
+  boUpdateRecord_(H38_BO_SHEETS.DOCUMENTS, documentId, {
+    'Source Type': definition.title || moduleKey,
+    'Source ID': savedId,
+    'Review Status': documentRecord['Review Status'] || 'Needs Review'
+  }, 'Link uploaded evidence to Business Office record');
+  boProof_('LINK_SOURCE_DOCUMENT', definition.title || moduleKey, savedId, 'PASS', 'Linked source document ' + documentId + ' without external action.', boGetActiveEmail_());
+
+  return {
+    status:'PASS',
+    module:moduleKey,
+    record:saved,
+    documentId:documentId,
+    sourceLinked:true,
+    externalActionsOccurred:false,
+    boundary:boApprovalNotice_()
+  };
+}
+
 function h38PortalBusinessSearch(query) {
   h38PortalAssertOwner_();
   boGetCurrentUser_();
