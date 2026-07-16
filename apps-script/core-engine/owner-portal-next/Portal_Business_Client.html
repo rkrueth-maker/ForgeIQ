@@ -5,7 +5,7 @@ function boNativeText(value){return String(value==null?'':value);}
 function boNativeJs(value){return JSON.stringify(boNativeText(value));}
 function boNativeUnique(values){return values.filter(function(value,index,list){return value&&list.indexOf(value)===index;});}
 function boNativeCanCreate(module){return ['reports','approvals'].indexOf(module)<0;}
-function boNativeCanEdit(module){return ['reports'].indexOf(module)<0;}
+function boNativeCanEdit(module){return ['reports','approvals'].indexOf(module)<0;}
 function boNativeHelp(module){
   var map={
     requests:'Review new requests and move each one toward a product recommendation, quote, or hold.',
@@ -37,7 +37,7 @@ function boNativeFormat(field,value){
   var text=boNativeText(value);
   if(!text)return '<span class="muted">—</span>';
   if(/Status|Stage|State|Approval|Allowed|Posted|Export|Received|Balanced|Required/i.test(field))return statusPill(text);
-  if(/Amount|Total|Balance|Revenue|Cost|Profit|Price|Tax|Deposit|Rate|Budget|Spend|Liability/i.test(field))return esc(money(text));
+  if(/Amount|Total|Balance|Revenue|Cost|Profit|Price|Deposit|Rate|Budget|Spend|Liability|Tax Amount|Tax Collected|Tax Adjustments|Taxable Sales|Exempt Sales|Estimated Liability/i.test(field))return esc(money(text));
   return esc(text);
 }
 function boNativeFields(definition){
@@ -47,7 +47,7 @@ function boNativeFields(definition){
 function boNativeRecordId(row,definition){return boNativeText(row&&row[definition.primaryKey]);}
 function boNativeTitle(row,definition){
   if(!row)return definition.title||'Record';
-  return row['Display Name']||row['Project Title']||row['File Name']||row['Quote Number']||row['Invoice Number']||row['Work Order Number']||row['Job Number']||row['PO Number']||row['Bill Number']||row['Receipt Number']||row[definition.primaryKey]||definition.title;
+  return row['Display Name']||row.Name||row.Email||row['Project Title']||row['File Name']||row['Quote Number']||row['Invoice Number']||row['Work Order Number']||row['Job Number']||row['PO Number']||row['Bill Number']||row['Receipt Number']||row[definition.primaryKey]||definition.title;
 }
 function boNativeRenderTable(data){
   var def=data.definition,rows=boNativeRows(data.rows),fields=boNativeFields(def);
@@ -69,6 +69,7 @@ function boNativeRenderModule(data){
 }
 async function renderBusinessModule(module,query){
   uxShowNativeWorkspace();
+  CURRENT='bo:'+module;renderNav();
   BO_NATIVE.module=module;BO_NATIVE.query=boNativeText(query);
   history.replaceState(null,'','#module='+encodeURIComponent(module));
   var view=document.getElementById('view');
@@ -77,7 +78,12 @@ async function renderBusinessModule(module,query){
     var data=await call('h38PortalBusinessModule',[module,{query:BO_NATIVE.query,limit:250}]);
     BO_NATIVE.data=data;
     boNativeRenderModule(data);
-  }catch(error){ownerSafeFailure(error,'The selected Business Office workspace could not load. No record was changed.');}
+    return data;
+  }catch(error){
+    BO_NATIVE.data=null;
+    ownerSafeFailure(error,'The selected Business Office workspace could not load. No record was changed.');
+    return null;
+  }
 }
 function businessSearchCurrent(){
   var input=document.getElementById('boNativeSearch');
@@ -131,17 +137,26 @@ function boNativeEditableFields(definition){
   var calculated=['Created Time','Updated Time','Uploaded By','Uploaded Time','Amount Paid','Balance Due','Overdue Days','Profit','Profit Margin','Total Debit','Total Credit','Balance Difference','Balanced','Posted Time','Decision By','Decision Time'];
   return boNativeUnique(definition.fields||[]).filter(function(field){return field!==definition.primaryKey&&calculated.indexOf(field)<0;});
 }
+function boNativeDateValue(value){var text=boNativeText(value);var match=text.match(/^\d{4}-\d{2}-\d{2}/);return match?match[0]:'';}
 function boNativeInput(field,value){
   var long=/Notes|Scope|Assumptions|Exclusions|Description|Checklist|Problem|Result|Address|Work Requested|Details|Constraints/i.test(field);
-  var numeric=/Amount|Price|Total|Balance|Revenue|Cost|Profit|Tax|Deposit|Rate|Hours|Margin|Budget|Shipping|Discount|Number/i.test(field)&&!/Phone|Invoice Number|Quote Number|Job Number|PO Number|Bill Number|Receipt Number|Employee Number|Customer Number|Vendor Number/i.test(field);
+  var numeric=/Amount|Price|Total|Balance|Revenue|Cost|Profit|Tax Amount|Deposit|Rate|Hours|Margin|Budget|Shipping|Discount/i.test(field);
   var date=/Date$| Date$|Due Date|Start Date|End Date|Pay Date|Expiration Date/i.test(field);
   var classes=long?'wide':'';
   if(long)return '<label class="'+classes+'"><span>'+esc(field)+'</span><textarea name="'+attr(field)+'">'+esc(value||'')+'</textarea></label>';
-  return '<label class="'+classes+'"><span>'+esc(field)+'</span><input name="'+attr(field)+'" type="'+(date?'date':numeric?'number':'text')+'" '+(numeric?'step="0.01"':'')+' value="'+attr(value||'')+'"></label>';
+  var inputValue=date?boNativeDateValue(value):boNativeText(value);
+  return '<label class="'+classes+'"><span>'+esc(field)+'</span><input name="'+attr(field)+'" type="'+(date?'date':numeric?'number':'text')+'" '+(numeric?'step="0.01"':'')+' value="'+attr(inputValue)+'"></label>';
+}
+function boNativeResetBusinessForm(){
+  var form=document.getElementById('businessRecordForm');
+  form.onsubmit=submitBusinessRecord;
+  var button=form.querySelector('button[type=submit]');
+  if(button){button.disabled=false;button.textContent='Save internal record';}
 }
 function openBusinessRecordForm(module,recordId){
   var data=BO_NATIVE.data;
-  if(!data||data.module!==module){renderBusinessModule(module,'').then(function(){openBusinessRecordForm(module,recordId);});return;}
+  if(!data||data.module!==module){renderBusinessModule(module,'').then(function(loaded){if(loaded)openBusinessRecordForm(module,recordId);});return;}
+  boNativeResetBusinessForm();
   var definition=data.definition,row=recordId?boNativeRows(data.rows).filter(function(item){return boNativeRecordId(item,definition)===recordId;})[0]||BO_NATIVE.workspace&&BO_NATIVE.workspace.primary||{}:{};
   BO_NATIVE.editing={module:module,recordId:recordId,definition:definition,row:row};
   document.getElementById('businessFormTitle').textContent=(recordId?'Edit ':'New ')+definition.title.replace(/s$/,'');
@@ -149,7 +164,7 @@ function openBusinessRecordForm(module,recordId){
   document.getElementById('businessFormFields').innerHTML=boNativeEditableFields(definition).map(function(field){return boNativeInput(field,row[field]);}).join('')||'<div class="empty">This record type has no editable fields.</div>';
   document.getElementById('businessFormModal').classList.add('open');
 }
-function closeBusinessForm(){document.getElementById('businessFormModal').classList.remove('open');BO_NATIVE.editing=null;}
+function closeBusinessForm(){document.getElementById('businessFormModal').classList.remove('open');BO_NATIVE.editing=null;boNativeResetBusinessForm();}
 async function submitBusinessRecord(event){
   event.preventDefault();
   if(!BO_NATIVE.editing)return;
@@ -168,19 +183,32 @@ function openBusinessUpload(){
   document.getElementById('businessFormHelp').textContent='Private upload. The original is preserved. OCR suggestions stay review-only until approved.';
   document.getElementById('businessFormFields').innerHTML='<div class="bo-native-file wide"><label><span>PDF or image</span><input id="boNativeFile" name="file" type="file" accept="application/pdf,image/jpeg,image/png,image/heic,image/heif" capture="environment" required></label><label><span>Document type</span><select id="boNativeDocumentType" name="documentType"><option>Receipt</option><option>Vendor Invoice</option><option>Purchase Order</option><option>Quote</option><option>Estimate</option><option>Work Order</option><option>Customer Request</option><option>Delivery Ticket</option><option>Statement</option><option>Contract</option><option>Timecard</option><option>W-9</option><option>Tax Document</option><option>Equipment Record</option><option>Mileage Record</option><option selected>Other</option></select></label><label><span>Source type</span><input id="boNativeSourceType" name="sourceType" value="Other"></label><label><span>Source ID, optional</span><input id="boNativeSourceId" name="sourceId"></label><div id="boNativeUploadProgress" class="bo-native-progress wide">Preparing private upload…</div></div>';
   var form=document.getElementById('businessRecordForm');form.onsubmit=submitBusinessUpload;
+  var button=form.querySelector('button[type=submit]');button.disabled=false;button.textContent='Upload private document';
   document.getElementById('businessFormModal').classList.add('open');
 }
 function boNativeReadFile(file){return new Promise(function(resolve,reject){var reader=new FileReader();reader.onload=function(){resolve(reader.result);};reader.onerror=reject;reader.readAsDataURL(file);});}
+function boNativeMimeType(file){
+  if(file.type)return file.type;
+  var name=boNativeText(file.name).toLowerCase();
+  if(/\.pdf$/.test(name))return 'application/pdf';
+  if(/\.jpe?g$/.test(name))return 'image/jpeg';
+  if(/\.png$/.test(name))return 'image/png';
+  if(/\.heic$/.test(name))return 'image/heic';
+  if(/\.heif$/.test(name))return 'image/heif';
+  return '';
+}
 async function submitBusinessUpload(event){
   event.preventDefault();
   var file=document.getElementById('boNativeFile').files[0];
   if(!file){notice('Choose a PDF or image first.','bad');return;}
   if(file.size>20*1024*1024){notice('The file is larger than the 20 MB limit.','bad');return;}
+  var mimeType=boNativeMimeType(file);
+  if(!mimeType){notice('Use a PDF, JPG, PNG, HEIC, or HEIF file.','bad');return;}
   var progress=document.getElementById('boNativeUploadProgress'),button=event.currentTarget.querySelector('button[type=submit]');progress.classList.add('active');button.disabled=true;button.textContent='Uploading…';
   try{
     var base64Data=await boNativeReadFile(file);
-    await call('h38PortalBusinessUpload',[{fileName:file.name,mimeType:file.type||'application/octet-stream',base64Data:base64Data,documentType:document.getElementById('boNativeDocumentType').value,sourceType:document.getElementById('boNativeSourceType').value,sourceId:document.getElementById('boNativeSourceId').value,accessClassification:'Private Business'}]);
+    await call('h38PortalBusinessUpload',[{fileName:file.name,mimeType:mimeType,base64Data:base64Data,documentType:document.getElementById('boNativeDocumentType').value,sourceType:document.getElementById('boNativeSourceType').value,sourceId:document.getElementById('boNativeSourceId').value,accessClassification:'Private Business'}]);
     closeBusinessForm();notice('<b>Document uploaded.</b> Original preserved. OCR and posting remain review-only.','ok');await renderBusinessModule('documents','');
   }catch(error){ownerSafeFailure(error,'The document was not uploaded. No record was posted.');}
-  finally{button.disabled=false;button.textContent='Save internal record';progress.classList.remove('active');document.getElementById('businessRecordForm').onsubmit=submitBusinessRecord;}
+  finally{button.disabled=false;button.textContent='Upload private document';progress.classList.remove('active');boNativeResetBusinessForm();}
 }
