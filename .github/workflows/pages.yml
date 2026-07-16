@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -17,13 +22,16 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment_attempt_1.outputs.page_url || steps.deployment_attempt_2.outputs.page_url }}
     steps:
-      - name: Checkout current source
+      - name: Checkout current main source
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -65,6 +73,11 @@ jobs:
             --include='*.csv' \
             --exclude='*' \
             ./ _site/
+
+      - name: Record deployed source SHA
+        run: |
+          printf '%s\n' "${GITHUB_SHA}" > _site/deployed-source-sha.txt
+          printf '%s\n' "$(git rev-parse HEAD)" > _site/deployed-main-sha.txt
 
       - name: Upload current root site
         uses: actions/upload-pages-artifact@v3
