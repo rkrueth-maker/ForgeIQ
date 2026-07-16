@@ -8,11 +8,11 @@ const root=path.resolve(__dirname,'..');
 const owner=path.join(root,'apps-script','core-engine','owner-portal-next');
 const office=path.join(root,'apps-script','business-office');
 const failures=[],passes=[];
-function check(name,condition,detail=''){(condition?passes:failures).push({name,detail});console[condition?'log':'error'](`${condition?'PASS':'FAIL'}: ${name}${detail?` — ${detail}`:''}`)}
+function check(name,condition,detail=''){(condition?passes:failures).push({name,detail});if(!condition)console.error(`FAIL: ${name}${detail?` — ${detail}`:''}`)}
 function read(file){return fs.readFileSync(file,'utf8')}
 function exists(file){return fs.existsSync(file)}
 function syntax(source,label){try{new vm.Script(source,{filename:label});check(`syntax ${label}`,true)}catch(error){check(`syntax ${label}`,false,error.message)}}
-function run(script,label){try{const result=cp.spawnSync(process.execPath,[path.join(root,script)],{cwd:root,encoding:'utf8',maxBuffer:20*1024*1024});check(label,result.status===0,(result.stdout||'').slice(-1200)+(result.stderr||'').slice(-1200))}catch(error){check(label,false,error.message)}}
+function run(script,label){try{const result=cp.spawnSync(process.execPath,[path.join(root,script)],{cwd:root,encoding:'utf8',maxBuffer:20*1024*1024});check(label,result.status===0,result.status===0?'':(result.stdout||'').slice(-1200)+(result.stderr||'').slice(-1200))}catch(error){check(label,false,error.message)}}
 const ownerFiles=['Portal_UX.js','Portal_UX_Styles.html','Portal_UX_Client_Shell.html','Portal_UX_Client_Tasks.html','Portal_UX_Client_Workspace.html','Portal_UX_Client_Forms.html','Portal_UX_Client_Boot.html'];
 const officeFiles=['BusinessOffice_UX.gs','BusinessOffice_UX.html'];
 ownerFiles.forEach(file=>check(`Owner Portal UX file ${file}`,exists(path.join(owner,file))));
