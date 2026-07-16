@@ -33,42 +33,27 @@ for (const rel of pages) {
   const full = path.join(ROOT, rel);
   check(`${rel} exists`, fs.existsSync(full));
   if (!fs.existsSync(full)) continue;
-
   const html = read(rel);
   check(`${rel} title`, /<title>[^<]+<\/title>/i.test(html));
   check(`${rel} viewport`, /<meta[^>]+name=["']viewport["']/i.test(html));
-
   const styles = linkedStylesheets(html);
   const responsive = /@media\s*\(/.test(html) || styles.some(style => {
     const target = path.join(ROOT, style);
     return fs.existsSync(target) && /@media\s*\(/.test(fs.readFileSync(target, 'utf8'));
   });
   check(`${rel} responsive CSS`, responsive, styles.join(', '));
-
-  const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
-    .map(match => match[1])
-    .filter(Boolean);
+  const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(Boolean);
   inlineScripts.forEach((source, index) => {
-    try {
-      new vm.Script(source, { filename: `${rel}:inline-${index + 1}` });
-      pass.push({ name: `${rel} inline script ${index + 1} syntax`, detail: '' });
-    } catch (error) {
-      failures.push({ name: `${rel} inline script ${index + 1} syntax`, detail: error.message });
-    }
+    try { new vm.Script(source, { filename: `${rel}:inline-${index + 1}` }); pass.push({ name: `${rel} inline script ${index + 1} syntax`, detail: '' }); }
+    catch (error) { failures.push({ name: `${rel} inline script ${index + 1} syntax`, detail: error.message }); }
   });
-
   for (const script of linkedScripts(html)) {
     const target = path.join(ROOT, script);
     check(`${rel} script ${script}`, fs.existsSync(target), script);
     if (!fs.existsSync(target)) continue;
-    try {
-      new vm.Script(fs.readFileSync(target, 'utf8'), { filename: script });
-      pass.push({ name: `${rel} script syntax ${script}`, detail: '' });
-    } catch (error) {
-      failures.push({ name: `${rel} script syntax ${script}`, detail: error.message });
-    }
+    try { new vm.Script(fs.readFileSync(target, 'utf8'), { filename: script }); pass.push({ name: `${rel} script syntax ${script}`, detail: '' }); }
+    catch (error) { failures.push({ name: `${rel} script syntax ${script}`, detail: error.message }); }
   }
-
   for (const match of html.matchAll(/href=["']([^"']+)["']/gi)) {
     const href = match[1];
     if (/\$\{|^(?:https?:|mailto:|tel:|#|javascript:)/i.test(href)) continue;
@@ -89,7 +74,8 @@ const ownerPortal = read('portal.html');
 const ownerIndex = read('apps-script/core-engine/owner-portal-next/Portal_Index.html');
 const ownerUnified = read('apps-script/core-engine/owner-portal-next/Portal_Unified.js');
 const ownerShell = read('apps-script/core-engine/owner-portal-next/Portal_UX_Client_Shell.html');
-const businessUnified = read('apps-script/business-office/BusinessOffice_Unified_Client.html');
+const ownerBusinessServer = read('apps-script/core-engine/owner-portal-next/Portal_Business.js');
+const ownerBusinessClient = read('apps-script/core-engine/owner-portal-next/Portal_Business_Client.html');
 check('owner portal is noindex', /name="robots" content="noindex,nofollow"/.test(ownerPortal));
 check('owner portal is a single automatic secure gateway', /Opening Highway 38 Business System/.test(ownerPortal) && /location\.replace\(target\)/.test(ownerPortal));
 check('owner portal targets accepted private Owner application', /AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/.test(ownerPortal));
@@ -97,10 +83,14 @@ check('owner portal contains no obsolete public iframe', !/<iframe\b/i.test(owne
 check('owner portal contains no obsolete six-button workspace row', !/owner-area-strip|Tasks &amp; Decisions|Quotes, Money &amp; Reports/.test(ownerPortal));
 check('owner portal does not collect credentials', !/<form\b/i.test(ownerPortal) && !/type=["']password["']/i.test(ownerPortal));
 check('owner portal preserves upload and Business Office deep links', /upload:'documents'/.test(ownerPortal) && /'business-office':'requests'/.test(ownerPortal));
-check('secure app contains one embedded Business Office workspace', /id="businessWorkspace"/.test(ownerIndex) && /id="businessFrame"/.test(ownerIndex));
+check('secure app contains no nested Business Office iframe', !/<iframe\b|businessWorkspace|businessFrame/.test(ownerIndex));
+check('secure app includes native Business Office client and styles', /Portal_Business_Client/.test(ownerIndex) && /Portal_Business_Styles/.test(ownerIndex));
 check('secure app uses package-controlled grouped navigation', /function h38PortalUnifiedBootstrap\(\)/.test(ownerUnified) && /groups:\s*groups/.test(ownerUnified) && /H38_UNIFIED/.test(ownerShell));
+check('secure app declares native Business Office rendering', /nativeBusinessOffice:\s*true/.test(ownerUnified));
 check('secure app includes command sales work money people documents growth and control', ['command','sales','work','money','people','documents','growth','control'].every(id => ownerUnified.includes(`id: '${id}'`)));
-check('Documents and OCR exposes upload and camera path inside secure app', /Upload PDF \/ Take Picture/.test(businessUnified) && /camera/.test(businessUnified));
+check('Business Office modules render directly in the secure app', /renderBusinessModule/.test(ownerShell) && /function renderBusinessModule/.test(ownerBusinessClient));
+check('Business Office server adapter supports list save open and upload', ['h38PortalBusinessModule','h38PortalBusinessSave','h38PortalBusinessWorkspace','h38PortalBusinessUpload'].every(name => ownerBusinessServer.includes(`function ${name}`)));
+check('Documents and OCR exposes upload and camera path inside secure app', /Upload PDF \/ Take Picture/.test(ownerBusinessClient) && /capture="environment"/.test(ownerBusinessClient));
 check('owner portal preserves approval boundaries', /Customer sends, publishing, advertising spend, financial posting, payroll export, tax finalization, delivery/.test(ownerPortal));
 const ecosystemJs = read('ecosystem.js');
 check('global Owner Login routes through portal webpage', /const ownerPortal='portal\.html'/.test(ecosystemJs));
@@ -123,24 +113,12 @@ check('calculator coverage', ['area', 'labor', 'margin', 'project'].every(name =
 const proof = JSON.parse(read('launch-control/public-proof-manifest.json'));
 check('proof manifest items', Array.isArray(proof.items) && proof.items.length >= 4, String(proof.items?.length));
 check('all proof items explicitly public safe', (proof.items || []).every(item => item.privacyStatus === 'PUBLIC_SAFE'));
-for (const item of proof.items || []) {
-  check(`proof target ${item.url}`, fs.existsSync(path.join(ROOT, item.url)), item.id);
-}
+for (const item of proof.items || []) check(`proof target ${item.url}`, fs.existsSync(path.join(ROOT, item.url)), item.id);
 
 const status = read('ecosystem-status.html');
-for (const label of ['Customer email', 'Payment collection', 'Social publishing', 'Advertising spend', 'Final delivery', 'Private proof sources']) {
-  check(`status lock ${label}`, status.includes(label));
-}
+for (const label of ['Customer email', 'Payment collection', 'Social publishing', 'Advertising spend', 'Final delivery', 'Private proof sources']) check(`status lock ${label}`, status.includes(label));
 
-const result = {
-  status: failures.length ? 'HOLD' : 'PASS',
-  generatedAt: new Date().toISOString(),
-  passed: pass.length,
-  failed: failures.length,
-  pages,
-  pass,
-  failures
-};
+const result = { status: failures.length ? 'HOLD' : 'PASS', generatedAt: new Date().toISOString(), passed: pass.length, failed: failures.length, pages, pass, failures };
 const outDir = path.join(ROOT, 'launch-control', 'evidence');
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'public-ecosystem-tools.json'), JSON.stringify(result, null, 2) + '\n');
