@@ -14,6 +14,7 @@ on:
       - 'apps-script/core-engine/owner-portal-next/**'
       - 'apps-script/business-office/**'
       - 'apps-script/business-office-sync/**'
+      - 'business-packs/highway38/**'
   workflow_dispatch:
 
 permissions:
@@ -44,7 +45,7 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Verify website and both private applications
+      - name: Verify website and unified private application
         run: |
           npm install
           node scripts/verify-public-ecosystem-tools.js
@@ -71,7 +72,7 @@ jobs:
           chmod 600 "$HOME/.clasprc.json"
           node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8')); console.log('Encrypted clasp credential loaded.')"
 
-      - name: Update both existing live deployments
+      - name: Update accepted existing unified deployment
         shell: bash
         run: bash scripts/deploy-unified-owner-portal-web.sh
 
@@ -86,22 +87,25 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Record live owner page deployment
+      - name: Record live unified application deployment
         if: success()
         shell: bash
         run: |
           REPORT="$RUNNER_TEMP/unified-owner-portal-pass.md"
           cat > "$REPORT" <<EOF
-          ## Unified website Owner Portal deployed
+          ## Unified Highway 38 Business System deployed
 
           - Source commit: ${GITHUB_SHA}
-          - Website page: https://rkrueth-maker.github.io/highway-38-solutions/portal.html
-          - Owner Operations and Social: embedded live
-          - Business Office, PDF upload, and camera capture: embedded live
+          - Public gateway: https://rkrueth-maker.github.io/highway-38-solutions/portal.html
+          - Owner experience: one authenticated application and one navigation system
+          - Command Center and Business Office modules: live inside the unified application
+          - Documents, OCR, PDF upload, and camera capture: available under Documents / OCR
+          - Package-controlled module manifest: PASS
+          - Server-side Business Office module enforcement: PASS
           - Owner Login and portal routing audit: PASS
           - Normal portal actions opening Google Sheets: NONE
           - Any retained spreadsheet destination: explicitly labeled Administrative spreadsheet with confirmation
-          - Existing Apps Script project and both existing deployment IDs updated in place
+          - Accepted existing Apps Script project and deployment IDs updated in place
           - New project or deployment: none
           - Google owner authentication and role controls: preserved
           - External actions: disabled and approval gated
