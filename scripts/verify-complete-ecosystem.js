@@ -7,7 +7,7 @@ const check=(name,condition,detail='')=>condition?passes.push({name,detail}):fai
 const exists=file=>fs.existsSync(path.join(root,file));
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const required=[
-  'index.html','services.html','free-tools.html','free-tools.js','tool-formulas.js','proof.html','proof.js','business-os.html','business-concept-builder.html','business-concept-builder.js','resources.html','portal.html','customer-portal.html','customer-portal-config.js','customer-portal-supabase.js','supabase/migrations/20260716_customer_portal.sql','supabase/migrations/20260716_customer_portal_invitation_activation.sql','ecosystem.css','ecosystem-data.js','ecosystem.js','favicon.svg','forgeiq.html','tools.html','sitemap.xml','robots.txt','site.webmanifest',
+  'index.html','services.html','free-tools.html','free-tools.js','tool-formulas.js','proof.html','proof.js','business-os.html','business-concept-builder.html','business-concept-builder.js','resources.html','portal.html','customer-portal.html','customer-portal-config.js','customer-portal-supabase.js','supabase/migrations/20260716_customer_portal.sql','supabase/migrations/20260716_customer_portal_invite_activation.sql','ecosystem.css','ecosystem-data.js','ecosystem.js','favicon.svg','forgeiq.html','tools.html','sitemap.xml','robots.txt','site.webmanifest',
   'brand/highway-38-mark.svg','brand/highway-38-solutions.svg','brand/highway-38-tools.svg','brand/highway-38-business-os.svg','brand/highway-38-supply-co.svg','brand/BRAND_SYSTEM.md',
   'business-os/configuration-schema.json','business-os/installer-manifest.json','business-os/README.md','customer-portal/SECURITY_MODEL.md','social/30-day-content-bank.json','docs/launch/PROVIDER_CONNECTION_STATUS_2026-07-11.md','docs/launch/EXECUTION_LEDGER_2026-07-11.md'
 ];
@@ -50,7 +50,7 @@ check('no raw card fields',!/cardNumber|\bcvv\b|\bcvc\b|fullCard/i.test(publicTe
 check('no private employer names in public package',!/\bClow\b|\bCSC\b/i.test(publicText));
 check('no fake testimonials or reviews',!/customer testimonial|five-star review|★★★★★/i.test(publicText));
 check('customer portal noindex',/noindex,nofollow/.test(read('customer-portal.html')));
-const customerPortal=read('customer-portal.html'),customerConfig=read('customer-portal-config.js'),customerClient=read('customer-portal-supabase.js'),customerSql=read('supabase/migrations/20260716_customer_portal.sql'),customerActivation=read('supabase/migrations/20260716_customer_portal_invitation_activation.sql');
+const customerPortal=read('customer-portal.html'),customerConfig=read('customer-portal-config.js'),customerClient=read('customer-portal-supabase.js'),customerSql=read('supabase/migrations/20260716_customer_portal.sql'),customerActivation=read('supabase/migrations/20260716_customer_portal_invite_activation.sql');
 check('customer portal active Supabase production state',
   /enabled:\s*true/.test(customerConfig)&&
   /jqukmwtsgcsaruucnqja\.supabase\.co/.test(customerConfig)&&
