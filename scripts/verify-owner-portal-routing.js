@@ -27,6 +27,20 @@ const businessUnified = read('apps-script/business-office/BusinessOffice_Unified
 const pack = read('business-packs/highway38/apps-script/BusinessOffice_Pack.gs');
 
 const ownerAppUrl = 'https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec';
+const representativeBusinessRoutes = [
+  ['bo:requests', 'New Requests'],
+  ['bo:customers', 'Customers'],
+  ['bo:quotes', 'Quotes'],
+  ['bo:workOrders', 'Work Orders'],
+  ['bo:jobs', 'Jobs'],
+  ['bo:invoices', 'Invoices'],
+  ['bo:payments', 'Payments'],
+  ['bo:expenses', 'Expenses'],
+  ['bo:documents', 'Documents / OCR / Upload'],
+  ['bo:approvals', 'Approval Queue'],
+  ['bo:reports', 'Financial Reports'],
+  ['bo:setup', 'Product Controls']
+];
 
 assert('website Owner Portal page exists', /<title>Owner Portal \| Highway 38 Solutions<\/title>/.test(portal));
 assert('public portal is one automatic secure gateway', portal.includes(`var secure='${ownerAppUrl}'`) && /location\.replace\(target\)/.test(portal));
@@ -40,12 +54,15 @@ assert('secure app includes native Business Office styles and client', /Portal_B
 assert('secure app uses one package-controlled manifest', /function h38PortalUnifiedBootstrap\(\)/.test(unifiedServer) && /packageName/.test(unifiedServer));
 assert('unified manifest declares native Business Office rendering', /nativeBusinessOffice:\s*true/.test(unifiedServer) && /businessDefinitions/.test(unifiedServer));
 assert('unified manifest covers command, sales, work, money, people, documents, growth, and control', ['command','sales','work','money','people','documents','growth','control'].every(id => unifiedServer.includes(`id: '${id}'`)));
+assert('representative enabled Business Office routes are present in the unified navigation', representativeBusinessRoutes.every(([key,label]) => unifiedServer.includes(`h38PortalUnifiedItem_('${key}', '${label}'`)), representativeBusinessRoutes.map(([key]) => key).join(', '));
 assert('unified shell renders package groups instead of separate applications', /H38_UNIFIED/.test(unifiedShell) && /uxShowBusinessModule/.test(unifiedShell));
 assert('unified shell routes Business Office links to guarded direct native rendering', /await\s+(?:uxInvokeBusinessModule|renderBusinessModule)\(module/.test(unifiedShell) && /typeof renderBusinessModule!==['"]function['"]/.test(unifiedShell) && !/frame\.src|postMessage\(\{type:'h38-open-business-module'/.test(unifiedShell));
+assert('unified shell sets active route hash and visible loading state before rendering', /history\.replaceState\(null,'','#module='\+encodeURIComponent\(hashModule\)\)/.test(unifiedShell) && /data-h38-workspace-state="loading"/.test(unifiedShell));
 assert('unified shell prevents blank workspaces on route failures', /uxWorkspaceHasContent/.test(unifiedShell) && /uxRenderWorkspaceFailure/.test(unifiedShell) && /selected route completed without rendering content/.test(unifiedShell));
 assert('native Business Office server adapter lists saves opens and uploads records', ['h38PortalBusinessModule','h38PortalBusinessSave','h38PortalBusinessWorkspace','h38PortalBusinessUpload'].every(name => nativeBusinessServer.includes(`function ${name}`)));
 assert('native Business Office client renders tables cards details forms and upload', ['boNativeRenderTable','openBusinessRecord','openBusinessRecordForm','openBusinessUpload'].every(name => nativeBusinessClient.includes(`function ${name}`)));
 assert('native Business Office client supports direct back-and-forth module switching', /renderBusinessModule/.test(nativeBusinessClient) && /history\.replaceState/.test(nativeBusinessClient));
+assert('native Business Office client renders explicit empty and owner-safe failure states', /No .* yet\./.test(nativeBusinessClient) && /ownerSafeFailure/.test(nativeBusinessClient));
 
 assert('Business Office package modules are enforced server-side', /boGuardApiRequest_\(action,args\)/.test(businessWeb) && /MODULE NOT INCLUDED/.test(businessGate));
 assert('native adapter enforces package modules before list save workspace and upload', /boAssertModuleEnabled_\(moduleKey\)/.test(nativeBusinessServer) && /boAssertModuleEnabled_\('documents'\)/.test(nativeBusinessServer));
@@ -85,7 +102,7 @@ assert('public static pages contain no direct spreadsheet links', sheetLinks.len
 const result = {
   status: failures.length ? 'HOLD' : 'PASS',
   sourceCommit: process.env.GITHUB_SHA || '',
-  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true },
+  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true },
   passes,
   failures
 };
