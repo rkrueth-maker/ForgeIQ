@@ -5,6 +5,7 @@
   const catalog=()=>window.H38_CATALOG||{products:[],bundles:[]};
   const systems=()=>window.H38_BUSINESS_SYSTEMS||[];
   const logoMarkup='<img class="brand-logo" src="assets/highway38-logo.png?v=20260713-logo2" alt="Highway 38 Solutions">';
+  const systemMedia=s=>s.image?`<figure class="exp-media exp-system-media" data-image-classification="representative-environment"><img src="${esc(s.image)}?v=20260715-all-approved-v2" alt="${esc(s.imageAlt||s.name)}" width="1200" height="675" loading="lazy" decoding="async"><figcaption>Representative imagery, not customer proof.</figcaption></figure>`:"";
   function replaceNav(){
     const nav=$(".site-nav"); if(!nav)return;
     const page=document.body.dataset.page||"";
@@ -41,7 +42,7 @@
   }
   function renderSystems(){
     $$('[data-business-systems]').forEach(host=>{
-      host.innerHTML=systems().map(s=>`<article class="exp-card exp-system-card" id="${esc(s.slug)}"><span class="exp-kicker">${esc(s.kicker)}</span><h3>${esc(s.name)}</h3><p class="exp-best-for"><strong>Best for:</strong> ${esc(s.bestFor)}</p><p>${esc(s.result)}</p><ul>${s.provides.slice(0,5).map(x=>`<li>${esc(x)}</li>`).join("")}</ul><p class="exp-price">${esc(s.price)}</p><span class="exp-status">${esc(s.status)}</span><div class="exp-system-actions button-row"><a class="btn btn-dark" href="start-request.html?system=${encodeURIComponent(s.slug)}">Start a scoped request</a><a class="btn btn-light" href="business-systems.html#${esc(s.slug)}">View boundaries</a></div></article>`).join("");
+      host.innerHTML=systems().map(s=>`<article class="exp-card exp-system-card" id="${esc(s.slug)}">${systemMedia(s)}<span class="exp-kicker">${esc(s.kicker)}</span><h3>${esc(s.name)}</h3><p class="exp-best-for"><strong>Best for:</strong> ${esc(s.bestFor)}</p><p>${esc(s.result)}</p><ul>${s.provides.slice(0,5).map(x=>`<li>${esc(x)}</li>`).join("")}</ul><p class="exp-price">${esc(s.price)}</p><span class="exp-status">${esc(s.status)}</span><div class="exp-system-actions button-row"><a class="btn btn-dark" href="start-request.html?system=${encodeURIComponent(s.slug)}">Start a scoped request</a><a class="btn btn-light" href="business-systems.html#${esc(s.slug)}">View boundaries</a></div></article>`).join("");
     });
     $$('[data-system-scenarios]').forEach(host=>{
       host.innerHTML=systems().map(s=>`<article class="exp-card exp-scenario"><div class="exp-proof-labels"><span>Demonstration sample</span><span>Hypothetical</span><span>Not customer work</span></div><h3>${esc(s.name)} scenario</h3><p><strong>Starting condition:</strong> ${esc(s.problem)}</p><p><strong>Demonstrated result:</strong> ${esc(s.result)}</p><p><strong>Status:</strong> ${esc(s.status)}</p><p><strong>Proof boundary:</strong> This scenario demonstrates an approved product concept and does not claim a real customer result, automatic external action, or unbuilt feature.</p><a class="btn btn-dark" href="start-request.html?system=${encodeURIComponent(s.slug)}">Request requirements review</a></article>`).join("");
