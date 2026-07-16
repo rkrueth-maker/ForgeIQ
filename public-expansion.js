@@ -4,17 +4,18 @@
   const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
   const catalog=()=>window.H38_CATALOG||{products:[],bundles:[]};
   const systems=()=>window.H38_BUSINESS_SYSTEMS||[];
+  const logoMarkup='<img class="brand-logo" src="assets/highway38-logo.png?v=20260713-logo2" alt="Highway 38 Solutions">';
   function replaceNav(){
     const nav=$(".site-nav"); if(!nav)return;
     const page=document.body.dataset.page||"";
     const links=[["products","products.html","Services"],["business-systems","business-systems.html","Business Systems"],["samples","sample-library-now.html","Samples"],["tools","free-tools.html","Free Tools"]];
-    nav.innerHTML=`<div class="nav-inner"><a class="brand" href="index.html"><span>Highway 38</span> Solutions</a><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav">Menu</button><ul class="nav-links" id="main-nav">${links.map(([id,href,label])=>`<li><a ${page===id?'aria-current="page"':''} href="${href}">${label}</a></li>`).join("")}<li><a class="nav-cta" ${page==="start"?'aria-current="page"':''} href="start-request.html">Start a Request</a></li><li class="exp-owner-link"><a href="portal.html">Owner</a></li></ul></div>`;
+    nav.innerHTML=`<div class="nav-inner"><a class="brand h38-brand-lockup" href="index.html">${logoMarkup}<span class="brand-text"><span>Highway 38</span> Solutions</span></a><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="main-nav">Menu</button><ul class="nav-links" id="main-nav">${links.map(([id,href,label])=>`<li><a ${page===id?'aria-current="page"':''} href="${href}">${label}</a></li>`).join("")}<li><a class="nav-cta" ${page==="start"?'aria-current="page"':''} href="start-request.html">Start a Request</a></li><li class="exp-owner-link"><a href="portal.html">Owner</a></li></ul></div>`;
     const b=$(".nav-toggle",nav), list=$(".nav-links",nav);
     if(b&&list){b.addEventListener("click",()=>{const open=list.classList.toggle("is-open");b.setAttribute("aria-expanded",String(open))});$$("a",list).forEach(a=>a.addEventListener("click",()=>{list.classList.remove("is-open");b.setAttribute("aria-expanded","false")}));}
   }
   function replaceFooter(){
     const foot=$(".site-footer"); if(!foot)return;
-    foot.innerHTML=`<div class="footer-inner"><div><a class="brand" href="index.html"><span>Highway 38</span> Solutions</a><p>Big problems. Clear plans.</p><p>Every request is reviewed before scope, price, payment, or work begins.</p></div><div class="footer-links"><a href="products.html">Services</a><a href="business-systems.html">Business Systems</a><a href="sample-library-now.html">Samples</a><a href="free-tools.html">Free Tools</a><a href="start-request.html">Start a Request</a><a href="service-guides.html">Service Guides</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="portal.html">Owner Portal</a></div></div>`;
+    foot.innerHTML=`<div class="footer-inner"><div><a class="brand h38-brand-lockup" href="index.html">${logoMarkup}<span class="brand-text"><span>Highway 38</span> Solutions</span></a><p>Big problems. Clear plans.</p><p>Every request is reviewed before scope, price, payment, or work begins.</p></div><div class="footer-links"><a href="products.html">Services</a><a href="business-systems.html">Business Systems</a><a href="sample-library-now.html">Samples</a><a href="free-tools.html">Free Tools</a><a href="start-request.html">Start a Request</a><a href="service-guides.html">Service Guides</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="portal.html">Owner Portal</a></div></div>`;
   }
   function addBestFor(){
     const C=catalog();
@@ -63,6 +64,12 @@
     }
     select.addEventListener("change",apply); if(select.value)apply();
     form.addEventListener("submit",()=>{const s=systems().find(x=>x.slug===select.value);if(!s)return;const p=$("#problem"),d=$("#desired");const marker=`Business system interest: ${s.name}. `;if(p&&!p.value.startsWith(marker))p.value=marker+p.value;if(d&&!d.value.startsWith(marker))d.value=marker+d.value;},true);
+    form.addEventListener("submit",()=>{
+      const s=systems().find(x=>x.slug===select.value);if(!s)return;
+      const C=catalog(),summary=$("#summary"),result=$("#route-result"),openForm=$("#open-form"),email=$("#email-summary");
+      const text=["HIGHWAY 38 BUSINESS SYSTEM REQUEST",`System interest: ${s.name}`,`Price: ${s.price}`,`Status: ${s.status}`,`Name: ${$("#name")?.value||""}`,`Email: ${$("#email")?.value||""}`,`Phone: ${$("#phone")?.value||""}`,`Current problem: ${$("#problem")?.value||""}`,`Desired result: ${$("#desired")?.value||""}`,`Timing: ${$("#timing")?.value||""}`,`Budget: ${$("#budget")?.value||""}`,`Files or links: ${$("#files")?.value||""}`,`Details and constraints: ${$("#details")?.value||""}`,"","Submitting this request creates no charge, purchase, payment, or automatic external action. Final modules, scope, price, timing, integrations, migration, support, and boundaries are confirmed in writing before work begins."].join("\n");
+      if(summary)summary.textContent=text;if(result)result.classList.add("is-visible");if(openForm){openForm.href=C.formUrl||"start-request.html";openForm.textContent="Open Approved Request Form";}if(email){email.href=`mailto:${encodeURIComponent(C.businessEmail||"highway38solutions@gmail.com")}?subject=${encodeURIComponent(`Business system request — ${s.name}`)}&body=${encodeURIComponent(text)}`;}
+    });
   }
   function sampleFilters(){
     const host=$("[data-samples='all']");if(!host)return;
