@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-  pull_request_target:
+  workflow_run:
+    workflows:
+      - Pages Merge Signal
     types:
-      - closed
-    branches:
-      - main
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ github.event_name != 'pull_request_target' || github.event.pull_request.merged == true }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
