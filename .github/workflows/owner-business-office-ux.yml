@@ -1,0 +1,26 @@
+name: Owner Portal and Business Office UX Acceptance
+
+on:
+  push:
+    branches:
+      - main
+      - owner-business-office-ux-overhaul-2026-07-16
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  integrated-ux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify Owner Portal and Business Office UX
+        run: node scripts/verify-owner-business-office-ux.js
