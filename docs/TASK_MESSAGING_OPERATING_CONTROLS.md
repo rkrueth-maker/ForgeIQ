@@ -65,6 +65,8 @@ Consent records preserve the customer, exact phone number, scope, source, date, 
 
 A message duplicate key is based on the normalized phone, body, and linked record. A matching Sent, Delivered, or Blocked — Delivery Unknown record prevents another send. If the provider request returns an uncertain result, the message becomes Blocked — Delivery Unknown, Retry Locked = Yes, and no automatic retry occurs.
 
+Usage reporting maintains one record per message and direction. Later delivery-status checks update that record with provider price and status information instead of adding duplicate segment or cost entries.
+
 ## Provider configuration
 
 No provider secret may be committed to GitHub, written to a spreadsheet, included in Proof Log evidence, or returned to the browser. Twilio configuration uses these Apps Script Properties:
