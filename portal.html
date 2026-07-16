@@ -4,153 +4,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Owner Portal | Highway 38 Solutions</title>
-  <meta name="description" content="Private Highway 38 Owner Portal launcher for operations, Business Office, document upload, approvals, reporting, and system control.">
+  <meta name="description" content="Secure gateway to the single Highway 38 Business System application.">
   <meta name="robots" content="noindex,nofollow">
   <link rel="canonical" href="https://rkrueth-maker.github.io/highway-38-solutions/portal.html">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="commercial.css?v=20260711">
-  <link rel="stylesheet" href="ecosystem.css?v=20260713-cleanup1">
-  <link rel="stylesheet" href="brand-global.css?v=20260713-cleanup1">
-  <script defer src="ecosystem-data.js?v=20260711"></script>
-  <script defer src="ecosystem.js?v=20260714-owner-live"></script>
-  <script defer src="brand-global.js?v=20260713-cleanup1"></script>
   <style>
-    :root{--navy:#173a5e;--blue:#326a9e;--light:#eef5fb;--border:#d7e0e8;--text:#17212b;--muted:#5e6a75;--warn:#fff0bf;--orange:#d8652d}
-    body{margin:0;background:#edf2f6;color:var(--text)}
-    .owner-shell{width:min(1180px,100%);margin:0 auto;padding:14px}
-    .owner-head{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--navy);color:#fff;border-radius:14px 14px 0 0;padding:18px 20px}
-    .owner-head h1{font-size:clamp(1.35rem,3vw,2rem);margin:0}
-    .owner-head p{margin:5px 0 0;color:#dcebf7;font-size:.95rem}
-    .owner-status{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:.82rem;font-weight:800}
-    .owner-dot{width:10px;height:10px;border-radius:50%;background:#50c878;box-shadow:0 0 0 4px rgba(80,200,120,.2)}
-    .owner-tabs{display:flex;gap:8px;flex-wrap:wrap;background:#fff;border:1px solid var(--border);border-top:0;padding:12px}
-    .owner-tab{border:1px solid var(--border);background:#e8eef4;color:var(--navy);border-radius:9px;min-height:46px;padding:10px 15px;font-weight:800;cursor:pointer}
-    .owner-tab[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
-    .owner-tab--upload{background:#fff7d6;border-color:#d6b949}
-    .owner-area-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;background:#f8fafc;border:1px solid var(--border);border-top:0;padding:10px}
-    .owner-area{border:1px solid var(--border);background:#fff;border-radius:8px;padding:10px;text-align:center;color:var(--navy);font-size:.78rem;font-weight:800;cursor:pointer}
-    .owner-area:hover{background:var(--light)}
-    .owner-boundary{background:#fff8dd;border:1px solid #e4ca72;border-top:0;padding:11px 14px;font-size:.88rem;line-height:1.5}
-    .owner-boundary strong{color:#5b4300}
-    .owner-workspace{background:#fff;border:1px solid var(--border);border-top:0;border-radius:0 0 14px 14px;padding:clamp(22px,5vw,54px);box-shadow:0 14px 34px rgba(28,57,82,.12)}
-    .owner-panel{display:none}.owner-panel.is-active{display:block}
-    .launch-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:24px;align-items:stretch}
-    .launch-card,.launch-help{border:1px solid var(--border);border-radius:14px;padding:clamp(20px,4vw,34px);background:#fff}
-    .launch-card{box-shadow:0 12px 30px rgba(23,58,94,.1)}
-    .launch-kicker{display:inline-flex;border-radius:999px;padding:6px 10px;background:#e7f2fb;color:var(--navy);font-size:.76rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
-    .launch-card h2{font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.05;margin:14px 0 10px;color:var(--navy)}
-    .launch-card p,.launch-help p,.launch-help li{color:var(--muted);line-height:1.55}
-    .launch-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
-    .launch-primary,.launch-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:48px;border-radius:9px;padding:10px 16px;font-weight:900;text-decoration:none}
-    .launch-primary{background:var(--orange);color:#fff;border:1px solid var(--orange)}
-    .launch-secondary{background:#fff;color:var(--navy);border:1px solid var(--border)}
-    .launch-primary:hover,.launch-primary:focus{background:#b94f1f}.launch-secondary:hover,.launch-secondary:focus{background:var(--light)}
-    .launch-help{background:#f7fafc}.launch-help h3{margin-top:0;color:var(--navy)}.launch-help ol{padding-left:1.2rem}
-    .private-note{margin-top:18px;padding:12px 14px;border-left:4px solid var(--blue);background:#eef5fb;color:#24425f;font-size:.88rem;line-height:1.5}
-    @media(max-width:900px){.owner-head{align-items:flex-start}.owner-status{display:none}.owner-area-strip{grid-template-columns:repeat(3,minmax(0,1fr))}.launch-grid{grid-template-columns:1fr}}
-    @media(max-width:600px){.owner-shell{padding:0}.owner-head{border-radius:0;padding:14px}.owner-tabs{overflow:auto;flex-wrap:nowrap}.owner-tab{white-space:nowrap}.owner-area-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.owner-workspace{border-radius:0;padding:18px 12px}.launch-actions{display:grid}.launch-primary,.launch-secondary{width:100%;box-sizing:border-box}}
+    :root{--navy:#173a5e;--orange:#d8652d;--light:#eef5fb;--text:#17212b;--muted:#5e6a75}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(145deg,#edf3f7,#dfeaf1);font-family:Arial,Helvetica,sans-serif;color:var(--text);padding:20px}
+    main{width:min(620px,100%);background:#fff;border-radius:18px;padding:clamp(26px,6vw,48px);box-shadow:0 22px 60px rgba(23,58,94,.18);text-align:center}
+    img{width:82px;height:auto}h1{margin:16px 0 10px;color:var(--navy);font-size:clamp(1.8rem,5vw,2.8rem)}p{color:var(--muted);line-height:1.55}.status{display:inline-flex;align-items:center;gap:9px;margin:12px 0 22px;padding:9px 13px;border-radius:999px;background:var(--light);font-weight:800;color:var(--navy)}.dot{width:10px;height:10px;border-radius:50%;background:#50c878;box-shadow:0 0 0 4px rgba(80,200,120,.18)}a{display:inline-flex;min-height:48px;align-items:center;justify-content:center;padding:11px 18px;border-radius:10px;background:var(--orange);color:#fff;text-decoration:none;font-weight:900}.small{font-size:.84rem;margin-top:18px}
   </style>
 </head>
 <body data-page="portal">
-  <a class="skip-link" href="#owner-workspace">Skip to Owner Portal</a>
-  <nav class="site-nav" aria-label="Main navigation"></nav>
-
-  <main class="owner-shell" id="owner-workspace">
-    <header class="owner-head">
-      <div><h1>Highway 38 Owner Portal</h1><p>Secure access to operations, Business Office, documents, customers, money, approvals, reporting, and system control.</p></div>
-      <div class="owner-status"><span class="owner-dot" aria-hidden="true"></span>Private Google owner access</div>
-    </header>
-
-    <div class="owner-tabs" role="tablist" aria-label="Owner Portal workspaces">
-      <button class="owner-tab" id="tab-operations" role="tab" aria-selected="true" aria-controls="panel-operations" data-panel="operations">Operations &amp; Social</button>
-      <button class="owner-tab" id="tab-office" role="tab" aria-selected="false" aria-controls="panel-office" data-panel="office">Business Office</button>
-      <button class="owner-tab owner-tab--upload" id="tab-upload" role="tab" aria-selected="false" aria-controls="panel-upload" data-panel="upload">Upload PDF / Take Picture</button>
-    </div>
-
-    <div class="owner-area-strip" aria-label="Included owner work areas">
-      <button class="owner-area" data-panel="operations">Tasks &amp; Decisions</button>
-      <button class="owner-area" data-panel="operations">Social &amp; Advertising</button>
-      <button class="owner-area" data-panel="operations">Website &amp; Growth</button>
-      <button class="owner-area" data-panel="office">Customers &amp; Jobs</button>
-      <button class="owner-area" data-panel="office">Quotes, Money &amp; Reports</button>
-      <button class="owner-area" data-panel="upload">Documents &amp; OCR</button>
-    </div>
-
-    <div class="owner-boundary"><strong>Control boundary:</strong> These private systems require your authorized Google account. Customer sends, social publishing, advertising spend, financial posting, payroll export, tax finalization, delivery, and other external actions remain owner-approval gated.</div>
-
-    <section class="owner-workspace">
-      <div class="owner-panel is-active" id="panel-operations" role="tabpanel" aria-labelledby="tab-operations">
-        <div class="launch-grid">
-          <article class="launch-card">
-            <span class="launch-kicker">Daily owner control</span>
-            <h2>Operations &amp; Social</h2>
-            <p>Open tasks, decisions, customers, jobs, website controls, social work, approvals, proof, errors, backups, and operating health.</p>
-            <div class="launch-actions">
-              <a class="launch-primary" href="https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec">Open Operations &amp; Social</a>
-              <a class="launch-secondary" href="https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
-            </div>
-            <div class="private-note">This opens as a full secure Google page so your sign-in can work correctly. The old embedded frame was blocked by Google/Chrome authentication protections.</div>
-          </article>
-          <aside class="launch-help"><h3>Secure opening</h3><ol><li>Use the Google account authorized for Highway 38.</li><li>Complete the Google sign-in screen when it appears.</li><li>Return to this page with your browser Back button when finished.</li></ol></aside>
-        </div>
-      </div>
-
-      <div class="owner-panel" id="panel-office" role="tabpanel" aria-labelledby="tab-office">
-        <div class="launch-grid">
-          <article class="launch-card">
-            <span class="launch-kicker">Financial and operating records</span>
-            <h2>Business Office</h2>
-            <p>Open customers, vendors, quotes, work orders, jobs, purchases, expenses, invoices, payments, accounting preparation, payroll preparation, tax preparation, approvals, reports, and backups.</p>
-            <div class="launch-actions">
-              <a class="launch-primary" href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office">Open Business Office</a>
-              <a class="launch-secondary" href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
-            </div>
-            <div class="private-note">The accepted existing Business Office deployment opens directly. No replacement project or deployment URL is used.</div>
-          </article>
-          <aside class="launch-help"><h3>Owner controls remain active</h3><p>Financial posting, payroll export, tax finalization, customer sending, delivery, and other external actions still require the configured approval.</p></aside>
-        </div>
-      </div>
-
-      <div class="owner-panel" id="panel-upload" role="tabpanel" aria-labelledby="tab-upload">
-        <div class="launch-grid">
-          <article class="launch-card">
-            <span class="launch-kicker">Documents and OCR</span>
-            <h2>Upload PDF / Take Picture</h2>
-            <p>Open the Business Office, then choose <strong>Documents / OCR</strong> to upload a PDF, take a picture, review OCR-assisted fields, approve the document, and connect it to the correct record.</p>
-            <div class="launch-actions">
-              <a class="launch-primary" href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office#documents">Open Documents &amp; OCR</a>
-              <a class="launch-secondary" href="https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office#documents" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
-            </div>
-            <div class="private-note">OCR values remain review-only until you approve them. Nothing posts automatically.</div>
-          </article>
-          <aside class="launch-help"><h3>Camera access</h3><p>When Chrome asks, allow camera access only for the secure Google Apps Script page. You can also select an existing PDF or image file.</p></aside>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    (function(){
-      'use strict';
-      const tabs=[...document.querySelectorAll('.owner-tab')];
-      const panels={operations:document.getElementById('panel-operations'),office:document.getElementById('panel-office'),upload:document.getElementById('panel-upload')};
-      const hashToPanel={operations:'operations','business-office':'office',office:'office',upload:'upload',documents:'upload'};
-      const panelToHash={operations:'operations',office:'business-office',upload:'upload'};
-      function requestedPanel(){return hashToPanel[location.hash.replace(/^#/,'').toLowerCase()]||'';}
-      function activate(name,source,updateUrl=true){
-        Object.entries(panels).forEach(([key,panel])=>panel.classList.toggle('is-active',key===name));
-        tabs.forEach(tab=>tab.setAttribute('aria-selected',String(tab.dataset.panel===name && (!source||tab===source))));
-        localStorage.setItem('h38OwnerPortalPanel',name);
-        if(updateUrl)history.replaceState(null,'',`#${panelToHash[name]}`);
-        document.getElementById(`panel-${name}`)?.querySelector('.launch-primary')?.focus({preventScroll:true});
-      }
-      tabs.forEach(tab=>tab.addEventListener('click',()=>activate(tab.dataset.panel,tab,true)));
-      document.querySelectorAll('.owner-area').forEach(button=>button.addEventListener('click',()=>activate(button.dataset.panel,null,true)));
-      window.addEventListener('hashchange',()=>{const requested=requestedPanel();if(requested)activate(requested,null,false);});
-      const requested=requestedPanel();
-      const saved=localStorage.getItem('h38OwnerPortalPanel');
-      if(requested)activate(requested,null,false);else if(saved&&panels[saved])activate(saved,null,false);else activate('operations',tabs[0],false);
-    })();
-  </script>
+<main>
+  <img src="assets/highway38-logo.png?v=20260713-logo2" alt="Highway 38 Solutions">
+  <h1>Opening Highway 38 Business System</h1>
+  <div class="status"><span class="dot" aria-hidden="true"></span>Private Google owner access</div>
+  <p>One secure application contains the Command Center, customers, quotes, jobs, money, documents, OCR, website, growth, approvals, reports, proof, errors, backups, and system controls.</p>
+  <a id="secure-link" href="https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec">Open the unified app</a>
+  <p class="small">Customer sends, publishing, advertising spend, financial posting, payroll export, tax finalization, delivery, and other external actions remain owner-approval gated.</p>
+</main>
+<script>
+(function(){
+  'use strict';
+  var secure='https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec';
+  var raw=location.hash.replace(/^#/,'').toLowerCase();
+  var moduleMap={upload:'documents',documents:'documents','business-office':'requests',office:'requests',operations:'today'};
+  var module=moduleMap[raw]||'';
+  var target=secure+(module?'#module='+encodeURIComponent(module):'');
+  document.getElementById('secure-link').href=target;
+  setTimeout(function(){location.replace(target);},150);
+})();
+</script>
 </body>
 </html>
