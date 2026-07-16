@@ -14,11 +14,16 @@ const check = (name, condition, evidence = '') => (condition ? passes : failures
 
 const index = read('index.html');
 const portal = read('portal.html');
+const portalIndex = read('apps-script/core-engine/owner-portal-next/Portal_Index.html');
+const portalUnified = read('apps-script/core-engine/owner-portal-next/Portal_Unified.js');
+const portalShell = read('apps-script/core-engine/owner-portal-next/Portal_UX_Client_Shell.html');
 const samples = read('sample-library-now.html');
 const products = read('products.html');
 const brand = read('brand-global.js');
 const businessUi = read('apps-script/business-office/BusinessOffice_Index.html');
 const sharedUi = read('packages/shared-ui/BusinessOffice_Index.html');
+const businessWeb = read('apps-script/business-office/BusinessOffice_Web.gs');
+const businessGate = read('apps-script/business-office/BusinessOffice_ModuleAccess.gs');
 const dashboard = read('apps-script/business-office/BusinessOffice_Dashboard.gs');
 const businessOfficeConfig = JSON.parse(read('business-packs/highway38/business-office.config.json'));
 const urlPlan = read('docs/verification/HIGHWAY38_FINAL_URLS.md');
@@ -44,13 +49,12 @@ check('Sample Library contains all product samples', samples.includes('data-samp
 check('Sample Library contains bundle proof', samples.includes('data-bundles'));
 check('Sample Library Owner Portal link is clean', samples.includes('href="portal.html">Owner Portal'));
 
-check('Owner Portal has stable workspace hashes', portal.includes("panelToHash={operations:'operations',office:'business-office',upload:'upload'}"));
-check('Owner Portal reads requested workspace hash', portal.includes('function requestedPanel()'));
-check('Owner Portal has Operations and Social workspace', portal.includes('Operations &amp; Social'));
-check('Owner Portal has Business Office workspace', portal.includes('>Business Office</button>'));
-check('Owner Portal has upload route', portal.includes('Upload PDF / Take Picture'));
-check('Owner Portal avoids blocked private Google iframes', !/<iframe\b/i.test(portal));
-check('Owner Portal launches only accepted Apps Script workspaces', [...portal.matchAll(/<a\b[^>]*href="(https:\/\/script\.google\.com\/macros\/s\/[^"]+)"/g)].length >= 6);
+check('Owner Portal is an automatic gateway to one secure app', /location\.replace\(target\)/.test(portal) && /Opening Highway 38 Business System/.test(portal));
+check('Owner Portal contains no obsolete six-button workspace row', !/owner-area-strip|Tasks &amp; Decisions|Quotes, Money &amp; Reports/.test(portal));
+check('Owner Portal contains no public private-app iframe', !/<iframe\b/i.test(portal));
+check('secure app contains one embedded Business Office workspace', /id="businessWorkspace"/.test(portalIndex) && /id="businessFrame"/.test(portalIndex));
+check('secure app navigation is package controlled', /h38PortalUnifiedBootstrap/.test(portalUnified) && /H38_UNIFIED/.test(portalShell));
+check('Business Office modules are enforced server-side', /boGuardApiRequest_\(action,args\)/.test(businessWeb) && /MODULE NOT INCLUDED/.test(businessGate));
 check('Owner Portal contains no spreadsheet destination', !/docs\.google\.com\/spreadsheets/i.test(portal));
 check('legacy Owner links are rewritten to portal.html', brand.includes("link.href='portal.html'") && brand.includes("link.removeAttribute('target')"));
 check('Owner Portal preserves approval boundary', portal.includes('remain owner-approval gated'));
@@ -66,13 +70,14 @@ for (const [name, ui] of [['Highway 38 Business Office', businessUi], ['shared B
 check('Highway 38 Business Office is aligned with shared UI', businessUi === sharedUi);
 check('Highway 38 Business Office uses approved logo URL', businessOfficeConfig.branding.logoUrl === 'https://rkrueth-maker.github.io/highway-38-solutions/assets/highway38-logo.png?v=20260713-logo2', businessOfficeConfig.branding.logoUrl || 'blank');
 check('Highway 38 Business Office colors remain approved', businessOfficeConfig.branding.primaryColor === '#173a5e' && businessOfficeConfig.branding.secondaryColor === '#326a9e');
+check('Highway 38 package is configured as one complete app', businessOfficeConfig.package && businessOfficeConfig.package.singleApp === true && businessOfficeConfig.package.id === 'complete-business-system');
 
 check('dashboard excludes controlled test records', dashboard.includes('boDashboardIsControlledTest_') && dashboard.includes("text.indexOf('CONTROLLED TEST')"));
 check('dashboard includes revenue, cost, and profit metrics', dashboard.includes("'Active-job revenue'") && dashboard.includes("'Active-job cost'") && dashboard.includes("'Active-job profit'"));
 check('dashboard includes payroll and tax preparation metrics', dashboard.includes("'Payroll preparation'") && dashboard.includes("'Tax preparation'"));
 check('dashboard includes documents and approvals metrics', dashboard.includes("'Documents needing review'") && dashboard.includes("'Pending owner approvals'"));
 
-check('current URL plan is documented', urlPlan.includes('/portal.html#operations') && urlPlan.includes('/portal.html#business-office'));
+check('current URL plan documents portal gateway', urlPlan.includes('/portal.html'));
 check('custom-domain actions remain approval gated', /Do not change DNS[\s\S]*without owner approval/i.test(urlPlan));
 check('legacy portal is explicitly preserved', /No component is approved for deletion/i.test(legacyPlan));
 check('legacy technical source remains present', exists('apps-script/core-engine/owner-portal-next/RUNTIME_TEST_RUNBOOK.md'));
