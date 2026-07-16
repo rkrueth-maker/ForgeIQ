@@ -6,11 +6,9 @@
 - Customer request: `https://rkrueth-maker.github.io/highway-38-solutions/start-request.html`
 - Sample Library: `https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html`
 - Problem Starter: `https://rkrueth-maker.github.io/highway-38-solutions/problem-starter.html`
-- Owner Portal: `https://rkrueth-maker.github.io/highway-38-solutions/portal.html`
-- Owner Operations workspace: `https://rkrueth-maker.github.io/highway-38-solutions/portal.html#operations`
-- Business Office workspace: `https://rkrueth-maker.github.io/highway-38-solutions/portal.html#business-office`
+- Unified Owner application gateway: `https://rkrueth-maker.github.io/highway-38-solutions/portal.html`
 
-Normal owner use starts at the Owner Portal. Embedded Google Apps Script URLs are implementation details, not normal shareable destinations. Administrative spreadsheets remain separately labeled, confirmation-protected, and outside ordinary operation.
+Normal owner use starts at the single Owner application gateway. It automatically opens the accepted existing authenticated Apps Script application. Command Center, Business Office, documents and OCR, website and growth, approvals, reports, proof, errors, backups, and system controls share one application navigation. Package configuration determines which modules are available. Raw Apps Script URLs remain implementation details, not normal shareable destinations. Administrative spreadsheets remain separately labeled, confirmation-protected, and outside ordinary operation.
 
 ## Future branded structure
 
@@ -32,7 +30,7 @@ A custom domain is technically ready after the owner approves the domain purchas
 
 ## Cost and security
 
-GitHub Pages hosting remains free. A custom domain normally adds only the registrar's recurring domain fee; no purchase is authorized by this document. HTTPS must remain mandatory. Owner Portal and Business Office access continue to rely on authorized Google accounts, role checks, approval gates, and selected-record execution.
+GitHub Pages hosting remains free. A custom domain normally adds only the registrar's recurring domain fee; no purchase is authorized by this document. HTTPS must remain mandatory. Unified Owner application access continues to rely on authorized Google accounts, role checks, package-module checks, approval gates, and selected-record execution.
 
 ## Redirect and rollback plan
 
