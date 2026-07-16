@@ -29,13 +29,21 @@ const businessUi = read('apps-script/business-office/BusinessOffice_Index.html')
 const businessCore = read('apps-script/business-office/BusinessOffice_Core.gs');
 const businessWeb = read('apps-script/business-office/BusinessOffice_Web.gs');
 
+const ownerAppUrl = 'https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec';
+const officeAppUrl = 'https://script.google.com/macros/s/AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg/exec?app=business-office';
+const launchLinks = [...portal.matchAll(/<a\b[^>]*href=["'](https:\/\/script\.google\.com\/macros\/s\/[^"']+)["'][^>]*>/gi)].map(match => match[1]);
+
 assert('website Owner Portal page exists', /<title>Owner Portal \| Highway 38 Solutions<\/title>/.test(portal));
 assert('portal contains Operations and Social tab', /Operations &amp; Social/.test(portal));
 assert('portal contains Business Office tab', />Business Office</.test(portal));
 assert('portal contains upload tab', /Upload PDF \/ Take Picture/.test(portal));
-assert('portal embeds only Apps Script private workspaces', (portal.match(/<iframe\b[^>]*src="([^"]+)"/g) || []).every(tag => /src="https:\/\/script\.google\.com\/macros\/s\//.test(tag)));
+assert('portal uses secure top-level launchers instead of private Google iframes', !/<iframe\b/i.test(portal));
+assert('portal launches accepted Owner Operations deployment', launchLinks.some(href => href === ownerAppUrl));
+assert('portal launches accepted Business Office deployment', launchLinks.some(href => href.startsWith(officeAppUrl)));
+assert('portal provides same-tab primary secure launch actions', /class="launch-primary"[^>]+href="https:\/\/script\.google\.com\/macros\/s\//.test(portal));
+assert('portal provides new-tab fallback launch actions', /class="launch-secondary"[^>]+target="_blank"[^>]+rel="noopener noreferrer"/.test(portal));
+assert('portal explains the Google authentication frame boundary', /old embedded frame was blocked by Google\/Chrome authentication protections/i.test(portal));
 assert('portal contains no spreadsheet destination', !/docs\.google\.com\/spreadsheets/i.test(portal));
-assert('portal tabs use in-page controls rather than outbound links', !/<a\b[^>]*>(?:[^<]*)(?:Operations|Business Office|Upload PDF)/i.test(portal));
 assert('portal has mobile layout rules', /@media\(max-width:600px\)/.test(portal) && /@media\(max-width:900px\)/.test(portal));
 
 assert('legacy Owner Login links are routed to portal.html', /link\.href='portal\.html'/.test(brand));
@@ -79,7 +87,8 @@ const result = {
     rootHtmlFiles: rootHtmlFiles.length,
     ownerLinks: ownerLinks.length,
     portalTabs: 3,
-    privateFrames: (portal.match(/<iframe\b/g) || []).length
+    privateFrames: (portal.match(/<iframe\b/g) || []).length,
+    secureLaunchLinks: launchLinks.length
   },
   passes,
   failures
