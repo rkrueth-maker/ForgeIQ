@@ -7,7 +7,7 @@ const testDeployScript=path.join(repo,'scripts/deploy-owner-portal-next-test.sh'
 const productionDeployScript=path.join(repo,'scripts/deploy-owner-portal-next-production.sh');
 const testRunbook=path.join(root,'RUNTIME_TEST_RUNBOOK.md');
 const productionRunbook=path.join(root,'PRODUCTION_INSTALL.md');
-const required=['appsscript.json','Portal_Config.js','Portal_Environment.js','Portal_Production.js','Portal_Repository.js','Portal_Catalog.js','Portal_Services.js','Portal_Actions.js','Portal_Adapters.js','Portal_LogApi.js','Portal_SelfTest.js','Portal_TestFixtures.js','Portal_Experience.js','Portal_Index.html','Portal_Experience_Styles.html','Portal_Experience_Client_Core.html','Portal_Experience_Client_Views.html','Portal_Experience_Client_Workspace.html','README.md'];
+const required=['appsscript.json','Portal_Config.js','Portal_Environment.js','Portal_Production.js','Portal_Repository.js','Portal_Catalog.js','Portal_Services.js','Portal_Actions.js','Portal_Adapters.js','Portal_LogApi.js','Portal_SelfTest.js','Portal_TestFixtures.js','Portal_Experience.js','Portal_Unified.js','Portal_Index.html','Portal_Experience_Styles.html','Portal_Experience_Client_Core.html','Portal_Experience_Client_Views.html','Portal_Experience_Client_Workspace.html','README.md'];
 const failures=[];const pass=[];
 function check(name,condition,detail=''){if(condition)pass.push({name,detail});else failures.push({name,detail});}
 required.forEach(f=>check('file '+f,fs.existsSync(path.join(root,f))));
@@ -49,6 +49,8 @@ check('proof reader',/function h38PortalProofLog/.test(all));
 check('error reader',/function h38PortalErrorLog/.test(all));
 check('catalog mismatch hold',/CATALOG MISMATCH HOLD/.test(all));
 check('all modules',['dashboard','tasks','leads','customers','jobs','quotes','invoices','payments','expenses','communications','social','advertising','website','calendar','products','reports','proof','errors','settings'].every(x=>all.includes("'"+x+"'")));
+check('unified package manifest endpoint',/function h38PortalUnifiedBootstrap\(\)/.test(all)&&/singleApp:\s*true/.test(all));
+check('unified package manifest includes Business Office route',/businessOfficeUrl/.test(all)&&/app=business-office&embedded=1/.test(all));
 check('environment property key',/H38_PORTAL_SPREADSHEET_ID/.test(all));
 check('test environment confirmation',/CONFIGURE NON-DEPLOYED TEST ENVIRONMENT/.test(all));
 check('no hard-coded live spreadsheet id in Apps Script source',!all.includes('1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo'));
