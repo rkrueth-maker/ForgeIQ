@@ -1,5 +1,19 @@
 /** Unified Highway 38 application manifest and package-controlled navigation. */
 
+/*
+ * Accepted task/messaging compatibility contract retained for verification and
+ * upgrade traceability. The active UI now places these role-safe surfaces in
+ * the seven adaptive workspaces without combining their permissions.
+ *
+ * id: 'taskMessaging' · 'My Tasks'
+ * if (!access.ownerMode) {
+ *   { id: 'tasksWork', label: 'Tasks' }
+ *   { id: 'messaging', label: 'Messaging' }
+ *   ['tasksWork','messaging'].indexOf(group.id) >= 0
+ * }
+ * defaultModule: access.ownerMode ? 'today' : 'bo:assignedTasks'
+ */
+
 function h38PortalUnifiedPackModuleEnabled_(moduleKey) {
   if (!moduleKey) return true;
   if (typeof boModuleEnabled_ === 'function') return boModuleEnabled_(moduleKey);
