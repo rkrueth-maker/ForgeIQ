@@ -23,11 +23,12 @@ required.forEach(file=>check(`required ${file}`,exists(file)));
   try{new vm.Script(read(file),{filename:file});check(`syntax ${file}`,true);}catch(error){check(`syntax ${file}`,false,error.message);}
 });
 
+const publicExpansion=read('public-expansion.js');
 need('public-expansion.js','Solutions & Pricing','public navigation uses one commercial label');
 need('public-expansion.js','Examples','public navigation uses Examples');
 need('public-expansion.js','Customer Portal','public navigation exposes customer access');
 need('public-expansion.js','Owner Login','one public owner-access label');
-check('draft offers excluded from primary public navigation',!/[[]"services"|[[]"business-os"/.test(read('public-expansion.js')));
+check('draft offers excluded from primary public navigation',!publicExpansion.includes('["services"')&&!publicExpansion.includes('["business-os"'));
 
 const home=read('index.html');
 need('index.html','h38-home-hero','homepage uses approved split hero');
@@ -41,17 +42,20 @@ check('unsupported On Time On Point claim absent',!home.includes('On Time. On Po
 check('representative hero image remains classified',home.includes('data-image-classification="representative-environment"')&&home.includes('Representative planning environment—not customer proof.'));
 
 const request=read('start-request.html');
+const requestFlow=read('request-flow.js');
 [1,2,3].forEach(step=>check(`request step ${step}`,request.includes(`data-request-step="${step}"`)));
 ['What result do you need?','Tell us about the problem.','Contact and review.'].forEach(text=>check(`request copy ${text}`,request.includes(text)));
 check('request has three primary choices',(request.match(/class="h38-choice-card"/g)||[]).length===3);
 check('request has two smaller secondary choices',(request.match(/class="h38-choice-link"/g)||[]).length===2&&request.includes('I know the exact service')&&request.includes('Help me choose'));
-check('first Continue is disabled until selection',/data-request-next disabled aria-disabled="true"/.test(request)&&read('request-flow.js').includes('updateFirstContinue'));
+check('first Continue is disabled until selection',/data-request-next disabled aria-disabled="true"/.test(request)&&requestFlow.includes('updateFirstContinue'));
 check('selected state is visibly stronger',request.includes('h38-choice-check')&&read('ux-unified-public.css').includes('.h38-choice-card.is-selected'));
 check('request preserves approved catalog selectors',request.includes('id="product"')&&request.includes('id="bundle"')&&request.includes('id="business-system-interest"'));
 check('request preserves buying-term truth',['price','payment','turnaround','revisions','exclusions'].every(term=>request.toLowerCase().includes(term)));
 check('request no-charge control',/No charge|no-charge/i.test(request));
-check('final request review is complete',['Selected outcome','Customer summary','Files expected','Contact information','What happens next'].every(marker=>read('request-flow.js').includes(marker)));
-check('second external web form is hidden',request.includes('id="open-form"')&&request.includes('hidden>Open Approved Request Form')&&request.includes('Open email to submit'));
+check('final request review is complete',['Selected outcome','Customer summary','Files expected','Contact information','What happens next'].every(marker=>requestFlow.includes(marker)));
+check('request uses one visible final submission action',request.includes('id="request-submit"')&&request.includes('type="submit">Open email to submit</button>')&&request.includes('id="email-summary" hidden'));
+check('second external web form remains hidden',request.includes('id="open-form"')&&request.includes('hidden>Open Approved Request Form'));
+check('single final action opens prepared email',requestFlow.includes('openPreparedEmail')&&requestFlow.includes('window.location.href=href'));
 
 const customer=read('customer-portal.html');
 check('customer action required host',customer.includes('id="actionRequired"'));
@@ -65,6 +69,7 @@ check('customer portal remains noindex',customer.includes('noindex,nofollow'));
 const customerUx=read('customer-portal-ux.js');
 check('quote approval only occurs from complete review',customerUx.includes('openQuoteReview')&&customerUx.includes('quoteApproveConfirmed')&&!customerUx.includes('approve.focus')&&!customerUx.includes('approve.click'));
 check('quote review exposes required terms',['Deliverables','Price','Timing','Revision allowance','Exclusions','Approval consequence'].every(marker=>customerUx.includes(marker)));
+check('incomplete quote terms block approval',customerUx.includes('quoteReviewComplete')&&customerUx.includes('approve.disabled=!available')&&customerUx.includes('approval is unavailable'));
 check('quote change becomes project-bound owner-review message',customerUx.includes('Request a change')&&customerUx.includes('messageBody')&&customerUx.includes('quote.job_id'));
 check('project timeline includes next expected event',customerUx.includes('Next step:')&&customerUx.includes('Expected update:'));
 const customerClient=read('customer-portal-supabase.js');
@@ -76,7 +81,7 @@ const raw=read('apps-script/core-engine/owner-portal-next/Portal_RawIncludes.js'
 check('Owner one-shot styles included',portalIndex.includes('Portal_OneShot_UX_Styles')&&raw.includes('Portal_OneShot_UX_Styles'));
 check('Owner one-shot client included',portalIndex.includes('Portal_OneShot_Client')&&raw.includes('Portal_OneShot_Client'));
 const owner=read('apps-script/core-engine/owner-portal-next/Portal_OneShot_Client.html');
-['Needs decision','Due today','Overdue','Money requiring attention','Next up','Today\\\'s calendar','Recent activity'].forEach(marker=>check(`Owner Today marker ${marker}`,owner.includes(marker.replace('\\\'','\''))||owner.includes(marker)));
+['Needs decision','Due today','Overdue','Money requiring attention','Next up',"Today\\'s calendar",'Recent activity'].forEach(marker=>check(`Owner Today marker ${marker}`,owner.includes(marker)));
 check('Owner uses four primary metrics',(owner.match(/h38RoleMetric\(/g)||[]).length===4);
 check('Owner holds and errors are conditional alert',owner.includes('h38OwnerAttentionStrip')&&owner.includes("if(!holdCount)return ''"));
 check('Owner Next Up distinguishes waiting state',['Assigned to me','Waiting on customer','Waiting on another user','Blocked'].every(marker=>owner.includes(marker)));
