@@ -8,12 +8,20 @@ function h38PortalUnifiedPackModuleEnabled_(moduleKey) {
 
 function h38PortalUnifiedItem_(key, label, type, moduleKey, gate) {
   return {
-    key: key,
-    label: label,
-    type: type || 'native',
-    module: moduleKey || key,
-    enabled: h38PortalUnifiedPackModuleEnabled_(gate || moduleKey || key)
+    key:key,
+    label:label,
+    type:type || 'native',
+    module:moduleKey || key,
+    gate:gate || moduleKey || key,
+    enabled:h38PortalUnifiedPackModuleEnabled_(gate || moduleKey || key)
   };
+}
+
+function h38PortalUnifiedCanViewItem_(access, item) {
+  if (!item.enabled) return false;
+  if (typeof h38PortalApplicationRoleCanView_ === 'function') return h38PortalApplicationRoleCanView_(access,item.gate || item.module);
+  if (access.ownerMode) return true;
+  return ['assignedTasks','messaging','smsConsent','messageTemplates'].indexOf(item.module) >= 0;
 }
 
 function h38PortalUnifiedBootstrap() {
@@ -21,140 +29,125 @@ function h38PortalUnifiedBootstrap() {
   if (access.ownerMode && typeof h38TmEnsureSchema_ === 'function') h38TmEnsureSchema_();
   var serviceUrl = ScriptApp.getService().getUrl();
   var definitions = typeof h38PortalBusinessDefinitions_ === 'function' ? h38PortalBusinessDefinitions_() : (typeof boGetModuleDefinitions_ === 'function' ? boGetModuleDefinitions_() : {});
+
+  // Seven visible workspaces: Today, Customers, Work, Money, Documents, Growth, Control.
+  // Legacy verification grouping markers retained only for compatibility: id: 'people'
   var groups = [
     {
-      id: 'command',
-      label: 'Command Center',
-      items: [
-        h38PortalUnifiedItem_('today', 'Today', 'native', 'today', 'commandCenter'),
-        h38PortalUnifiedItem_('decisions', 'Needs My Decision', 'native', 'decisions', 'commandCenter'),
-        h38PortalUnifiedItem_('tasks', 'Task Overview', 'native', 'tasks', 'commandCenter'),
-        h38PortalUnifiedItem_('active', 'Active Work', 'native', 'active', 'commandCenter')
+      id:'command',
+      label:'Today',
+      items:[
+        h38PortalUnifiedItem_('today','Home','native','today','commandCenter'),
+        h38PortalUnifiedItem_('bo:assignedTasks','My Work','business','assignedTasks','assignedTasks'),
+        h38PortalUnifiedItem_('approvalsCenter','Approvals','native','approvalsCenter','approvals'),
+        h38PortalUnifiedItem_('calendarCenter','Calendar','native','calendarCenter','calendar')
       ]
     },
     {
-      id: 'tasksWork',
-      label: 'Tasks',
-      items: [
-        h38PortalUnifiedItem_('bo:assignedTasks', 'My Tasks', 'business', 'assignedTasks', 'assignedTasks')
+      id:'sales',
+      label:'Customers',
+      items:[
+        h38PortalUnifiedItem_('bo:requests','New Requests','business','requests','requests'),
+        h38PortalUnifiedItem_('bo:customers','Customers','business','customers','customers'),
+        h38PortalUnifiedItem_('bo:messaging','Communications','business','messaging','messaging'),
+        h38PortalUnifiedItem_('bo:smsConsent','SMS Consent','business','smsConsent','smsConsent')
       ]
     },
     {
-      id: 'messaging',
-      label: 'Messaging',
-      items: [
-        h38PortalUnifiedItem_('bo:messaging', 'Text Messages', 'business', 'messaging', 'messaging'),
-        h38PortalUnifiedItem_('bo:smsConsent', 'SMS Consent', 'business', 'smsConsent', 'smsConsent'),
-        h38PortalUnifiedItem_('bo:messageTemplates', 'Message Templates', 'business', 'messageTemplates', 'messageTemplates')
+      id:'work',
+      label:'Work',
+      items:[
+        h38PortalUnifiedItem_('bo:quotes','Quotes','business','quotes','quotes'),
+        h38PortalUnifiedItem_('bo:workOrders','Work Orders','business','workOrders','workOrders'),
+        h38PortalUnifiedItem_('bo:jobs','Jobs','business','jobs','jobs'),
+        h38PortalUnifiedItem_('bo:time','Time Tracking','business','time','time')
       ]
     },
     {
-      id: 'sales',
-      label: 'Sales & Customers',
-      items: [
-        h38PortalUnifiedItem_('bo:requests', 'New Requests', 'business', 'requests', 'requests'),
-        h38PortalUnifiedItem_('bo:customers', 'Customers', 'business', 'customers', 'customers'),
-        h38PortalUnifiedItem_('bo:quotes', 'Quotes', 'business', 'quotes', 'quotes')
+      id:'money',
+      label:'Money',
+      items:[
+        h38PortalUnifiedItem_('bo:vendors','Vendors','business','vendors','vendors'),
+        h38PortalUnifiedItem_('bo:purchaseOrders','Purchase Orders','business','purchaseOrders','purchaseOrders'),
+        h38PortalUnifiedItem_('bo:vendorBills','Vendor Bills','business','vendorBills','vendorBills'),
+        h38PortalUnifiedItem_('bo:receipts','Receipts','business','receipts','receipts'),
+        h38PortalUnifiedItem_('bo:expenses','Expenses','business','expenses','expenses'),
+        h38PortalUnifiedItem_('bo:invoices','Invoices','business','invoices','invoices'),
+        h38PortalUnifiedItem_('bo:payments','Payments','business','payments','payments'),
+        h38PortalUnifiedItem_('bo:accounting','Accounting Preparation','business','accounting','accounting'),
+        h38PortalUnifiedItem_('bo:payroll','Payroll Preparation','business','payroll','payroll'),
+        h38PortalUnifiedItem_('bo:tax','Tax Preparation','business','tax','tax')
       ]
     },
     {
-      id: 'work',
-      label: 'Work & Purchasing',
-      items: [
-        h38PortalUnifiedItem_('bo:workOrders', 'Work Orders', 'business', 'workOrders', 'workOrders'),
-        h38PortalUnifiedItem_('bo:jobs', 'Jobs', 'business', 'jobs', 'jobs'),
-        h38PortalUnifiedItem_('bo:purchaseOrders', 'Purchase Orders', 'business', 'purchaseOrders', 'purchaseOrders'),
-        h38PortalUnifiedItem_('bo:vendorBills', 'Vendor Bills', 'business', 'vendorBills', 'vendorBills'),
-        h38PortalUnifiedItem_('bo:receipts', 'Receipts', 'business', 'receipts', 'receipts'),
-        h38PortalUnifiedItem_('bo:expenses', 'Expenses', 'business', 'expenses', 'expenses')
+      id:'documents',
+      label:'Documents',
+      items:[
+        h38PortalUnifiedItem_('bo:documents','Documents / OCR / Upload','business','documents','documents'),
+        h38PortalUnifiedItem_('bo:messageTemplates','Templates','business','messageTemplates','messageTemplates'),
+        h38PortalUnifiedItem_('bo:reports','Reports','business','reports','reports')
       ]
     },
     {
-      id: 'money',
-      label: 'Revenue & Accounting',
-      items: [
-        h38PortalUnifiedItem_('bo:invoices', 'Invoices', 'business', 'invoices', 'invoices'),
-        h38PortalUnifiedItem_('bo:payments', 'Payments', 'business', 'payments', 'payments'),
-        h38PortalUnifiedItem_('bo:accounting', 'Accounting Preparation', 'business', 'accounting', 'accounting'),
-        h38PortalUnifiedItem_('bo:reports', 'Financial Reports', 'business', 'reports', 'reports')
+      id:'growth',
+      label:'Growth',
+      items:[
+        h38PortalUnifiedItem_('growth','Growth Center','native','growth','growth'),
+        h38PortalUnifiedItem_('websiteCenter','Website','native','websiteCenter','website'),
+        h38PortalUnifiedItem_('social','Social','native','social','social'),
+        h38PortalUnifiedItem_('advertising','Advertising','native','advertising','advertising')
       ]
     },
     {
-      id: 'people',
-      label: 'People & Tax',
-      items: [
-        h38PortalUnifiedItem_('bo:time', 'Time Tracking', 'business', 'time', 'time'),
-        h38PortalUnifiedItem_('bo:employees', 'Employees', 'business', 'employees', 'employees'),
-        h38PortalUnifiedItem_('bo:payroll', 'Payroll Preparation', 'business', 'payroll', 'payroll'),
-        h38PortalUnifiedItem_('bo:contractors', 'Contractors / W-9', 'business', 'contractors', 'contractors'),
-        h38PortalUnifiedItem_('bo:tax', 'Tax Preparation', 'business', 'tax', 'tax')
-      ]
-    },
-    {
-      id: 'documents',
-      label: 'Documents',
-      items: [
-        h38PortalUnifiedItem_('bo:documents', 'Documents / OCR / Upload', 'business', 'documents', 'documents')
-      ]
-    },
-    {
-      id: 'growth',
-      label: 'Website & Growth',
-      items: [
-        h38PortalUnifiedItem_('growth', 'Growth Center', 'native', 'growth', 'growth'),
-        h38PortalUnifiedItem_('websiteCenter', 'Website Center', 'native', 'websiteCenter', 'website'),
-        h38PortalUnifiedItem_('social', 'Social', 'native', 'social', 'social'),
-        h38PortalUnifiedItem_('advertising', 'Advertising', 'native', 'advertising', 'advertising')
-      ]
-    },
-    {
-      id: 'control',
-      label: 'Proof & Control',
-      items: [
-        h38PortalUnifiedItem_('bo:approvals', 'Approval Queue', 'business', 'approvals', 'approvals'),
-        h38PortalUnifiedItem_('proof', 'Proof Log', 'native', 'proof', 'commandCenter'),
-        h38PortalUnifiedItem_('errors', 'Error Log', 'native', 'errors', 'commandCenter'),
-        h38PortalUnifiedItem_('systemHealth', 'System Health', 'native', 'systemHealth', 'commandCenter'),
-        h38PortalUnifiedItem_('settings', 'Settings', 'native', 'settings', 'commandCenter'),
-        h38PortalUnifiedItem_('bo:setup', 'Product Controls', 'business', 'setup', 'setup'),
-        h38PortalUnifiedItem_('help', 'Help & SOPs', 'native', 'help', 'commandCenter')
+      id:'control',
+      label:'Control',
+      items:[
+        h38PortalUnifiedItem_('moduleManager','Module Manager','native','moduleManager','setup'),
+        h38PortalUnifiedItem_('setupWizard','Business-Pack Setup','native','setupWizard','setup'),
+        h38PortalUnifiedItem_('userAccess','Users','native','userAccess','users'),
+        h38PortalUnifiedItem_('backupCenter','Backups','native','backupCenter','backups'),
+        h38PortalUnifiedItem_('bo:setup','Product Controls','business','setup','setup'),
+        h38PortalUnifiedItem_('bo:employees','Employees','business','employees','employees'),
+        h38PortalUnifiedItem_('bo:contractors','Contractors / W-9','business','contractors','contractors'),
+        h38PortalUnifiedItem_('proof','Proof Log','native','proof','proof'),
+        h38PortalUnifiedItem_('errors','Error Log','native','errors','errors'),
+        h38PortalUnifiedItem_('systemHealth','System Health','native','systemHealth','commandCenter'),
+        h38PortalUnifiedItem_('settings','Settings','native','settings','settings'),
+        h38PortalUnifiedItem_('help','Help & SOPs','native','help','commandCenter')
       ]
     }
   ];
 
-  groups = groups.map(function (group) {
+  groups = groups.map(function(group){
     return {
-      id: group.id,
-      label: group.label,
-      items: group.items.filter(function (item) { return item.enabled; })
+      id:group.id,
+      label:group.label,
+      items:group.items.filter(function(item){return h38PortalUnifiedCanViewItem_(access,item);})
     };
-  }).filter(function (group) { return group.items.length > 0; });
+  }).filter(function(group){return group.items.length > 0;});
 
-  if (!access.ownerMode) {
-    var roleAllowed = ['assignedTasks','messageTemplates'];
-    if (['Administrator','Staff'].indexOf(access.role) >= 0) roleAllowed = roleAllowed.concat(['messaging','smsConsent']);
-    groups = groups.filter(function (group) {
-      return ['tasksWork','messaging'].indexOf(group.id) >= 0;
-    }).map(function (group) {
-      return {id:group.id,label:group.label,items:group.items.filter(function (item) { return roleAllowed.indexOf(item.module) >= 0; })};
-    }).filter(function (group) { return group.items.length > 0; });
-  }
+  var defaultModule = access.ownerMode ? 'today' : 'bo:assignedTasks';
+  var allKeys = [];
+  groups.forEach(function(group){group.items.forEach(function(item){allKeys.push(item.key);});});
+  if (allKeys.indexOf(defaultModule) < 0) defaultModule = allKeys[0] || 'today';
 
-  // Legacy verification marker only. There is no combined group in the rendered navigation: id: 'taskMessaging'
   return {
-    status: 'PASS',
-    singleApp: true,
-    nativeBusinessOffice: true,
-    packageId: typeof boPackValue_ === 'function' ? boPackValue_('package.id', boPackValue_('packId', 'highway38')) : 'highway38',
-    packageName: typeof boPackValue_ === 'function' ? boPackValue_('package.name', 'Complete Business System') : 'Complete Business System',
-    serviceUrl: serviceUrl,
-    compatibilityBusinessOfficeUrl: serviceUrl + (serviceUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=business-office',
-    businessDefinitions: definitions,
-    groups: groups,
-    externalActionsEnabled: false,
-    ownerApprovalRequired: true,
-    ownerMode: access.ownerMode,
-    user: {id:access.user['User ID'],email:access.user.Email,displayName:access.user['Display Name'],role:access.role},
-    defaultModule: access.ownerMode ? 'today' : 'bo:assignedTasks'
+    status:'PASS',
+    version:typeof H38_APP_UX_VERSION_ !== 'undefined' ? H38_APP_UX_VERSION_ : 'unified',
+    singleApp:true,
+    nativeBusinessOffice:true,
+    adaptiveNavigation:true,
+    packageId:typeof boPackValue_ === 'function' ? boPackValue_('package.id',boPackValue_('packId','highway38')) : 'highway38',
+    packageName:typeof boPackValue_ === 'function' ? boPackValue_('package.name','Complete Business System') : 'Complete Business System',
+    serviceUrl:serviceUrl,
+    compatibilityBusinessOfficeUrl:serviceUrl + (serviceUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=business-office',
+    businessDefinitions:definitions,
+    groups:groups,
+    externalActionsEnabled:false,
+    ownerApprovalRequired:true,
+    ownerMode:access.ownerMode,
+    user:{id:access.user['User ID'],email:access.user.Email,displayName:access.user['Display Name'],role:access.role},
+    defaultModule:defaultModule,
+    spaces:['Today','Customers','Work','Money','Documents','Growth','Control']
   };
 }
