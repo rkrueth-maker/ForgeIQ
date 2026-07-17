@@ -1,0 +1,7 @@
+/* Approved homepage hero correction: use the existing Highway 38 badge and navy CTAs. */
+.h38-home-hero{background:var(--h38-paper)}
+.h38-home-hero__media.h38-home-hero__logo{display:flex;align-items:center;justify-content:center;background:var(--h38-paper);padding:3rem;overflow:visible}
+.h38-home-hero__media.h38-home-hero__logo img{width:min(100%,560px);height:auto;max-height:430px;object-fit:contain;display:block}
+.h38-one-shot .nav-links .nav-cta,.h38-one-shot .btn-primary{background:var(--h38-navy);border-color:var(--h38-navy);color:#fff;box-shadow:0 8px 18px rgba(16,42,67,.22)}
+.h38-one-shot .nav-links .nav-cta:hover,.h38-one-shot .btn-primary:hover{background:var(--h38-navy-2);border-color:var(--h38-navy-2)}
+@media(max-width:860px){.h38-home-hero__media.h38-home-hero__logo{min-height:320px;padding:2rem}.h38-home-hero__media.h38-home-hero__logo img{max-height:300px}}
