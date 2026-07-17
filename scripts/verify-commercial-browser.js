@@ -45,15 +45,19 @@ function server(){return http.createServer((req,res)=>{
         const response=await page.goto(`${base}/${file}`,{waitUntil:'networkidle',timeout:20000});
         if(!response||response.status()>=400)fail(`${viewport.name} ${file} loads`,response?String(response.status()):'no response');
         const overflow=await page.evaluate(()=>{
-          const viewportWidth=document.documentElement.clientWidth;
+          // window.innerWidth is the horizontal browser viewport. documentElement.clientWidth
+          // excludes the vertical scrollbar gutter in Chromium, which can otherwise create a
+          // false 7px "horizontal overflow" even when scrollWidth equals the real viewport.
+          const viewportWidth=window.innerWidth;
+          const contentWidth=document.documentElement.clientWidth;
           const scrollWidth=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth);
           const offenders=[...document.querySelectorAll('body *')].map(element=>{
             const rect=element.getBoundingClientRect();
             return {tag:element.tagName.toLowerCase(),id:element.id||'',className:typeof element.className==='string'?element.className:'',left:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width),text:(element.textContent||'').trim().replace(/\s+/g,' ').slice(0,80)};
           }).filter(item=>item.right>viewportWidth+1||item.left<-1).sort((a,b)=>b.right-a.right).slice(0,8);
-          return {amount:scrollWidth-viewportWidth,offenders};
+          return {amount:Math.max(0,scrollWidth-viewportWidth),viewportWidth,contentWidth,scrollWidth,offenders};
         });
-        if(overflow.amount>1)fail(`${viewport.name} ${file} horizontal overflow`,`${overflow.amount}px ${JSON.stringify(overflow.offenders)}`);
+        if(overflow.amount>1)fail(`${viewport.name} ${file} horizontal overflow`,`${overflow.amount}px ${JSON.stringify(overflow.offenders)} viewport=${overflow.viewportWidth} content=${overflow.contentWidth} scroll=${overflow.scrollWidth}`);
         const brokenImages=await page.locator('img').evaluateAll(images=>images.filter(img=>(img.currentSrc||img.getAttribute('src'))&&img.loading!=='lazy'&&(!img.complete||img.naturalWidth===0)).map(img=>img.getAttribute('src')));
         if(brokenImages.length)fail(`${viewport.name} ${file} images`,brokenImages.join(', '));
         if(failedAssets.length)fail(`${viewport.name} ${file} asset responses`,failedAssets.join(' | '));
