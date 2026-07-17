@@ -1,9 +1,9 @@
 (function(){
 'use strict';
-const VERSION='20260717-generated-samples';
+const VERSION='20260717-high-quality-generated-assets';
 const scriptUrl=document.currentScript&&document.currentScript.src?document.currentScript.src:new URL('sample-raster-images.js',document.baseURI).href;
 const assetRoot=new URL('assets/',scriptUrl);
-const generatedAssetScript=new URL('generated-assets-data.js?v=20260717-generated-assets',document.baseURI).href;
+const generatedAssetScript=new URL('generated-assets-data.js?v=20260717-high-quality-generated-assets',document.baseURI).href;
 const reviewMode=/raster-proof-review\.html$/.test(window.location.pathname);
 const proofByProduct={
 'H38-P001':{src:'rick-review-problem-snapshot-v1.png',alt:'Problem Snapshot separating known facts, assumptions, missing information, risks, and first actions',caption:'A finished decision snapshot separating facts, unknowns, risks, and the first practical actions.'},
