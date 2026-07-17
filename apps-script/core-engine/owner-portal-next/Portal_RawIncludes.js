@@ -16,6 +16,7 @@ function h38PortalRawInclude_(fileName) {
     'Portal_UX_Styles',
     'Portal_Business_Styles',
     'Portal_Business_Create_Styles',
+    'Portal_Application_UX_Styles',
     'Portal_UX_Client_Shell',
     'Portal_Business_Client',
     'Portal_Business_Create_Client',
@@ -23,6 +24,10 @@ function h38PortalRawInclude_(fileName) {
     'Portal_UX_Client_Tasks',
     'Portal_UX_Client_Workspace',
     'Portal_UX_Client_Forms',
+    'Portal_Application_Client_Views',
+    'Portal_Application_Client_Business',
+    'Portal_Application_Client_SafeActions',
+    'Portal_Application_Client_Core',
     'Portal_UX_Client_Boot'
   ];
   fileName = String(fileName || '');
