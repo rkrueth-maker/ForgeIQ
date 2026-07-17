@@ -22,10 +22,12 @@ const nativeBusinessServer = read('apps-script/core-engine/owner-portal-next/Por
 const nativeBusinessClient = read('apps-script/core-engine/owner-portal-next/Portal_Business_Client.html');
 const businessUi = read('apps-script/business-office/BusinessOffice_Index.html');
 const businessCore = read('apps-script/business-office/BusinessOffice_Core.gs');
+const businessAuth = read('apps-script/business-office/BusinessOffice_Auth.gs');
 const businessWeb = read('apps-script/business-office/BusinessOffice_Web.gs');
 const businessGate = read('apps-script/business-office/BusinessOffice_ModuleAccess.gs');
 const businessUnified = read('apps-script/business-office/BusinessOffice_Unified_Client.html');
 const pack = read('business-packs/highway38/apps-script/BusinessOffice_Pack.gs');
+const deploySource = read('scripts/deploy-unified-owner-portal-web.sh');
 
 const ownerAppUrl = 'https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec';
 const representativeBusinessRoutes = [
@@ -69,11 +71,17 @@ assert('native Business Office client renders tables cards details forms and upl
 assert('native Business Office client supports direct back-and-forth module switching', /renderBusinessModule/.test(nativeBusinessClient) && /history\.replaceState/.test(nativeBusinessClient));
 assert('native Business Office client renders explicit empty and owner-safe failure states', /No .* yet\./.test(nativeBusinessClient) && /ownerSafeFailure/.test(nativeBusinessClient));
 
+assert('Business Office authentication defines the unified user guard', /function boGetCurrentUser_\(\)/.test(businessAuth) && /function boGetActiveEmail_\(\)/.test(businessAuth));
 assert('Business Office package modules are enforced server-side', /boGuardApiRequest_\(action,args\)/.test(businessWeb) && /MODULE NOT INCLUDED/.test(businessGate));
 assert('native adapter enforces package modules before list save workspace and upload', /boAssertModuleEnabled_\(moduleKey\)/.test(nativeBusinessServer) && /boAssertModuleEnabled_\('documents'\)/.test(nativeBusinessServer));
 assert('Business Office compatibility route remains available without controlling unified navigation', /BusinessOffice_Unified_Client/.test(businessWeb) && /h38-embedded-business-office/.test(businessUnified));
 assert('Documents and OCR keep upload inside the unified app', /Upload PDF \/ Take Picture/.test(nativeBusinessClient) && /capture="environment"/.test(nativeBusinessClient));
 assert('complete package explicitly enables command and Business Office modules', /package:Object\.freeze\(\{id:'complete-business-system'/.test(pack) && /commandCenter:true/.test(pack) && /documents:true/.test(pack));
+assert('production deployment replaces inherited clasp ignore rules', /cat > "\$PROJECT\/\.claspignore"/.test(deploySource) && /\*\*\/\*\.md/.test(deploySource));
+assert('production deployment requires Business Office authentication source before push', /BusinessOffice_Auth\.gs/.test(deploySource) && /function boGetCurrentUser_\(\)/.test(deploySource));
+assert('production deployment verifies tracked Business Office source', /clasp status/.test(deploySource) && /clasp-status-before-push\.txt/.test(deploySource));
+assert('production deployment pulls and verifies remote Apps Script source before deploy', /REMOTE_VERIFY/.test(deploySource) && /remote-project-pull\.txt/.test(deploySource) && /remote-source-verification\.txt/.test(deploySource));
+assert('production deployment blocks the observed missing-auth runtime error', /ReferenceError: boGetCurrentUser_ is not defined/.test(deploySource));
 
 assert('legacy Owner Login links are routed to portal.html', /link\.href='portal\.html'/.test(brand));
 assert('legacy Owner Login rewrite removes new-window behavior', /link\.removeAttribute\('target'\)/.test(brand));
@@ -107,7 +115,7 @@ assert('public static pages contain no direct spreadsheet links', sheetLinks.len
 const result = {
   status: failures.length ? 'HOLD' : 'PASS',
   sourceCommit: process.env.GITHUB_SHA || '',
-  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true },
+  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true, deploymentRemoteSourceVerification: true },
   passes,
   failures
 };
