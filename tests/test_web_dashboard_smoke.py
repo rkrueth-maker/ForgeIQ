@@ -77,8 +77,10 @@ def test_web_dashboard_smoke_loads_index(monkeypatch):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "Highway 38 Solutions" in page
-    assert "Start with a $99 Problem Snapshot" in page
-    assert ("Big problems. Clear plans." in page) or ("Practical systems that actually work." in page)
+    assert "What needs to work better?" in page
+    assert "Start a Request" in page
+    assert "Big problems." in page
+    assert "Clear plans." in page
 
     asset_response = client.get("/assets/messy-details-finished-document.svg")
     assert asset_response.status_code == 200
