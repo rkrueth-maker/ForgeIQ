@@ -49,7 +49,7 @@ check('customer project-first navigation',customer.includes('Projects')&&custome
 check('customer UX enhancement loaded',customer.includes('customer-portal-ux.js'));
 check('customer portal remains noindex',customer.includes('noindex,nofollow'));
 const customerUx=read('customer-portal-ux.js');
-check('quote review action mirrored safely',customerUx.includes('actionApproveQuote')&&customerUx.includes("approve.click"));
+check('quote review action navigates without auto-approval',customerUx.includes('actionApproveQuote')&&customerUx.includes('approve.focus')&&!customerUx.includes('approve.click'));
 check('quote change becomes owner-review message',customerUx.includes('Request a change')&&customerUx.includes('messageBody'));
 check('project timeline present',customerUx.includes('h38-project-timeline'));
 
