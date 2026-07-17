@@ -10,8 +10,8 @@ window.H38_BUSINESS_SYSTEMS = [
     boundary:["No guaranteed search rankings","No unlimited pages or revisions","No automatic customer communication","Payments, custom applications, hosting, and maintenance require separate scope"],
     price:"Request a scoped quote",
     status:"Available through a scoped implementation",
-    image:"assets/approved-website-images/homepage-hero-garage-workspace.webp",
-    imageAlt:"Organized garage workshop representing a practical small-business website customer."
+    image:"assets/approved-website-images/business-workflow-office.webp",
+    imageAlt:"Professional website and customer workflow displayed on a computer at a clean business desk."
   },
   {
     slug:"business-office-suite",
