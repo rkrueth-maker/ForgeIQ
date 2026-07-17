@@ -6,6 +6,7 @@ on:
     paths:
       - 'apps-script/business-office/**'
       - 'apps-script/integrated-backend/**'
+      - 'apps-script/core-engine/owner-portal-next/**'
       - 'business-packs/highway38/**'
       - 'docs/business-office/**'
       - 'scripts/assemble-business-office-app.sh'
@@ -13,6 +14,7 @@ on:
       - 'scripts/verify-business-office.js'
       - 'scripts/verify-business-office-existing-deployment.js'
       - 'scripts/verify-owner-business-office-ux.js'
+      - 'scripts/verify-unified-app-ux-complete.js'
       - 'package.json'
       - '.github/workflows/business-office.yml'
   push:
@@ -20,6 +22,7 @@ on:
     paths:
       - 'apps-script/business-office/**'
       - 'apps-script/integrated-backend/**'
+      - 'apps-script/core-engine/owner-portal-next/**'
       - 'business-packs/highway38/**'
       - 'docs/business-office/**'
       - 'scripts/assemble-business-office-app.sh'
@@ -27,6 +30,7 @@ on:
       - 'scripts/verify-business-office.js'
       - 'scripts/verify-business-office-existing-deployment.js'
       - 'scripts/verify-owner-business-office-ux.js'
+      - 'scripts/verify-unified-app-ux-complete.js'
       - 'package.json'
       - '.github/workflows/business-office.yml'
   workflow_dispatch:
@@ -65,6 +69,7 @@ jobs:
           name: business-office-verification-${{ github.run_id }}
           path: |
             artifacts/business-office/verification.json
+            artifacts/unified-app-ux/verification.json
           if-no-files-found: warn
           retention-days: 90
 
