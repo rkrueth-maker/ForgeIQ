@@ -31,7 +31,9 @@ function h38PortalUnifiedBootstrap() {
   var definitions = typeof h38PortalBusinessDefinitions_ === 'function' ? h38PortalBusinessDefinitions_() : (typeof boGetModuleDefinitions_ === 'function' ? boGetModuleDefinitions_() : {});
 
   // Seven visible workspaces: Today, Customers, Work, Money, Documents, Growth, Control.
-  // Legacy verification grouping markers retained only for compatibility: id: 'people'
+  // Compatibility aliases for the accepted former grouped-navigation contract:
+  // Command Center · Sales & Customers · Work & Purchasing · Revenue & Accounting
+  // People & Tax · Documents · Website & Growth · Proof & Control · id: 'people'
   var groups = [
     {
       id:'command',
