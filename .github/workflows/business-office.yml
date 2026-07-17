@@ -54,7 +54,11 @@ jobs:
         with:
           node-version: '24'
       - name: Verify approved UX scan contract
-        run: node scripts/verify-one-shot-ux.js
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/ux-scan
+          node scripts/verify-one-shot-ux.js | tee artifacts/ux-scan/verification.json
       - name: Verify Business Office source
         run: node scripts/verify-business-office.js
       - name: Verify Business Office runtime helpers
@@ -83,6 +87,7 @@ jobs:
         with:
           name: business-office-verification-${{ github.run_id }}
           path: |
+            artifacts/ux-scan/verification.json
             artifacts/business-office/verification.json
             artifacts/unified-app-ux/verification.json
           if-no-files-found: warn
