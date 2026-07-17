@@ -18,9 +18,12 @@ const request = read('start-request.html');
 const contact = read('contact.html');
 const css = read('contact-options.css');
 const packageJson = read('package.json');
+const catalog = read('catalog-data.js');
 
 assert('contact page exists with two low-friction paths', /Email a quick message/.test(contact) && /Request a conversation/.test(contact));
-assert('quick email opens the approved owner email', /mailto:rkrueth@gmail\.com\?subject=Quick%20Highway%2038%20question/.test(contact));
+assert('quick email opens the approved public business inbox', /mailto:highway38solutions@gmail\.com\?subject=Quick%20Highway%2038%20question/.test(contact));
+assert('public inbox matches the approved catalog configuration', /"businessEmail":\s*"highway38solutions@gmail\.com"/.test(catalog));
+assert('private owner email is absent from public contact files', !/rkrueth@gmail\.com/i.test(home + request + contact));
 assert('conversation request collects preferred follow-up details', /Phone%20or%20preferred%20contact/.test(contact) && /Best%20time%20to%20reach%20me/.test(contact));
 assert('contact page states that no message is sent automatically', /Nothing is sent automatically/.test(contact));
 assert('guided request remains available from the contact page', /href="start-request\.html"/.test(contact));
