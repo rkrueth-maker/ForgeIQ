@@ -24,8 +24,8 @@ window.H38_BUSINESS_SYSTEMS = [
     boundary:["Accounting preparation and record organization only unless separately validated and approved","Tax-preparation support only; not tax advice, representation, or direct filing","No automatic bank debits, payment processing, payroll funding, tax filing, purchasing, customer sending, or final delivery"],
     price:"Request a scoped quote",
     status:"Configured to approved scope",
-    image:"assets/approved-website-images/business-workflow-office.webp",
-    imageAlt:"Organized business workflow displayed on a laptop at a clean work desk."
+    image:"assets/approved-website-images/13-digital-organization-file-system.jpg",
+    imageAlt:"Organized digital files and business records representing a connected business office."
   },
   {
     slug:"command-center-suite",
@@ -38,8 +38,8 @@ window.H38_BUSINESS_SYSTEMS = [
     boundary:["The reusable Command Center Platform is a defined future product","Final features are confirmed before implementation","Public demonstrations do not claim unbuilt functions are operational","No new reusable platform build is included without separate Command Center authorization"],
     price:"Request a scoped quote",
     status:"Built from accepted Highway 38 operating patterns; final feature set confirmed before implementation",
-    image:"assets/approved-website-images/13-digital-organization-file-system.jpg",
-    imageAlt:"Organized digital and physical file systems representing owner-level business control."
+    image:"assets/approved-website-images/08-request-process-checklist.jpg",
+    imageAlt:"Owner review checklist and controls representing command-center approvals and system oversight."
   },
   {
     slug:"complete-business-system",
