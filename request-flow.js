@@ -83,10 +83,21 @@
       '<dt>Likely service</dt><dd>'+escapeHtml(product)+'</dd>'+ 
       '<dt>Bundle</dt><dd>'+escapeHtml(bundle)+'</dd>'+ 
       '<dt>Business system</dt><dd>'+escapeHtml(system)+'</dd>'+ 
-      '<dt>What happens next</dt><dd>Open the prepared email, review it, and press Send once. Highway 38 then reviews the request and confirms missing information, scope, price, timing, revisions, assumptions, and exclusions before any work or charge begins.</dd>'+ 
+      '<dt>What happens next</dt><dd>The final button opens one prepared email. Review it and press Send once. Highway 38 then reviews the request and confirms missing information, scope, price, timing, revisions, assumptions, and exclusions before any work or charge begins.</dd>'+ 
       '</dl>';
   }
   function escapeHtml(text){return String(text).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));}
+  function openPreparedEmail(){
+    const emailLink=byId('email-summary');
+    const href=emailLink&&emailLink.getAttribute('href');
+    const submit=byId('request-submit');
+    if(!href||!/^mailto:/i.test(href)){
+      if(submit){submit.disabled=false;submit.removeAttribute('aria-busy');}
+      notice('The request email could not be prepared. Review the fields and try again.');
+      return;
+    }
+    window.location.href=href;
+  }
 
   all('[data-outcome-choice]').forEach(card=>{
     card.addEventListener('click',()=>selectChoice(card.dataset.outcomeChoice));
@@ -101,7 +112,11 @@
     if(current!==3){event.preventDefault();if(validateStep(current))showStep(current+1);return;}
     if(!validateStep(3)){event.preventDefault();return;}
     updateReview();
-    setTimeout(()=>{const route=byId('route-result');if(route){route.scrollIntoView({behavior:'smooth',block:'center'});byId('email-summary')?.focus();}},0);
+    const submit=byId('request-submit');
+    if(submit){submit.disabled=true;submit.setAttribute('aria-busy','true');}
+    // commercial.js prepares the approved mailto synchronously in its submit handler.
+    // This timer runs immediately afterward and uses the same single customer action.
+    setTimeout(openPreparedEmail,0);
   },true);
 
   const requested=location.hash.match(/step-(\d)/);showStep(requested?Number(requested[1]):1);
