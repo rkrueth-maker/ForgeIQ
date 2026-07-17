@@ -1,0 +1,29 @@
+function h38OneShotDateLabel(){
+  try{return new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric'}).format(new Date());}
+  catch(error){return '';}
+}
+function renderDashboard(){
+  var ux=H38_UX||{},m=ux.metrics||{},approval=uxRows(ux.approvalQueue),dueToday=uxRows(ux.dueToday),overdue=uxRows(ux.overdue),due=dueToday.concat(overdue).slice(0,12),activity=uxRows(ux.recentActivity).slice(0,10),owner=H38_UNIFIED&&H38_UNIFIED.ownerMode;
+  var decisionCount=owner?(m.needsReview||0):(EXPERIENCE.views&&EXPERIENCE.views.activeWork&&EXPERIENCE.views.activeWork.count||0);
+  var holdCount=(Number(m.blocked)||0)+(Number(m.openErrors)||0);
+  var decisionButton=owner?'<button class="btn primary" onclick="show(\'approvalsCenter\')">Review '+esc(decisionCount)+' decisions</button>':'<button class="btn primary" onclick="show(\'bo:assignedTasks\')">Open my work</button>';
+  document.getElementById('view').innerHTML=h38RoleBanner()+
+    '<div class="ux-page-head"><div><div class="ux-eyebrow">Today <span class="h38-today-date">'+esc(h38OneShotDateLabel())+'</span></div><h1>What needs attention now?</h1><div class="muted">Decisions, deadlines, customer waits, money, holds, and the next useful action.</div></div>'+decisionButton+'</div>'+ 
+    '<div class="ux-metrics">'+
+      h38RoleMetric(owner?'Needs decision':'My open work',decisionCount,owner?'Quotes, changes, and approvals waiting':'Assigned work still open',owner?"show('approvalsCenter')":"show('bo:assignedTasks')")+
+      h38RoleMetric('Due today',m.dueToday||0,'Tasks and follow-ups due now',"openUxPreset('due-today')")+
+      h38RoleMetric('Late items',m.overdue||0,'Past-due work requiring action',"openUxPreset('overdue')")+
+      h38RoleMetric('Money in',m.cashExpected||0,'Expected from open invoices',h38AppRouteAllowed('bo:invoices')?"show('bo:invoices')":"show('today')",true)+
+      h38RoleMetric('Holds / errors',holdCount,'Blocked work and unresolved incidents',h38AppRouteAllowed('errors')?"show('errors')":"openUxPreset('blocked')")+
+    '</div>'+ 
+    '<div class="ux-dashboard-grid"><div class="ux-stack">'+
+      '<div class="h38-needs-decision">'+(owner?h38DashboardApprovals(approval):'<section class="ux-section"><h2>My work</h2>'+uxTaskList(due,'No assigned work needs immediate attention.')+'</section>')+'</div>'+
+    '</div><div class="ux-stack h38-next-up">'+
+      '<section class="ux-section"><div class="ux-section-head"><h2>Next up</h2><button class="btn" onclick="show(\'bo:assignedTasks\')">View all</button></div>'+uxTaskList(due.slice(0,6),'Nothing is due or overdue. Open My Work for later assignments.')+'</section>'+ 
+    '</div></div>'+ 
+    '<div class="h38-today-lower">'+
+      '<section class="ux-section"><div class="ux-section-head"><h2>Today\'s calendar</h2><button class="btn" onclick="show(\'calendarCenter\')">View calendar</button></div>'+uxTaskList(dueToday.slice(0,4),'No dated work is due today.')+'</section>'+ 
+      '<section class="ux-section"><div class="ux-section-head"><h2>Recent activity</h2><span class="muted">Latest record changes</span></div>'+uxActivity(activity)+'</section>'+ 
+      '<section class="ux-section"><h2>System health</h2><div class="h38-system-ok"><div><p><b>'+esc(H38_APP_STATUS&&H38_APP_STATUS.label||'All systems operational')+'</b></p><p class="muted">Customer sends, payments, publishing, ad spend, delivery, merge, and deployment remain approval gated.</p></div></div><div class="toolbar"><button class="btn" onclick="show(\'systemHealth\')">View system health</button><button class="btn" onclick="show(\'errors\')">Error Log</button></div></section>'+ 
+    '</div>';
+}
