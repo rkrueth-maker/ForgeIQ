@@ -121,7 +121,7 @@ async function refresh(){
     await show(CURRENT);
   }catch(error){ownerSafeFailure(error,'The unified Highway 38 application could not load the daily workspace.');}
 }
-async function show(module){
+async function h38PortalBaseShow(module){
   module=uxNormalizeModule(module);
   CURRENT=module;renderNav();document.getElementById('side').classList.remove('open');
   uxShowNativeWorkspace();

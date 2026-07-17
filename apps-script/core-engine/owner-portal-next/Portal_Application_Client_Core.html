@@ -1,5 +1,4 @@
 var H38_APP_MODULE_MANAGER=null,H38_APP_SETUP=null,H38_APP_COMMANDS=null,H38_APP_STATUS=null,H38_APP_BUSINESS_DASHBOARD=null,H38_COMMAND_SEARCH_RESULTS=[],H38_COMMAND_INDEX=0,H38_COMMAND_TIMER=null;
-var H38_BASE_SHOW=show;
 
 function h38AppModuleKeyFromRoute(route){
   var map={today:'commandCenter',tasks:'assignedTasks',decisions:'approvals',approvalsCenter:'approvals',calendarCenter:'calendar',moduleManager:'setup',setupWizard:'setup',userAccess:'users',backupCenter:'backups',growth:'growth',websiteCenter:'website',social:'social',advertising:'advertising',proof:'proof',errors:'errors',settings:'settings',systemHealth:'commandCenter',help:'commandCenter'};
@@ -93,7 +92,7 @@ async function show(module){
       history.replaceState(null,'','#module='+encodeURIComponent(module));
       document.getElementById('view').innerHTML='<div class="card" data-h38-workspace-state="loading">Loading selected operating surface…</div>';
       await window[special[module]]();
-    }else await H38_BASE_SHOW(module);
+    }else await h38PortalBaseShow(module);
     call('h38PortalTouchModule',[h38AppModuleKeyFromRoute(module)]).catch(function(){});
     h38AfterSurfaceRender(module);
     return true;
