@@ -129,7 +129,7 @@ jobs:
           fetch_until_ready 'products.html' 'Choose the smallest service that produces a useful result.' /tmp/products.html
           grep -Fq '15 fixed-price services. 9 approved bundles. 4 scoped systems.' /tmp/products.html
           fetch_until_ready 'product.html?id=H38-P001' 'data-product-detail-single' /tmp/product.html
-          fetch_until_ready 'sample-library-now.html' 'See the finished work before you choose a service.' /tmp/samples.html
+          fetch_until_ready 'sample-library-now.html' 'See the kind of finished result before choosing a service.' /tmp/samples.html
           fetch_until_ready 'start-request.html' 'What would you like to have when this is finished?' /tmp/request.html
           grep -Fq 'data-request-step="1"' /tmp/request.html
           grep -Fq 'data-request-step="3"' /tmp/request.html
