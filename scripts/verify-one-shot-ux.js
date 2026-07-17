@@ -46,6 +46,7 @@ const requestFlow=read('request-flow.js');
 [1,2,3].forEach(step=>check(`request step ${step}`,request.includes(`data-request-step="${step}"`)));
 ['What result do you need?','Tell us about the problem.','Contact and review.'].forEach(text=>check(`request copy ${text}`,request.includes(text)));
 check('request has three primary choices',(request.match(/class="h38-choice-card"/g)||[]).length===3);
+check('request has primary grid classification',request.includes('h38-choice-grid--primary'));
 check('request has two smaller secondary choices',(request.match(/class="h38-choice-link"/g)||[]).length===2&&request.includes('I know the exact service')&&request.includes('Help me choose'));
 check('first Continue is disabled until selection',/data-request-next disabled aria-disabled="true"/.test(request)&&requestFlow.includes('updateFirstContinue'));
 check('selected state is visibly stronger',request.includes('h38-choice-check')&&read('ux-unified-public.css').includes('.h38-choice-card.is-selected'));
@@ -90,7 +91,7 @@ check('Owner external actions remain gated',owner.includes('remain approval gate
 check('Owner selected record controls preserved',read('apps-script/core-engine/owner-portal-next/Portal_Application_Client_Views.html').includes('Selected record only'));
 
 const css=read('ux-unified-public.css');
-['h38-home-hero','h38-choice-grid--primary','h38-portal-mobile-nav','@media(max-width:760px)'].forEach(marker=>check(`responsive visual contract ${marker}`,css.includes(marker)));
+['h38-home-hero','h38-portal-mobile-nav','@media(max-width:760px)'].forEach(marker=>check(`responsive visual contract ${marker}`,css.includes(marker)));
 check('public outcome cards collapse 2x2 then 1x1',css.includes('.h38-outcome-grid{grid-template-columns:repeat(2,1fr)}')&&css.includes('.h38-outcome-grid,.h38-trust-strip__inner{grid-template-columns:1fr}'));
 check('request choices stack on mobile',css.includes('@media(max-width:760px)')&&css.includes('.h38-choice-grid{grid-template-columns:1fr}'));
 check('interactive controls meet minimum target',css.includes('min-height:44px'));
