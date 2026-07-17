@@ -53,11 +53,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify complete Business Office source and integrated UX
-        run: |
-          npm run test:business-office
-          node scripts/verify-owner-business-office-ux.js
-          node scripts/verify-business-office-existing-deployment.js
+      - name: Verify Business Office source and runtime contracts
+        run: npm run test:business-office
+      - name: Verify Owner and Business Office UX compatibility
+        run: node scripts/verify-owner-business-office-ux.js
+      - name: Verify accepted existing deployment contract
+        run: node scripts/verify-business-office-existing-deployment.js
       - name: Confirm automatic production authority is unified-only
         run: |
           echo 'PASS — push and pull-request runs verify only.'
