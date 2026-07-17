@@ -10,7 +10,7 @@ const root=path.resolve(__dirname,'..');
 const pages=fs.readdirSync(root).filter(file=>file.endsWith('.html')).sort();
 const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.csv':'text/csv; charset=utf-8','.md':'text/plain; charset=utf-8'};
 const failures=[];
-const pass=(name)=>process.stdout.write(`PASS: ${name}\n`);
+const pass=name=>process.stdout.write(`PASS: ${name}\n`);
 const fail=(name,detail='')=>{failures.push({name,detail});process.stderr.write(`FAIL: ${name}${detail?` — ${detail}`:''}\n`);};
 
 function server(){return http.createServer((req,res)=>{
@@ -45,15 +45,29 @@ function server(){return http.createServer((req,res)=>{
         const response=await page.goto(`${base}/${file}`,{waitUntil:'networkidle',timeout:20000});
         if(!response||response.status()>=400)fail(`${viewport.name} ${file} loads`,response?String(response.status()):'no response');
         const overflow=await page.evaluate(()=>{
-          const viewportWidth=document.documentElement.clientWidth;
+          const viewportWidth=window.innerWidth;
+          const contentWidth=document.documentElement.clientWidth;
           const scrollWidth=Math.max(document.documentElement.scrollWidth,document.body.scrollWidth);
-          const offenders=[...document.querySelectorAll('body *')].map(element=>{
-            const rect=element.getBoundingClientRect();
-            return {tag:element.tagName.toLowerCase(),id:element.id||'',className:typeof element.className==='string'?element.className:'',left:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width),text:(element.textContent||'').trim().replace(/\s+/g,' ').slice(0,80)};
-          }).filter(item=>item.right>viewportWidth+1||item.left<-1).sort((a,b)=>b.right-a.right).slice(0,8);
-          return {amount:scrollWidth-viewportWidth,offenders};
+          const describe=element=>{
+            const rect=element.getBoundingClientRect(),style=getComputedStyle(element);
+            return {tag:element.tagName.toLowerCase(),id:element.id||'',className:typeof element.className==='string'?element.className:'',left:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width),clientWidth:element.clientWidth,scrollWidth:element.scrollWidth,display:style.display,position:style.position,overflowX:style.overflowX,whiteSpace:style.whiteSpace,minWidth:style.minWidth,maxWidth:style.maxWidth,transform:style.transform,text:(element.textContent||'').trim().replace(/\s+/g,' ').slice(0,80)};
+          };
+          const elements=[...document.querySelectorAll('body *')];
+          const offenders=elements.map(describe).filter(item=>item.right>viewportWidth+1||item.left<-1).sort((a,b)=>b.right-a.right).slice(0,12);
+          const intrinsic=elements.map(describe).filter(item=>item.scrollWidth>item.clientWidth+1).sort((a,b)=>(b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,12);
+          const pseudos=[];
+          elements.forEach(element=>{
+            ['::before','::after'].forEach(pseudo=>{
+              const style=getComputedStyle(element,pseudo),content=style.content;
+              if(!content||content==='none'||content==='normal'||style.display==='none')return;
+              const suspicious=style.position==='absolute'||style.position==='fixed'||style.width!=='auto'||style.minWidth!=='0px'||style.transform!=='none'||style.marginLeft!=='0px'||style.marginRight!=='0px';
+              if(suspicious)pseudos.push({element:describe(element),pseudo,content,width:style.width,minWidth:style.minWidth,maxWidth:style.maxWidth,position:style.position,left:style.left,right:style.right,marginLeft:style.marginLeft,marginRight:style.marginRight,transform:style.transform,display:style.display});
+            });
+          });
+          const roots=[document.documentElement,document.body,...document.body.children].map(describe);
+          return {amount:Math.max(0,scrollWidth-viewportWidth),viewportWidth,contentWidth,scrollWidth,offenders,intrinsic,pseudos:pseudos.slice(0,20),roots};
         });
-        if(overflow.amount>1)fail(`${viewport.name} ${file} horizontal overflow`,`${overflow.amount}px ${JSON.stringify(overflow.offenders)}`);
+        if(overflow.amount>1)fail(`${viewport.name} ${file} horizontal overflow`,`${overflow.amount}px offenders=${JSON.stringify(overflow.offenders)} intrinsic=${JSON.stringify(overflow.intrinsic)} pseudos=${JSON.stringify(overflow.pseudos)} roots=${JSON.stringify(overflow.roots)} viewport=${overflow.viewportWidth} content=${overflow.contentWidth} scroll=${overflow.scrollWidth}`);
         const brokenImages=await page.locator('img').evaluateAll(images=>images.filter(img=>(img.currentSrc||img.getAttribute('src'))&&img.loading!=='lazy'&&(!img.complete||img.naturalWidth===0)).map(img=>img.getAttribute('src')));
         if(brokenImages.length)fail(`${viewport.name} ${file} images`,brokenImages.join(', '));
         if(failedAssets.length)fail(`${viewport.name} ${file} asset responses`,failedAssets.join(' | '));
