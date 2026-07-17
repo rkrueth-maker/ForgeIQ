@@ -36,10 +36,10 @@ vm.createContext(context);
 vm.runInContext(read('catalog-data.js'), context, { filename: 'catalog-data.js' });
 const catalog = context.window.H38_CATALOG;
 
-check('homepage headline is approved', index.includes('<h1>Big problems. Clear plans.</h1>'));
-check('homepage has dominant $99 entry CTA', index.includes('href="start-request.html?product=H38-P001">Start with a $99 Problem Snapshot'));
-check('homepage has finished examples secondary CTA', index.includes('href="sample-library-now.html">See Finished Examples'));
-check('homepage explains no charge on request', index.includes('Submitting a request does not create a charge.'));
+check('homepage headline is approved', /<h1>Big problems\.<span>Clear plans\.<\/span><\/h1>/.test(index));
+check('homepage has dominant outcome-first request CTA', index.includes('href="start-request.html">Start a Request') && index.includes('h38-outcome-grid'));
+check('homepage has finished examples secondary CTA', index.includes('href="sample-library-now.html">See Examples'));
+check('homepage explains no charge on request', /Submitting a request creates no charge\./i.test(index));
 check('homepage explains remote service', /completed remotely/i.test(index));
 check('prohibited quantitative CNC claim removed', !/(?:25,000\+|25,000\s+(?:CNC\s+)?programs?)/i.test(index));
 check('homepage contains no personal owner attribution', !/Rick\s+Krueth/i.test(index));
