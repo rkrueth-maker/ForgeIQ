@@ -3,6 +3,7 @@
 const VERSION='20260717-generated-samples';
 const scriptUrl=document.currentScript&&document.currentScript.src?document.currentScript.src:new URL('sample-raster-images.js',document.baseURI).href;
 const assetRoot=new URL('assets/',scriptUrl);
+const generatedAssetScript=new URL('generated-assets-data.js?v=20260717-generated-assets',document.baseURI).href;
 const reviewMode=/raster-proof-review\.html$/.test(window.location.pathname);
 const proofByProduct={
 'H38-P001':{src:'rick-review-problem-snapshot-v1.png',alt:'Problem Snapshot separating known facts, assumptions, missing information, risks, and first actions',caption:'A finished decision snapshot separating facts, unknowns, risks, and the first practical actions.'},
@@ -21,6 +22,13 @@ const proofByProduct={
 'H38-P014':{src:'product-proof/vision-inspection-concept-review.png',alt:'Vision and Inspection Concept Review showing good and bad samples, lighting, measurable criteria, sample plan, and capability limits',caption:'An inspection objective and vendor test plan with measurable criteria, sample variation, lighting questions, and capability boundaries.'},
 'H38-P015':{src:'product-proof/robot-tending-concept-pack.png',alt:'Robot Tending Concept Pack showing a conceptual cell, six-step sequence, infeed and outfeed, recovery states, access, and safety questions',caption:'Concept planning only. Qualified integrators and safety professionals own final design, installation, guarding, and validation.'}
 };
+const galleryByCaption={
+'Organized garage example':'garage',
+'Workshop layout':'layout',
+'Tool storage wall':'tools',
+'Workbench organization':'bench',
+'Shelving system':'shelves'
+};
 function productIdFor(card){const idLabel=card.querySelector('.sample-labels span:last-child');return idLabel?idLabel.textContent.trim():'';}
 function assetUrl(path){const url=new URL(path,assetRoot);url.searchParams.set('v',VERSION);return url.href;}
 function proofSource(proof){if(proof.generated&&window.H38_GENERATED_ASSETS&&window.H38_GENERATED_ASSETS[proof.generated])return window.H38_GENERATED_ASSETS[proof.generated];return assetUrl(proof.src);}
@@ -28,6 +36,8 @@ function proofMarkup(proof,productId){const src=proofSource(proof);return `<figu
 function ensureDialog(){let dialog=document.querySelector('[data-proof-dialog]');if(dialog)return dialog;dialog=document.createElement('dialog');dialog.className='proof-dialog';dialog.setAttribute('data-proof-dialog','');dialog.innerHTML='<button class="proof-dialog-close" type="button" data-proof-close aria-label="Close enlarged image">Close</button><img alt="">';document.body.appendChild(dialog);dialog.querySelector('[data-proof-close]').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});return dialog;}
 function attachDialogHandlers(){const dialog=ensureDialog();document.querySelectorAll('[data-proof-open]').forEach(button=>{button.addEventListener('click',()=>{const source=button.querySelector('img');const target=dialog.querySelector('img');target.src=source.currentSrc||source.src;target.alt=source.alt;dialog.showModal();});});}
 function replacePlaceholderVisuals(){document.querySelectorAll('.sample-card').forEach(card=>{const productId=productIdFor(card),proof=proofByProduct[productId],visual=card.querySelector('.sample-visual');if(!proof||!visual)return;visual.innerHTML=proofMarkup(proof,productId);visual.dataset.proofAsset='generated';card.dataset.proofAsset='generated';});attachDialogHandlers();}
-function run(){window.requestAnimationFrame(replacePlaceholderVisuals);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+function replaceGallery(){document.querySelectorAll('#website-images .command-center-gallery:first-of-type figure').forEach(figure=>{const caption=figure.querySelector('figcaption')?.textContent.trim();const key=galleryByCaption[caption];const image=figure.querySelector('img');if(!key||!image||!window.H38_GENERATED_ASSETS?.[key])return;image.src=window.H38_GENERATED_ASSETS[key];image.removeAttribute('srcset');image.width=720;image.height=900;figure.dataset.imageSource='generated';});}
+function apply(){window.requestAnimationFrame(()=>{replacePlaceholderVisuals();replaceGallery();});}
+function start(){if(window.H38_GENERATED_ASSETS){apply();return;}const existing=document.querySelector('script[data-h38-generated-assets]');if(existing){existing.addEventListener('load',apply,{once:true});return;}const script=document.createElement('script');script.src=generatedAssetScript;script.defer=true;script.dataset.h38GeneratedAssets='true';script.addEventListener('load',apply,{once:true});document.head.appendChild(script);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 }());
