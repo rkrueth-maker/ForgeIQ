@@ -7,11 +7,17 @@ on:
     paths:
       - '.github/workflows/production-smoke.yml'
       - 'scripts/verify-issue83-source.sh'
+      - 'scripts/verify-one-shot-ux.js'
+      - 'ux-unified-public.css'
+      - 'request-flow.js'
+      - 'customer-portal-ux.js'
+      - 'public-expansion.js'
       - 'index.html'
       - 'products.html'
       - 'product.html'
       - 'sample-library-now.html'
       - 'start-request.html'
+      - 'customer-portal.html'
       - 'problem-starter.html'
       - 'automation-opportunity-planning.html'
       - 'digital-file-cleanup-planning.html'
@@ -36,12 +42,18 @@ on:
     paths:
       - '.github/workflows/production-smoke.yml'
       - 'scripts/verify-issue83-source.sh'
+      - 'scripts/verify-one-shot-ux.js'
       - 'docs/commercial-system/production-smoke-request.md'
+      - 'ux-unified-public.css'
+      - 'request-flow.js'
+      - 'customer-portal-ux.js'
+      - 'public-expansion.js'
       - 'index.html'
       - 'products.html'
       - 'product.html'
       - 'sample-library-now.html'
       - 'start-request.html'
+      - 'customer-portal.html'
       - 'problem-starter.html'
       - 'automation-opportunity-planning.html'
       - 'digital-file-cleanup-planning.html'
@@ -110,12 +122,17 @@ jobs:
             return 1
           }
 
-          fetch_until_ready '' 'Big problems. Clear plans.' /tmp/home.html
-          grep -Fq 'Start with a $99 Problem Snapshot' /tmp/home.html
-          fetch_until_ready 'products.html' 'Choose the smallest service that produces the result you need.' /tmp/products.html
+          fetch_until_ready '' 'Big problems.' /tmp/home.html
+          grep -Fq 'Clear plans.' /tmp/home.html
+          grep -Fq 'h38-outcome-grid' /tmp/home.html
+          grep -Fq 'Start a Request' /tmp/home.html
+          fetch_until_ready 'products.html' 'Choose the smallest service that produces a useful result.' /tmp/products.html
+          grep -Fq '15 fixed-price services. 9 approved bundles. 4 scoped systems.' /tmp/products.html
           fetch_until_ready 'product.html?id=H38-P001' 'data-product-detail-single' /tmp/product.html
           fetch_until_ready 'sample-library-now.html' 'See the finished work before you choose a service.' /tmp/samples.html
           fetch_until_ready 'start-request.html' 'What would you like to have when this is finished?' /tmp/request.html
+          grep -Fq 'data-request-step="1"' /tmp/request.html
+          grep -Fq 'data-request-step="3"' /tmp/request.html
           fetch_until_ready 'problem-starter.html' 'The Highway 38 Problem Starter' /tmp/problem-starter.html
 
           fetch_until_ready 'automation-opportunity-planning.html' '<title>Automation Opportunity Planning | Highway 38 Solutions</title>' /tmp/automation.html
