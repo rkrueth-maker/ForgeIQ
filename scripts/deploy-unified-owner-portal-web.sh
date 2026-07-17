@@ -5,6 +5,7 @@ REPO_ROOT="${GITHUB_WORKSPACE:?GITHUB_WORKSPACE is required}"
 WORK="${RUNNER_TEMP:?RUNNER_TEMP is required}/h38-unified-owner-portal"
 BACKUP="$WORK/backup"
 PROJECT="$WORK/project"
+REMOTE_VERIFY="$WORK/remote-verify"
 EVIDENCE="$REPO_ROOT/artifacts/unified-owner-portal"
 H38_PACK="$REPO_ROOT/business-packs/highway38/apps-script/BusinessOffice_Pack.gs"
 H38_DEPLOYMENT="$REPO_ROOT/business-packs/highway38/deployment.json"
@@ -16,12 +17,17 @@ const fs=require('fs');const [file,path]=process.argv.slice(2);let value=JSON.pa
 NODE
 }
 
+find_remote_source() {
+  local base="$1"
+  find "$REMOTE_VERIFY" -maxdepth 1 -type f \( -name "${base}.gs" -o -name "${base}.js" \) -print -quit
+}
+
 OWNER_SCRIPT_ID="$(read_config appsScript.ownerPortalProjectId)"
 OWNER_DEPLOYMENT_ID="$(read_config appsScript.ownerPortalDeploymentId)"
 BUSINESS_OFFICE_DEPLOYMENT_ID="$(read_config appsScript.businessOfficeDeploymentId)"
 WEBSITE_PORTAL_URL="$(read_config website.ownerPortalUrl)"
 
-rm -rf "$WORK" "$EVIDENCE";mkdir -p "$BACKUP" "$PROJECT" "$EVIDENCE"
+rm -rf "$WORK" "$EVIDENCE";mkdir -p "$BACKUP" "$PROJECT" "$REMOTE_VERIFY" "$EVIDENCE"
 printf '{"scriptId":"%s","rootDir":"."}\n' "$OWNER_SCRIPT_ID" > "$BACKUP/.clasp.json"
 printf '{"scriptId":"%s","rootDir":"."}\n' "$OWNER_SCRIPT_ID" > "$PROJECT/.clasp.json"
 (cd "$BACKUP" && clasp pull) 2>&1 | tee "$EVIDENCE/project-pull.txt"
@@ -33,6 +39,12 @@ grep -F "$BUSINESS_OFFICE_DEPLOYMENT_ID" "$EVIDENCE/deployments-before.txt" >/de
 
 cp -a "$BACKUP/." "$PROJECT/"
 printf '{"scriptId":"%s","rootDir":"."}\n' "$OWNER_SCRIPT_ID" > "$PROJECT/.clasp.json"
+# Never inherit an old project-level ignore file. It previously allowed Portal files
+# to deploy while silently excluding required Business Office server files.
+cat > "$PROJECT/.claspignore" <<'EOF'
+**/*.md
+**/*.map
+EOF
 find "$PROJECT" -maxdepth 1 -type f \( -name 'Portal_*' -o -name 'BusinessOffice_*' -o -name 'BusinessOffice_Index.html' \) -delete
 cp "$REPO_ROOT"/apps-script/core-engine/owner-portal-next/*.js "$PROJECT/"
 cp "$REPO_ROOT"/apps-script/core-engine/owner-portal-next/*.html "$PROJECT/"
@@ -60,17 +72,57 @@ node - "$PROJECT" <<'NODE'
 const fs=require('fs'),root=process.argv[2],controlled=fs.readdirSync(root).filter(name=>/^(Portal_|BusinessOffice_)/.test(name)),seen=new Map();for(const name of controlled){const base=name.replace(/\.(?:js|gs|html)$/i,'');if(seen.has(base))throw new Error(`Duplicate Apps Script file base name: ${base} (${seen.get(base)}, ${name})`);seen.set(base,name)}const declarationPattern=/(?:var|const|let)\s+BO_EMBEDDED_BUSINESS_PACK\s*=/;const declarations=controlled.filter(name=>name.endsWith('.gs')).filter(name=>declarationPattern.test(fs.readFileSync(`${root}/${name}`,'utf8')));if(declarations.length!==1||declarations[0]!=='BusinessOffice_00_Pack.gs')throw new Error(`Expected exactly one generated Business Office pack declaration, found ${declarations.join(', ')||'none'}`);console.log(`Unified source contains ${controlled.length} controlled portal files and one generated business pack.`);
 NODE
 
+REQUIRED_BUSINESS_FILES=(
+  BusinessOffice_00_Pack.gs
+  BusinessOffice_Auth.gs
+  BusinessOffice_Config.gs
+  BusinessOffice_Core.gs
+  BusinessOffice_ModuleAccess.gs
+  BusinessOffice_UX.gs
+  BusinessOffice_Web.gs
+)
+for required in "${REQUIRED_BUSINESS_FILES[@]}"; do
+  test -f "$PROJECT/$required" || { echo "HOLD — required assembled source is missing: $required"; exit 5; }
+done
+grep -F "function boGetCurrentUser_()" "$PROJECT/BusinessOffice_Auth.gs" >/dev/null
+grep -F "function boGetActiveEmail_()" "$PROJECT/BusinessOffice_Auth.gs" >/dev/null
 grep -F "e.parameter.app === 'business-office'" "$PROJECT/Portal_Services.js" >/dev/null
 grep -F "h38PortalRequireUnifiedUser_" "$PROJECT/Portal_Services.js" >/dev/null
 grep -F "packId:'highway38'" "$PROJECT/BusinessOffice_00_Pack.gs" >/dev/null
+
+(cd "$PROJECT" && clasp status) 2>&1 | tee "$EVIDENCE/clasp-status-before-push.txt"
+for required in "${REQUIRED_BUSINESS_FILES[@]}"; do
+  grep -F "$required" "$EVIDENCE/clasp-status-before-push.txt" >/dev/null || { echo "HOLD — clasp is not tracking required source: $required"; exit 6; }
+done
+
 (cd "$PROJECT" && clasp push --force) 2>&1 | tee "$EVIDENCE/clasp-push.txt"
-(cd "$PROJECT" && clasp deploy -i "$OWNER_DEPLOYMENT_ID" -d "Highway 38 unified tasks and messaging ${GITHUB_SHA}" && clasp deploy -i "$BUSINESS_OFFICE_DEPLOYMENT_ID" -d "Highway 38 unified tasks and messaging ${GITHUB_SHA}" && clasp list-deployments) 2>&1 | tee "$EVIDENCE/deployments-after.txt"
+
+# Pull the just-pushed remote project into a clean directory. Deployment is blocked
+# unless the server now contains the required authentication and core files.
+printf '{"scriptId":"%s","rootDir":"."}\n' "$OWNER_SCRIPT_ID" > "$REMOTE_VERIFY/.clasp.json"
+(cd "$REMOTE_VERIFY" && clasp pull) 2>&1 | tee "$EVIDENCE/remote-project-pull.txt"
+find "$REMOTE_VERIFY" -maxdepth 1 -type f -printf '%f\n' | sort | tee "$EVIDENCE/remote-source-files.txt"
+REMOTE_AUTH="$(find_remote_source BusinessOffice_Auth)"
+REMOTE_CONFIG="$(find_remote_source BusinessOffice_Config)"
+REMOTE_CORE="$(find_remote_source BusinessOffice_Core)"
+REMOTE_GATE="$(find_remote_source BusinessOffice_ModuleAccess)"
+REMOTE_UX="$(find_remote_source BusinessOffice_UX)"
+REMOTE_WEB="$(find_remote_source BusinessOffice_Web)"
+for remote_file in "$REMOTE_AUTH" "$REMOTE_CONFIG" "$REMOTE_CORE" "$REMOTE_GATE" "$REMOTE_UX" "$REMOTE_WEB"; do
+  test -n "$remote_file" && test -f "$remote_file" || { echo 'HOLD — required Business Office source did not reach the remote Apps Script project.'; exit 7; }
+done
+grep -F "function boGetCurrentUser_()" "$REMOTE_AUTH" >/dev/null
+grep -F "function boGetActiveEmail_()" "$REMOTE_AUTH" >/dev/null
+printf 'PASS — remote Apps Script source includes Business Office authentication and core modules.\n' | tee "$EVIDENCE/remote-source-verification.txt"
+
+(cd "$PROJECT" && clasp deploy -i "$OWNER_DEPLOYMENT_ID" -d "Highway 38 unified application ${GITHUB_SHA}" && clasp deploy -i "$BUSINESS_OFFICE_DEPLOYMENT_ID" -d "Highway 38 unified application ${GITHUB_SHA}" && clasp list-deployments) 2>&1 | tee "$EVIDENCE/deployments-after.txt"
 grep -F "$OWNER_DEPLOYMENT_ID" "$EVIDENCE/deployments-after.txt" >/dev/null;grep -F "$BUSINESS_OFFICE_DEPLOYMENT_ID" "$EVIDENCE/deployments-after.txt" >/dev/null
 OWNER_URL="https://script.google.com/macros/s/${OWNER_DEPLOYMENT_ID}/exec";BUSINESS_URL="https://script.google.com/macros/s/${BUSINESS_OFFICE_DEPLOYMENT_ID}/exec?app=business-office"
 printf '%s' "$OWNER_URL" > "$EVIDENCE/owner-portal-url.txt";printf '%s' "$BUSINESS_URL" > "$EVIDENCE/business-office-url.txt"
 OWNER_STATUS="$(curl -L -sS -o "$EVIDENCE/owner-response.html" -w '%{http_code}' "$OWNER_URL" || true)";BUSINESS_STATUS="$(curl -L -sS -o "$EVIDENCE/business-response.html" -w '%{http_code}' "$BUSINESS_URL" || true)"
 printf '%s' "$OWNER_STATUS" > "$EVIDENCE/owner-http-status.txt";printf '%s' "$BUSINESS_STATUS" > "$EVIDENCE/business-http-status.txt";test "$OWNER_STATUS" != "404";test "$BUSINESS_STATUS" != "404"
+! grep -F "ReferenceError: boGetCurrentUser_ is not defined" "$EVIDENCE/owner-response.html" "$EVIDENCE/business-response.html"
 cat > "$EVIDENCE/deployment-result.json" <<JSON
-{"status":"PASS","sourceCommit":"${GITHUB_SHA}","businessPack":"highway38","deploymentConfiguration":"business-packs/highway38/deployment.json","scriptId":"${OWNER_SCRIPT_ID}","ownerPortalDeploymentId":"${OWNER_DEPLOYMENT_ID}","businessOfficeDeploymentId":"${BUSINESS_OFFICE_DEPLOYMENT_ID}","ownerPortalUrl":"${OWNER_URL}","businessOfficeUrl":"${BUSINESS_URL}","websitePortalUrl":"${WEBSITE_PORTAL_URL}","updatedExistingDeployments":true,"createdNewProject":false,"createdNewDeployment":false,"embeddedOwnerPortal":true,"embeddedBusinessOffice":true,"googleAuthenticationRequired":true,"externalActionsEnabled":false,"externalActionsOccurred":false,"taskAssignmentEnabled":true,"messagingPreparationEnabled":true,"smsProviderReleaseRequired":true}
+{"status":"PASS","sourceCommit":"${GITHUB_SHA}","businessPack":"highway38","deploymentConfiguration":"business-packs/highway38/deployment.json","scriptId":"${OWNER_SCRIPT_ID}","ownerPortalDeploymentId":"${OWNER_DEPLOYMENT_ID}","businessOfficeDeploymentId":"${BUSINESS_OFFICE_DEPLOYMENT_ID}","ownerPortalUrl":"${OWNER_URL}","businessOfficeUrl":"${BUSINESS_URL}","websitePortalUrl":"${WEBSITE_PORTAL_URL}","updatedExistingDeployments":true,"createdNewProject":false,"createdNewDeployment":false,"embeddedOwnerPortal":true,"embeddedBusinessOffice":true,"googleAuthenticationRequired":true,"remoteSourceVerified":true,"businessOfficeAuthVerified":true,"externalActionsEnabled":false,"externalActionsOccurred":false,"taskAssignmentEnabled":true,"messagingPreparationEnabled":true,"smsProviderReleaseRequired":true}
 JSON
 cat "$EVIDENCE/deployment-result.json"
