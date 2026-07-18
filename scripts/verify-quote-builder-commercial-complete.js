@@ -19,7 +19,7 @@ const assembler=read('scripts/build-unified-apps-script-shell.js');
  ['Proposal Workspace','owner proposal workspace'],['Options & Add-ons','options editor'],['Preview as Customer','customer preview'],['Prepare Customer Link','controlled link action'],['Owner-approved follow-up','follow-up UI'],['Good–Better–Best options','option packages'],['Customer visible','photo visibility'],['Generate PDF','PDF action']
 ].forEach(([m,l])=>need(client,m,l));
 [
- ['Approve & Sign','signature approval'],['Request Changes','customer change request'],['Decline','customer decline'],['Download / Print PDF','customer PDF'],['data-option','selectable proposal options'],['data-addon','selectable add-ons'],['No job or payment starts automatically.','customer safety notice']
+ ['Approve & Sign','signature approval'],['Request Changes','customer change request'],['Decline','customer decline'],['Download / Print PDF','customer PDF'],['data-option','selectable proposal options'],['data-addon','selectable add-ons'],['No job, payment, or scheduling starts automatically.','customer safety notice']
 ].forEach(([m,l])=>need(proposal,m,l));
 need(index,"boInclude_('BusinessOffice_QuoteBuilder_Commercial_Client')",'commercial client include');
 ['quoteCommercialState','quoteCommercialSave','quoteCommercialTransition','quoteCommercialPrepareShare','quoteCommercialPreview','quoteCommercialFollowUp'].forEach(a=>need(web,a,`${a} API`));
