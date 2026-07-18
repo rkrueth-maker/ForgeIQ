@@ -111,6 +111,7 @@ function boCreateQuoteFast_(payload) {
     boAudit_('CREATE', H38_BO_SHEETS.QUOTES, quoteId, {}, quote, 'Quote Builder grouped write: header + ' + lineRecords.length + ' lines');
     boProof_('CREATE QUOTE', 'Quote', quoteId, 'PASS', quoteNumber + '; ' + lineRecords.length + ' lines batched', access.user.email);
     boQuoteBuilderInvalidateCache_('quotes');
+    boQuoteBuilderRememberCreatedQuote_(quote);
     boQuoteBuilderTiming_('create_quote_grouped', started, { lines: lineRecords.length, total: total });
     return quote;
   }, 'Quote', payload && payload.quoteId);
