@@ -27,7 +27,7 @@ active_pages=(index.html solutions.html products.html pricing.html sample-librar
 for page in "${active_pages[@]}"; do
   curl -fsS "http://127.0.0.1:8000/$page" -o "$OUT/source-$page" || fail "$page did not return successfully"
   grep -q '<h1' "$OUT/source-$page" || fail "$page is missing an h1"
-  grep -q 'aria-label="Main navigation"' "$OUT/source-$page" || fail "$page is missing main navigation semantics"
+  grep -Eq 'aria-label="(Main|Primary) navigation"' "$OUT/source-$page" || fail "$page is missing main navigation semantics"
   grep -q 'class="skip-link"' "$OUT/source-$page" || fail "$page is missing a skip link"
   pass "$page source and basic accessibility structure load"
 done
