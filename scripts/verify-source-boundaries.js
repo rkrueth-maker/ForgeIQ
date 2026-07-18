@@ -14,7 +14,8 @@ const productionDeployPath = 'scripts/deploy-unified-owner-portal-web.sh';
 const productionDeploy = read(productionDeployPath);
 const productionAssembler = read('scripts/assemble-business-office-app.sh');
 const reusableInstaller = read('scripts/build-business-office-installation.js');
-const protectedWorkflow = read('.github/workflows/deploy-owner-portal-hard-rule-production.yml');
+const protectedWorkflowPath = '.github/workflows/deploy-owner-portal-hard-rule-production.yml';
+const protectedWorkflow = read(protectedWorkflowPath);
 
 for (const marker of [
   'apps-script/core-engine/owner-portal-next',
@@ -58,14 +59,15 @@ for (const marker of [
   'artifacts/separate-business-office-platform'
 ]) forbidText(reusableInstaller, marker, 'scripts/build-business-office-installation.js');
 
-requireText(protectedWorkflow, productionDeployPath, '.github/workflows/deploy-owner-portal-hard-rule-production.yml');
-forbidText(protectedWorkflow, 'clasp create-script', '.github/workflows/deploy-owner-portal-hard-rule-production.yml');
-forbidText(protectedWorkflow, 'clasp create-deployment', '.github/workflows/deploy-owner-portal-hard-rule-production.yml');
+requireText(protectedWorkflow, `run: bash ${productionDeployPath}`, protectedWorkflowPath);
+forbidText(protectedWorkflow, 'clasp create-script', protectedWorkflowPath);
+forbidText(protectedWorkflow, 'clasp create-deployment', protectedWorkflowPath);
 
 const workflowDir = path.join(root, '.github', 'workflows');
+const deployExecutionPattern = new RegExp(`^\\s*run:\\s+bash\\s+${productionDeployPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'm');
 const deployingWorkflows = fs.readdirSync(workflowDir)
   .filter(name => /\.ya?ml$/i.test(name))
-  .filter(name => read(path.join('.github', 'workflows', name)).includes(productionDeployPath));
+  .filter(name => deployExecutionPattern.test(read(path.join('.github', 'workflows', name))));
 if (deployingWorkflows.length !== 1 || deployingWorkflows[0] !== 'deploy-owner-portal-hard-rule-production.yml') {
   fail(`expected one workflow to execute ${productionDeployPath}; found ${deployingWorkflows.join(', ') || 'none'}`);
 }
