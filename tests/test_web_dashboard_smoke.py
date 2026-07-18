@@ -77,7 +77,7 @@ def test_web_dashboard_smoke_loads_index(monkeypatch):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "Highway 38 Solutions" in page
-    assert "What needs to work better?" in page
+    assert "Choose the smallest useful starting point." in page
     assert "Start a Request" in page
     assert "Big problems." in page
     assert "Clear plans." in page
