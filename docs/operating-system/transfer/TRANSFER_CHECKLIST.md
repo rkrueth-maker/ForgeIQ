@@ -18,6 +18,8 @@
 - [ ] Direct `quoteBuilder=1` routing is preserved when Quote Builder is enabled.
 - [ ] Full Business Office bootstrap is not restored inside direct Quote Builder.
 - [ ] Integrated camera workflow is present; no separate required upload step replaces it.
+- [ ] Full Business Office includes an obvious navigation action that opens Quote Builder.
+- [ ] Business Office and direct-route launches use the same Quote Builder implementation.
 
 ## Separation and sanitation
 
@@ -72,6 +74,11 @@
 - [ ] Customer and contact create/read/update workflows pass.
 - [ ] Quote create, edit, grouped write, save, reopen, and approval workflows pass.
 - [ ] Price Book and template workflows pass.
+- [ ] Business Office navigation opens Quote Builder without a second login.
+- [ ] Selected customer context carries into Quote Builder when launched from a customer record.
+- [ ] Selected quote context carries into Quote Builder when launched from a quote record.
+- [ ] Quote Builder provides a clear return path to the Business Office.
+- [ ] Business Office and Quote Builder share customer, quote, document, role, approval, and logging records.
 - [ ] Document upload, permission, MIME, size, duplicate hash, and source-link tests pass.
 - [ ] Quote camera test passes on a real device.
 - [ ] New-quote camera picture attaches automatically after quote creation.
