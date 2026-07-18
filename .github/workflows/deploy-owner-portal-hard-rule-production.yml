@@ -38,11 +38,12 @@ permissions:
 
 concurrency:
   group: highway-38-unified-owner-portal
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy-and-verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
       CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
