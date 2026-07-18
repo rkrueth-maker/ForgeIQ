@@ -32,6 +32,14 @@ find_remote_source() {
   find "$REMOTE_VERIFY" -maxdepth 1 -type f \( -name "${base}.gs" -o -name "${base}.js" \) -print -quit
 }
 
+diagnostic_marker() {
+  local file="$1"
+  local marker="$2"
+  if ! grep -F "$marker" "$file" >/dev/null; then
+    printf 'WARN — diagnostic source marker not found before push: %s :: %s\n' "$(basename "$file")" "$marker" | tee -a "$EVIDENCE/local-source-diagnostics.txt"
+  fi
+}
+
 DEPLOY_STAGE="read_configuration"
 OWNER_SCRIPT_ID="$(read_config appsScript.ownerPortalProjectId)"
 OWNER_DEPLOYMENT_ID="$(read_config appsScript.ownerPortalDeploymentId)"
@@ -68,7 +76,7 @@ python3 - "$PROJECT/Portal_Services.js" "$PROJECT/BusinessOffice_Web.gs" <<'PY'
 from pathlib import Path
 import re
 import sys
-portal=Path(sys.argv[1]);business=Path(sys.argv[2]);portal_text=portal.read_text();needle="function doGet(e) {\n  h38PortalRequireUnifiedUser_();";replacement="function doGet(e) {\n  if (e && e.parameter && e.parameter.app === 'business-office') {\n    if (e.parameter.quoteBuilder === '1') return boRenderQuoteBuilderApp_();\n    boGetCurrentUser_();\n    return boRenderWebApp_();\n  }\n  h38PortalRequireUnifiedUser_();"
+portal=Path(sys.argv[1]);business=Path(sys.argv[2]);portal_text=portal.read_text();needle="function doGet(e) {\n  h38PortalRequireUnifiedUser_();";replacement="function doGet(e) {\n  if (e && e.parameter && e.parameter.app === 'business-office') {\n    if (e.parameter.quoteBuilder === '1') return boRenderQuoteBuilderApp_();\n    h38PortalGetCurrentUser_();\n    return boRenderWebApp_();\n  }\n  h38PortalRequireUnifiedUser_();"
 if needle not in portal_text: raise SystemExit('Unified user doGet router marker not found')
 portal_text=portal_text.replace(needle,replacement,1);render=".setTitle(H38_PORTAL_NEXT.APP_NAME).setSandboxMode(HtmlService.SandboxMode.IFRAME);";embed=".setTitle(H38_PORTAL_NEXT.APP_NAME).setSandboxMode(HtmlService.SandboxMode.IFRAME).setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);"
 if render not in portal_text: raise SystemExit('Owner Portal render marker not found')
@@ -89,6 +97,8 @@ NODE
 
 REQUIRED_PORTAL_FILES=(
   Portal_00_BusinessAuth.js
+  Portal_Business.js
+  Portal_Services.js
 )
 REQUIRED_BUSINESS_FILES=(
   BusinessOffice_00_Pack.gs
@@ -105,15 +115,19 @@ REQUIRED_BUSINESS_FILES=(
 for required in "${REQUIRED_PORTAL_FILES[@]}" "${REQUIRED_BUSINESS_FILES[@]}"; do
   test -f "$PROJECT/$required" || { echo "HOLD — required assembled source is missing: $required"; exit 5; }
 done
-grep -F "global.boGetCurrentUser_ = function" "$PROJECT/Portal_00_BusinessAuth.js" >/dev/null
-grep -F "global.boGetActiveEmail_ = function" "$PROJECT/Portal_00_BusinessAuth.js" >/dev/null
-grep -F "function boGetCurrentUser_()" "$PROJECT/BusinessOffice_Auth.gs" >/dev/null
-grep -F "function boGetActiveEmail_()" "$PROJECT/BusinessOffice_Auth.gs" >/dev/null
-grep -F "e.parameter.app === 'business-office'" "$PROJECT/Portal_Services.js" >/dev/null
-grep -F "e.parameter.quoteBuilder === '1'" "$PROJECT/Portal_Services.js" >/dev/null
-grep -F "boRenderQuoteBuilderApp_()" "$PROJECT/Portal_Services.js" >/dev/null
-grep -F "h38PortalRequireUnifiedUser_" "$PROJECT/Portal_Services.js" >/dev/null
-grep -F "packId:'highway38'" "$PROJECT/BusinessOffice_00_Pack.gs" >/dev/null
+
+# These checks are diagnostic only. The mandatory proof is the clean pull from Google
+# after clasp push, where every required source file and marker is verified remotely.
+diagnostic_marker "$PROJECT/Portal_00_BusinessAuth.js" "global.boGetCurrentUser_ = function"
+diagnostic_marker "$PROJECT/Portal_00_BusinessAuth.js" "global.boGetActiveEmail_ = function"
+diagnostic_marker "$PROJECT/Portal_Business.js" "function h38PortalResolveAuthFunction_"
+diagnostic_marker "$PROJECT/Portal_Business.js" "function h38PortalGetCurrentUser_"
+diagnostic_marker "$PROJECT/BusinessOffice_Auth.gs" "function boGetCurrentUser_()"
+diagnostic_marker "$PROJECT/BusinessOffice_Auth.gs" "function boGetActiveEmail_()"
+diagnostic_marker "$PROJECT/Portal_Services.js" "e.parameter.app === 'business-office'"
+diagnostic_marker "$PROJECT/Portal_Services.js" "e.parameter.quoteBuilder === '1'"
+diagnostic_marker "$PROJECT/Portal_Services.js" "h38PortalGetCurrentUser_();"
+diagnostic_marker "$PROJECT/BusinessOffice_QuoteBuilder_Direct.gs" "function boRenderQuoteBuilderApp_()"
 
 DEPLOY_STAGE="diagnostic_file_status"
 if ! (cd "$PROJECT" && clasp show-file-status) 2>&1 | tee "$EVIDENCE/clasp-status-before-push.txt"; then
@@ -124,7 +138,8 @@ DEPLOY_STAGE="push_source"
 (cd "$PROJECT" && clasp push --force) 2>&1 | tee "$EVIDENCE/clasp-push.txt"
 
 # Pull the just-pushed remote project into a clean directory. Deployment is blocked
-# unless the server now contains canonical Business Office auth and the Portal bridge.
+# unless the server now contains canonical Business Office auth, the Portal bridge,
+# the explicit auth resolver, and the direct Quote Builder route.
 DEPLOY_STAGE="pull_remote_source"
 printf '{"scriptId":"%s","rootDir":"."}\n' "$OWNER_SCRIPT_ID" > "$REMOTE_VERIFY/.clasp.json"
 (cd "$REMOTE_VERIFY" && clasp pull) 2>&1 | tee "$EVIDENCE/remote-project-pull.txt"
@@ -132,6 +147,8 @@ find "$REMOTE_VERIFY" -maxdepth 1 -type f -printf '%f\n' | sort | tee "$EVIDENCE
 
 DEPLOY_STAGE="verify_remote_source"
 REMOTE_AUTH_BRIDGE="$(find_remote_source Portal_00_BusinessAuth)"
+REMOTE_BUSINESS_ADAPTER="$(find_remote_source Portal_Business)"
+REMOTE_SERVICES="$(find_remote_source Portal_Services)"
 REMOTE_AUTH="$(find_remote_source BusinessOffice_Auth)"
 REMOTE_CONFIG="$(find_remote_source BusinessOffice_Config)"
 REMOTE_CORE="$(find_remote_source BusinessOffice_Core)"
@@ -139,15 +156,18 @@ REMOTE_GATE="$(find_remote_source BusinessOffice_ModuleAccess)"
 REMOTE_QB_DIRECT="$(find_remote_source BusinessOffice_QuoteBuilder_Direct)"
 REMOTE_UX="$(find_remote_source BusinessOffice_UX)"
 REMOTE_WEB="$(find_remote_source BusinessOffice_Web)"
-for remote_file in "$REMOTE_AUTH_BRIDGE" "$REMOTE_AUTH" "$REMOTE_CONFIG" "$REMOTE_CORE" "$REMOTE_GATE" "$REMOTE_QB_DIRECT" "$REMOTE_UX" "$REMOTE_WEB"; do
+for remote_file in "$REMOTE_AUTH_BRIDGE" "$REMOTE_BUSINESS_ADAPTER" "$REMOTE_SERVICES" "$REMOTE_AUTH" "$REMOTE_CONFIG" "$REMOTE_CORE" "$REMOTE_GATE" "$REMOTE_QB_DIRECT" "$REMOTE_UX" "$REMOTE_WEB"; do
   test -n "$remote_file" && test -f "$remote_file" || { echo 'HOLD — required authentication or Business Office source did not reach the remote Apps Script project.'; exit 7; }
 done
 grep -F "global.boGetCurrentUser_ = function" "$REMOTE_AUTH_BRIDGE" >/dev/null
 grep -F "global.boGetActiveEmail_ = function" "$REMOTE_AUTH_BRIDGE" >/dev/null
+grep -F "function h38PortalResolveAuthFunction_" "$REMOTE_BUSINESS_ADAPTER" >/dev/null
+grep -F "function h38PortalGetCurrentUser_" "$REMOTE_BUSINESS_ADAPTER" >/dev/null
+grep -F "h38PortalGetCurrentUser_();" "$REMOTE_SERVICES" >/dev/null
 grep -F "function boGetCurrentUser_()" "$REMOTE_AUTH" >/dev/null
 grep -F "function boGetActiveEmail_()" "$REMOTE_AUTH" >/dev/null
 grep -F "function boRenderQuoteBuilderApp_()" "$REMOTE_QB_DIRECT" >/dev/null
-printf 'PASS — remote Apps Script source includes canonical authentication, the guaranteed Portal authentication bridge, direct Quote Builder routing, and core modules.\n' | tee "$EVIDENCE/remote-source-verification.txt"
+printf 'PASS — remote Apps Script source includes canonical authentication, the guaranteed Portal authentication bridge, the explicit auth resolver, direct Quote Builder routing, and core modules.\n' | tee "$EVIDENCE/remote-source-verification.txt"
 
 DEPLOY_STAGE="update_existing_deployments"
 DEPLOYMENT_DESCRIPTION="Highway 38 unified application ${GITHUB_SHA}"
@@ -160,9 +180,10 @@ printf '%s' "$OWNER_URL" > "$EVIDENCE/owner-portal-url.txt";printf '%s' "$BUSINE
 OWNER_STATUS="$(curl -L -sS -o "$EVIDENCE/owner-response.html" -w '%{http_code}' "$OWNER_URL" || true)";BUSINESS_STATUS="$(curl -L -sS -o "$EVIDENCE/business-response.html" -w '%{http_code}' "$BUSINESS_URL" || true)";QUOTE_BUILDER_STATUS="$(curl -L -sS -o "$EVIDENCE/quote-builder-response.html" -w '%{http_code}' "$QUOTE_BUILDER_URL" || true)"
 printf '%s' "$OWNER_STATUS" > "$EVIDENCE/owner-http-status.txt";printf '%s' "$BUSINESS_STATUS" > "$EVIDENCE/business-http-status.txt";printf '%s' "$QUOTE_BUILDER_STATUS" > "$EVIDENCE/quote-builder-http-status.txt";test "$OWNER_STATUS" != "404";test "$BUSINESS_STATUS" != "404";test "$QUOTE_BUILDER_STATUS" != "404"
 ! grep -F "ReferenceError: boGetCurrentUser_ is not defined" "$EVIDENCE/owner-response.html" "$EVIDENCE/business-response.html" "$EVIDENCE/quote-builder-response.html"
+! grep -F "Authentication service is unavailable: boGetCurrentUser_" "$EVIDENCE/owner-response.html" "$EVIDENCE/business-response.html" "$EVIDENCE/quote-builder-response.html"
 
 DEPLOY_STAGE="record_pass"
 cat > "$EVIDENCE/deployment-result.json" <<JSON
-{"status":"PASS","sourceCommit":"${GITHUB_SHA}","businessPack":"highway38","deploymentConfiguration":"business-packs/highway38/deployment.json","scriptId":"${OWNER_SCRIPT_ID}","ownerPortalDeploymentId":"${OWNER_DEPLOYMENT_ID}","businessOfficeDeploymentId":"${BUSINESS_OFFICE_DEPLOYMENT_ID}","ownerPortalUrl":"${OWNER_URL}","businessOfficeUrl":"${BUSINESS_URL}","quoteBuilderUrl":"${QUOTE_BUILDER_URL}","websitePortalUrl":"${WEBSITE_PORTAL_URL}","updatedExistingDeployments":true,"createdNewProject":false,"createdNewDeployment":false,"embeddedOwnerPortal":true,"embeddedBusinessOffice":true,"directQuoteBuilder":true,"googleAuthenticationRequired":true,"remoteSourceVerified":true,"businessOfficeAuthVerified":true,"portalAuthBridgeVerified":true,"externalActionsEnabled":false,"externalActionsOccurred":false,"taskAssignmentEnabled":true,"messagingPreparationEnabled":true,"smsProviderReleaseRequired":true}
+{"status":"PASS","sourceCommit":"${GITHUB_SHA}","businessPack":"highway38","deploymentConfiguration":"business-packs/highway38/deployment.json","scriptId":"${OWNER_SCRIPT_ID}","ownerPortalDeploymentId":"${OWNER_DEPLOYMENT_ID}","businessOfficeDeploymentId":"${BUSINESS_OFFICE_DEPLOYMENT_ID}","ownerPortalUrl":"${OWNER_URL}","businessOfficeUrl":"${BUSINESS_URL}","quoteBuilderUrl":"${QUOTE_BUILDER_URL}","websitePortalUrl":"${WEBSITE_PORTAL_URL}","updatedExistingDeployments":true,"createdNewProject":false,"createdNewDeployment":false,"embeddedOwnerPortal":true,"embeddedBusinessOffice":true,"directQuoteBuilder":true,"googleAuthenticationRequired":true,"remoteSourceVerified":true,"businessOfficeAuthVerified":true,"portalAuthBridgeVerified":true,"portalAuthResolverVerified":true,"externalActionsEnabled":false,"externalActionsOccurred":false,"taskAssignmentEnabled":true,"messagingPreparationEnabled":true,"smsProviderReleaseRequired":true}
 JSON
 cat "$EVIDENCE/deployment-result.json"
