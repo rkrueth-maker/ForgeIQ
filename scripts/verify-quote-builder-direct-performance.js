@@ -19,9 +19,10 @@ const write=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Write.
 const engine=read('apps-script/business-office/BusinessOffice_QuoteBuilder.gs');
 const hooks=read('apps-script/business-office/BusinessOffice_QuoteBuilder_CacheHooks.gs');
 const gate=read('apps-script/business-office/BusinessOffice_ModuleAccess.gs');
+const shell=read('apps-script/unified-shell/Unified_AppShell.gs');
 const deploy=read('scripts/deploy-unified-owner-portal-web.sh');
 
-need(web,'if (boIsQuoteBuilderRequest_(event)) return boRenderQuoteBuilderApp_();','server direct-route detection');
+need(web,'if (boIsQuoteBuilderRequest_(event)) return boRenderQuoteBuilderApp_();','standalone server direct-route detection');
 need(web,'createQuote:function(){return boCreateQuoteFast_','grouped quote create handler');
 need(web,'quoteBuilderCustomers:function()','lazy customer endpoint');
 need(web,'quoteBuilderDocuments:function()','lazy documents endpoint');
@@ -67,8 +68,9 @@ need(hooks,"boQuoteBuilderInvalidateCache_('quotes')",'quote cache invalidation'
 need(hooks,"boQuoteBuilderInvalidateCache_('products')",'Price Book cache invalidation');
 need(hooks,"boQuoteBuilderInvalidateCache_('documents')",'document cache invalidation');
 need(gate,'quoteBuilderDirectBootstrap','direct API gate');
-need(deploy,"e.parameter.quoteBuilder === '1'",'production direct router');
-need(deploy,'boRenderQuoteBuilderApp_()','production direct renderer');
+need(shell,"var quoteBuilder=h38UnifiedShellParameter_(event,'quoteBuilder');",'unified production direct-route parameter');
+need(shell,"if(quoteBuilder==='1' || app===H38_UNIFIED_SHELL.QUOTE_BUILDER)return h38UnifiedShellRenderQuoteBuilder_();",'unified production direct router');
+need(shell,'return boRenderQuoteBuilderApp_();','unified production direct renderer');
 need(deploy,'BusinessOffice_QuoteBuilder_Direct.gs','direct server deployment proof');
 need(deploy,'BusinessOffice_QuoteBuilder_Index.html','direct shell deployment proof');
 need(deploy,'BusinessOffice_QuoteBuilder_Direct_Client.html','direct client deployment proof');
