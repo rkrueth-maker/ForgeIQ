@@ -9,6 +9,7 @@ on:
       - 'business-packs/highway38/**'
       - 'scripts/build-unified-apps-script-shell.js'
       - 'scripts/verify-unified-app-shell.js'
+      - 'scripts/verify-quote-builder-direct-performance.js'
       - 'scripts/deploy-unified-owner-portal-web.sh'
       - 'package.json'
       - '.github/workflows/unified-app-shell.yml'
@@ -18,6 +19,7 @@ on:
       - 'apps-script/unified-shell/**'
       - 'scripts/build-unified-apps-script-shell.js'
       - 'scripts/verify-unified-app-shell.js'
+      - 'scripts/verify-quote-builder-direct-performance.js'
       - 'scripts/deploy-unified-owner-portal-web.sh'
       - '.github/workflows/unified-app-shell.yml'
   workflow_dispatch:
@@ -41,6 +43,9 @@ jobs:
 
       - name: Verify deterministic shell assembly and routing
         run: node scripts/verify-unified-app-shell.js
+
+      - name: Verify direct Quote Builder performance contract
+        run: node scripts/verify-quote-builder-direct-performance.js
 
       - name: Verify Quote Builder replacement routing
         run: node scripts/verify-quote-builder-business-office-routing.js
