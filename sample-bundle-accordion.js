@@ -34,6 +34,9 @@
 
       if(buttonRow)card.insertBefore(details,buttonRow);else card.appendChild(details);
       details.addEventListener('toggle',()=>{
+        if(details.open){
+          document.querySelectorAll('[data-bundles] .bundle-details[open]').forEach(other=>{if(other!==details)other.open=false;});
+        }
         details.querySelector('.bundle-details-label').textContent=details.open?'Hide full details':'View full details';
         details.querySelector('.bundle-details-icon').textContent=details.open?'−':'+';
       });
