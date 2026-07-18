@@ -1,0 +1,53 @@
+#!/usr/bin/env node
+'use strict';
+const fs=require('fs');
+const path=require('path');
+const root=path.resolve(__dirname,'..');
+const read=file=>fs.readFileSync(path.join(root,file),'utf8');
+const need=(text,marker,label)=>{if(!text.includes(marker))throw new Error(`Missing ${label}: ${marker}`)};
+const reject=(text,marker,label)=>{if(text.includes(marker))throw new Error(`Forbidden ${label}: ${marker}`)};
+const scripts=text=>[...text.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match=>match[1]);
+
+const cameraServer=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Camera.gs');
+const write=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Write.gs');
+const web=read('apps-script/business-office/BusinessOffice_Web.gs');
+const gate=read('apps-script/business-office/BusinessOffice_ModuleAccess.gs');
+const index=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Index.html');
+const cameraUi=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Camera_Polish.html');
+const accordion=read('sample-bundle-accordion.js');
+const sampleCss=read('sample-library-final-polish.css');
+const sampleJs=read('sample-library-final-polish.js');
+
+need(cameraServer,'boQuoteBuilderSaveCapturedPhoto_','secure captured-photo endpoint');
+need(cameraServer,"sourceType: 'Quote'",'quote attachment source');
+need(cameraServer,"documentType: 'Quote Field Photo'",'quote photo classification');
+need(cameraServer,"accessClassification: 'Private Customer'",'private customer classification');
+need(cameraServer,'boQuoteBuilderQuoteDocuments_','lazy quote-document endpoint');
+need(cameraServer,'boQuoteBuilderRememberCreatedQuote_','new quote capture handoff');
+need(write,'boQuoteBuilderRememberCreatedQuote_(quote)','new quote remembered after grouped write');
+need(web,'saveQuotePhoto:function()','camera API handler');
+need(web,'quoteBuilderLastCreatedQuote:function()','last-created quote handler');
+need(web,'quoteBuilderQuoteDocuments:function()','quote attachments handler');
+need(gate,'saveQuotePhoto','camera module guard');
+need(gate,'quoteBuilderQuoteDocuments','attachment module guard');
+need(index,"boInclude_('BusinessOffice_QuoteBuilder_Camera_Polish')",'camera polish include');
+need(cameraUi,'navigator.mediaDevices.getUserMedia','live camera preview');
+need(cameraUi,"capture','environment'",'device camera fallback');
+need(cameraUi,'📷 Take Picture','visible camera action');
+need(cameraUi,"call('saveQuotePhoto'",'automatic picture save');
+need(cameraUi,"call('quoteBuilderLastCreatedQuote'",'automatic attachment after quote creation');
+need(cameraUi,'save automatically with the draft quote','no separate upload language');
+need(cameraUi,'qbCameraTakeForQuote','existing quote camera action');
+need(cameraUi,'Promise.all(group.map','bounded parallel photo saves');
+need(cameraUi,'qb-mobile-capture','mobile capture control');
+reject(cameraUi,'Upload Picture','manual upload button wording');
+need(accordion,'sample-library-final-polish.css','Sample Library final CSS loader');
+need(accordion,'sample-library-final-polish.js','Sample Library final JS loader');
+need(sampleCss,'.bundle-card[data-compact-bundle="true"]','compact bundle polish');
+need(sampleCss,'.sample-filter-shell','sample filter polish');
+need(sampleJs,"aria-expanded",'accessible bundle disclosure state');
+
+scripts(cameraUi).forEach((body,index)=>new Function(body));
+new Function(accordion);
+new Function(sampleJs);
+console.log('PASS — one-tap quote camera capture, automatic private quote attachment, existing-quote capture, mobile capture, app polish, and Sample Library polish verified.');
