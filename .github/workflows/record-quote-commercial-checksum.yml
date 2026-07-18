@@ -1,0 +1,41 @@
+name: Record Commercial Package Checksum
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    if: github.head_ref == 'feature/quote-builder-commercial-complete'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/quote-builder-commercial-complete
+          fetch-depth: 0
+      - name: Record transferred package checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/quote-builder-commercial
+          cat scripts/.quote-commercial-package/*.part | tr -d '\r\n' | base64 -d > /tmp/package.tar.gz
+          {
+            echo "expected=26e675cd56e2c46767c4d894f8da8c7ef6e1ec21333262b4bab074575b211d86"
+            echo -n "actual="
+            sha256sum /tmp/package.tar.gz | awk '{print $1}'
+            echo -n "bytes="
+            wc -c < /tmp/package.tar.gz
+            for file in scripts/.quote-commercial-package/*.part; do printf '%s=' "$(basename "$file")"; wc -c < "$file"; done
+          } > artifacts/quote-builder-commercial/package-transfer.txt
+          rm -f .github/workflows/record-quote-commercial-checksum.yml
+      - name: Commit checksum evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Record commercial package transfer checksum'
+          git push origin HEAD:feature/quote-builder-commercial-complete
