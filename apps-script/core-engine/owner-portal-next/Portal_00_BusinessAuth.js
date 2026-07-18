@@ -288,13 +288,13 @@
 
   if (typeof global.boGetActiveEmail_ !== 'function') global.boGetActiveEmail_ = function(){return getActiveEmail();};
   if (typeof global.boGetCurrentUser_ !== 'function') global.boGetCurrentUser_ = function(){return getCurrentUser();};
-  if (typeof global.boGetRole_ !== 'function') global.boGetRole_ = getRole;
-  if (typeof global.boGetPermissionRows_ !== 'function') global.boGetPermissionRows_ = getPermissionRows;
-  if (typeof global.boModuleMatchesPermission_ !== 'function') global.boModuleMatchesPermission_ = moduleMatchesPermission;
-  if (typeof global.boHasPermission_ !== 'function') global.boHasPermission_ = hasPermission;
-  if (typeof global.boRequirePermission_ !== 'function') global.boRequirePermission_ = requirePermission;
-  if (typeof global.boRequireOwner_ !== 'function') global.boRequireOwner_ = requireOwner;
-  if (typeof global.boCanAccessRestrictedArea_ !== 'function') global.boCanAccessRestrictedArea_ = canAccessRestrictedArea;
-  if (typeof global.boRequireRestrictedArea_ !== 'function') global.boRequireRestrictedArea_ = requireRestrictedArea;
-  if (typeof global.boGetClientContext !== 'function') global.boGetClientContext = getClientContext;
+  if (typeof global.boGetRole_ !== 'function') global.boGetRole_ = function(roleId){return getRole(roleId);};
+  if (typeof global.boGetPermissionRows_ !== 'function') global.boGetPermissionRows_ = function(roleId){return getPermissionRows(roleId);};
+  if (typeof global.boModuleMatchesPermission_ !== 'function') global.boModuleMatchesPermission_ = function(permissionModule,requestedModule){return moduleMatchesPermission(permissionModule,requestedModule);};
+  if (typeof global.boHasPermission_ !== 'function') global.boHasPermission_ = function(user,moduleName,action){return hasPermission(user,moduleName,action);};
+  if (typeof global.boRequirePermission_ !== 'function') global.boRequirePermission_ = function(moduleName,action){return requirePermission(moduleName,action);};
+  if (typeof global.boRequireOwner_ !== 'function') global.boRequireOwner_ = function(){return requireOwner();};
+  if (typeof global.boCanAccessRestrictedArea_ !== 'function') global.boCanAccessRestrictedArea_ = function(user,area){return canAccessRestrictedArea(user,area);};
+  if (typeof global.boRequireRestrictedArea_ !== 'function') global.boRequireRestrictedArea_ = function(area){return requireRestrictedArea(area);};
+  if (typeof global.boGetClientContext !== 'function') global.boGetClientContext = function(){return getClientContext();};
 })(typeof globalThis !== 'undefined' ? globalThis : this);
