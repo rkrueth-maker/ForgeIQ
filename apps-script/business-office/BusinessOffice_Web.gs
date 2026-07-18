@@ -1,6 +1,12 @@
-/** Business Office — private role-aware web application API. Quote Builder deployment refresh verified: 2026-07-17. */
+/** Business Office — private role-aware web application API. */
 
-function doGet() { return boSafeExecute_('Business Office web app',function(){boGetCurrentUser_();return boRenderWebApp_();},'System',boGetBusinessId_()); }
+function doGet(event) {
+  return boSafeExecute_('Business Office web app', function () {
+    if (boIsQuoteBuilderRequest_(event)) return boRenderQuoteBuilderApp_();
+    boGetCurrentUser_();
+    return boRenderWebApp_();
+  }, 'System', boGetBusinessId_());
+}
 
 function boRenderWebApp_(){
   const title=boBusinessOfficeTitle_(),branding=boBranding_();
@@ -30,19 +36,24 @@ function boApi(request){
     uxSearch:function(){return boUxGlobalSearch_(args.query);},
     uxPipeline:function(){return boUxPipeline_(args.type);},
     savedViews:function(){return boGetSavedViews(args.module);},
-    save:function(){return boSaveRecord(args.module,args.recordId||'',args.values||{});},
+    save:function(){return boQuoteBuilderSaveRecord_(args.module,args.recordId||'',args.values||{});},
     voidRecord:function(){return boSoftVoidRecord_(H38_BO_MODULES[args.module]||args.module,args.recordId,args.reason);},
     createCustomerFromRequest:function(){return boCreateCustomerFromRequest(args.requestId);},
-    createQuote:function(){return boCreateQuote(args.payload||{});},
-    reviseQuote:function(){return boReviseQuote(args.quoteId,args.changes||{});},
+    createQuote:function(){return boCreateQuoteFast_(args.payload||{});},
+    reviseQuote:function(){return boQuoteBuilderReviseQuote_(args.quoteId,args.changes||{});},
     duplicateQuote:function(){return boDuplicateQuote_(args.quoteId);},
+    quoteBuilderDirectBootstrap:function(){return boQuoteBuilderDirectBootstrap_();},
+    quoteBuilderCustomers:function(){return boQuoteBuilderCustomers_();},
+    quoteBuilderDocuments:function(){return boQuoteBuilderDocuments_();},
+    quoteBuilderQuoteDetails:function(){return boQuoteBuilderQuoteDetails_(args.quoteId);},
+    quoteBuilderPerformance:function(){return boQuoteBuilderPerformance_();},
     quoteBuilderDashboard:function(){return boQuoteBuilderDashboard_();},
     quoteBuilderPriceBook:function(){return boQuoteBuilderPriceBook_(args.options||{});},
     quoteBuilderTemplates:function(){return boQuoteBuilderTemplates_();},
     prepareAiQuoteDraft:function(){return boPrepareAiQuoteDraft_(args.payload||{});},
     quoteBuilderPackage:function(){return boQuoteBuilderPackage_();},
-    approve:function(){return boApproveSelectedRecord(args.recordType,args.recordId,args.approvalType,args.decision,args.notes||'');},
-    quoteToJob:function(){return boConvertQuoteToWorkOrderAndJob(args.quoteId);},
+    approve:function(){return boQuoteBuilderApprove_(args.recordType,args.recordId,args.approvalType,args.decision,args.notes||'');},
+    quoteToJob:function(){return boQuoteBuilderToJob_(args.quoteId);},
     jobToInvoice:function(){return boCreateInvoiceFromJob(args.jobId);},
     matchBill:function(){return boMatchVendorBillToPurchaseOrder(args.billId,args.purchaseOrderId);},
     receiptToExpense:function(){return boConvertReceiptToExpense(args.receiptId);},
@@ -59,7 +70,7 @@ function boApi(request){
     prepareSalesTax:function(){return boPrepareSalesTaxPeriod(args.payload||{});},
     finalizeTax:function(){return boFinalizeTaxPreparationReport(args.periodId);},
     taxSummary:function(){return boGetTaxPreparationSummary();},
-    uploadDocument:function(){return boUploadDocument(args.payload||{});},
+    uploadDocument:function(){return boQuoteBuilderUploadDocument_(args.payload||{});},
     previewDocument:function(){return boGetDocumentPreview(args.documentId);},
     extractDocument:function(){return boExtractDocument(args.documentId);},
     reviewOcrField:function(){return boReviewOcrField(args.ocrFieldId,args.approvedValue,args.notes||'');},
