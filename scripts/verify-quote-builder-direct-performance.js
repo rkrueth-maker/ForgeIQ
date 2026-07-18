@@ -15,6 +15,7 @@ const index=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Index.
 const client=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Direct_Client.html');
 const optimizations=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Direct_Optimizations.html');
 const popoutNav=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Popout_Nav.html');
+const launch=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Launch_Context.html');
 const write=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Write.gs');
 const engine=read('apps-script/business-office/BusinessOffice_QuoteBuilder.gs');
 const hooks=read('apps-script/business-office/BusinessOffice_QuoteBuilder_CacheHooks.gs');
@@ -56,6 +57,11 @@ need(popoutNav,'.app{grid-template-columns:76px minmax(0,1fr)}','compact desktop
 need(popoutNav,'content:attr(data-label)','pop-out navigation labels');
 need(popoutNav,"new MutationObserver(enhancePopoutNav)",'navigation enhancement after rerender');
 need(popoutNav,'@media (max-width:760px)','readable mobile navigation labels');
+need(launch,"button.dataset.launchReturnAction==='1'",'idempotent return-button patch');
+need(launch,"button.querySelector('.nav-text')",'pop-out navigation markup preservation');
+need(launch,"button.dataset.label='Business Office'",'Business Office pop-out label');
+need(launch,"else if((button.textContent||'').trim()!=='Business Office')",'conditional plain-button fallback');
+reject(launch,"button.textContent='Business Office';\n  button.title",'unconditional mutation-observer text replacement');
 need(write,'boQuoteBuilderAppendBatch_(quoteSnapshot, [quote])','single quote-header write');
 need(write,'boQuoteBuilderAppendBatch_(lineSnapshot, lineRecords)','batched quote-line write');
 need(write,"'Quote Builder grouped write: header + '",'grouped audit record');
@@ -79,4 +85,5 @@ need(deploy,'QUOTE_BUILDER_STATUS','live direct-route HTTP verification');
 new Function(scriptBody(client));
 new Function(scriptBody(optimizations));
 new Function(scriptBody(popoutNav));
-console.log('PASS — direct Quote Builder routing, compact pop-out navigation, lazy loading, compact payloads, single-read snapshots, grouped writes, targeted caches, parallel file intake, and timing logs verified.');
+new Function(scriptBody(launch));
+console.log('PASS — direct Quote Builder routing, compact pop-out navigation, idempotent launch controls, lazy loading, compact payloads, single-read snapshots, grouped writes, targeted caches, parallel file intake, and timing logs verified.');
