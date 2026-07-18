@@ -65,7 +65,11 @@ Core logic must not depend on Highway 38 branding or live IDs. Business Packs mu
 A focused standalone package for customers, estimates, proposals, approvals, Price Book, templates, quote documents, field photos, and controlled sharing.
 
 ### Business System with Quotes & Proposals
-The full Business Office installation with the Quote Builder enabled as a module. It preserves shared customer, document, approval, logging, and role records.
+The full Business Office installation with the Quote Builder enabled as an integrated module. It preserves shared customer, document, approval, logging, and role records.
+
+The Quote Builder must be reachable from inside the Business Office through an obvious Quotes, Proposals, or Quote Builder navigation action. Opening it from the Business Office must preserve the authenticated session, selected customer or quote context when available, role permissions, approval controls, and a clear return path to the Business Office.
+
+The same Quote Builder must also retain its lightweight direct route for standalone customers and field use. The integrated Business Office launch and the direct `quoteBuilder=1` launch must open the same underlying Quote Builder capability rather than separate implementations.
 
 Both packages must come from the same source tree. Product selection changes the Business Pack, enabled modules, navigation, setup defaults, and acceptance scope—not the underlying control model.
 
@@ -75,6 +79,8 @@ Both packages must come from the same source tree. Product selection changes the
 - Never point a pilot installer at the Highway 38 Apps Script project, deployment, Drive folders, Sheets, Forms, Gmail account, or public repository configuration.
 - Keep Core logic separate from business branding, pricing, and customer-specific workflow language.
 - Preserve direct `quoteBuilder=1` routing and the integrated one-tap camera workflow when Quote Builder is enabled.
+- Provide a visible Business Office navigation entry that opens Quote Builder without requiring a second login or a separate customer database.
+- Preserve shared customer, quote, document, role, approval, Proof Log, Error Log, and timing context when Quote Builder is opened from Business Office.
 - Preserve private Drive storage and Quote Field Photo classification for captured quote pictures.
 - Preserve owner approval, no-automatic-send, no-money-movement, no-automatic-work-start, and no-AI-approval controls.
 - Store secrets outside GitHub. Commit only sanitized examples and non-secret schema definitions.
@@ -98,6 +104,8 @@ A second-business pilot is accepted only when:
 - configuration and secret scans pass
 - login and role tests pass
 - customers, quotes, documents, Quote Builder, and camera tests pass for the selected package
+- Business Office users can open Quote Builder from the integrated navigation without a second login
+- Business Office-to-Quote Builder customer or quote context and return navigation are verified
 - approval and external-action locks pass
 - Proof Log, Error Log, and timing evidence are present
 - backup and recovery are verified
