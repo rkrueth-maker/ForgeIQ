@@ -41,6 +41,14 @@ function h38PortalUnifiedPackModuleEnabled_(moduleKey) {
   return true;
 }
 
+function h38PortalUnifiedCapabilityOwner_(capability) {
+  if (typeof h38UnifiedShellCapabilityOwner_ === 'function') return h38UnifiedShellCapabilityOwner_(capability);
+  if (capability === 'quotes') {
+    return h38PortalUnifiedPackModuleEnabled_('quoteBuilder') && h38PortalUnifiedPackModuleEnabled_('quotes') ? 'quoteBuilder' : 'legacyQuotes';
+  }
+  return capability;
+}
+
 function h38PortalUnifiedItem_(key, label, type, moduleKey, gate) {
   return {
     key:key,
@@ -50,6 +58,11 @@ function h38PortalUnifiedItem_(key, label, type, moduleKey, gate) {
     gate:gate || moduleKey || key,
     enabled:h38PortalUnifiedPackModuleEnabled_(gate || moduleKey || key)
   };
+}
+
+function h38PortalUnifiedQuoteItem_() {
+  var owner = h38PortalUnifiedCapabilityOwner_('quotes');
+  return h38PortalUnifiedItem_('bo:quotes',owner === 'quoteBuilder' ? 'Quote Builder' : 'Quotes','business','quotes','quotes');
 }
 
 function h38PortalUnifiedCanViewItem_(access, item) {
@@ -64,6 +77,9 @@ function h38PortalUnifiedBootstrap() {
   if (access.ownerMode && typeof h38TmEnsureSchema_ === 'function') h38TmEnsureSchema_();
   var serviceUrl = ScriptApp.getService().getUrl();
   var definitions = typeof h38PortalBusinessDefinitions_ === 'function' ? h38PortalBusinessDefinitions_() : (typeof boGetModuleDefinitions_ === 'function' ? boGetModuleDefinitions_() : {});
+  var shellRegistry = typeof h38UnifiedShellRegistry === 'function' ? h38UnifiedShellRegistry() : null;
+  var quoteCapabilityOwner = shellRegistry && shellRegistry.capabilityOwners ? shellRegistry.capabilityOwners.quotes : h38PortalUnifiedCapabilityOwner_('quotes');
+  var disabledLegacyCapabilities = shellRegistry && shellRegistry.disabledLegacyCapabilities ? shellRegistry.disabledLegacyCapabilities : {quotes:quoteCapabilityOwner === 'quoteBuilder'};
 
   // Seven visible workspaces: Today, Customers, Work, Money, Documents, Growth, Control.
   // Compatibility aliases for the accepted former grouped-navigation contract:
@@ -94,7 +110,7 @@ function h38PortalUnifiedBootstrap() {
       id:'work',
       label:'Work',
       items:[
-        h38PortalUnifiedItem_('bo:quotes','Quotes','business','quotes','quotes'),
+        h38PortalUnifiedQuoteItem_(),
         h38PortalUnifiedItem_('bo:workOrders','Work Orders','business','workOrders','workOrders'),
         h38PortalUnifiedItem_('bo:jobs','Jobs','business','jobs','jobs'),
         h38PortalUnifiedItem_('bo:time','Time Tracking','business','time','time')
@@ -171,6 +187,7 @@ function h38PortalUnifiedBootstrap() {
   return {
     status:'PASS',
     version:typeof H38_APP_UX_VERSION_ !== 'undefined' ? H38_APP_UX_VERSION_ : 'unified',
+    shellVersion:shellRegistry ? shellRegistry.version : '',
     singleApp:true,
     nativeBusinessOffice:true,
     adaptiveNavigation:true,
@@ -179,6 +196,10 @@ function h38PortalUnifiedBootstrap() {
     serviceUrl:serviceUrl,
     compatibilityBusinessOfficeUrl:serviceUrl + (serviceUrl.indexOf('?') >= 0 ? '&' : '?') + 'app=business-office',
     businessDefinitions:definitions,
+    applicationRegistry:shellRegistry,
+    capabilityOwners:{quotes:quoteCapabilityOwner},
+    disabledLegacyCapabilities:disabledLegacyCapabilities,
+    quoteBuilderEnabled:quoteCapabilityOwner === 'quoteBuilder',
     groups:groups,
     externalActionsEnabled:false,
     ownerApprovalRequired:true,
