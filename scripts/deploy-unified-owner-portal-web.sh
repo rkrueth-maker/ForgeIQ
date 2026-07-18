@@ -102,7 +102,7 @@ grep -F "boRenderQuoteBuilderApp_()" "$PROJECT/Portal_Services.js" >/dev/null
 grep -F "h38PortalRequireUnifiedUser_" "$PROJECT/Portal_Services.js" >/dev/null
 grep -F "packId:'highway38'" "$PROJECT/BusinessOffice_00_Pack.gs" >/dev/null
 
-(cd "$PROJECT" && clasp status) 2>&1 | tee "$EVIDENCE/clasp-status-before-push.txt"
+(cd "$PROJECT" && clasp show-file-status) 2>&1 | tee "$EVIDENCE/clasp-status-before-push.txt"
 for required in "${REQUIRED_PORTAL_FILES[@]}" "${REQUIRED_BUSINESS_FILES[@]}"; do
   grep -F "$required" "$EVIDENCE/clasp-status-before-push.txt" >/dev/null || { echo "HOLD — clasp is not tracking required source: $required"; exit 6; }
 done
@@ -132,7 +132,8 @@ grep -F "function boGetActiveEmail_()" "$REMOTE_AUTH" >/dev/null
 grep -F "function boRenderQuoteBuilderApp_()" "$REMOTE_QB_DIRECT" >/dev/null
 printf 'PASS — remote Apps Script source includes canonical authentication, the guaranteed Portal authentication bridge, direct Quote Builder routing, and core modules.\n' | tee "$EVIDENCE/remote-source-verification.txt"
 
-(cd "$PROJECT" && clasp deploy -i "$OWNER_DEPLOYMENT_ID" -d "Highway 38 unified application ${GITHUB_SHA}" && clasp deploy -i "$BUSINESS_OFFICE_DEPLOYMENT_ID" -d "Highway 38 unified application ${GITHUB_SHA}" && clasp list-deployments) 2>&1 | tee "$EVIDENCE/deployments-after.txt"
+DEPLOYMENT_DESCRIPTION="Highway 38 unified application ${GITHUB_SHA}"
+(cd "$PROJECT" && clasp update-deployment "$OWNER_DEPLOYMENT_ID" --description "$DEPLOYMENT_DESCRIPTION" && clasp update-deployment "$BUSINESS_OFFICE_DEPLOYMENT_ID" --description "$DEPLOYMENT_DESCRIPTION" && clasp list-deployments) 2>&1 | tee "$EVIDENCE/deployments-after.txt"
 grep -F "$OWNER_DEPLOYMENT_ID" "$EVIDENCE/deployments-after.txt" >/dev/null;grep -F "$BUSINESS_OFFICE_DEPLOYMENT_ID" "$EVIDENCE/deployments-after.txt" >/dev/null
 OWNER_URL="https://script.google.com/macros/s/${OWNER_DEPLOYMENT_ID}/exec";BUSINESS_URL="https://script.google.com/macros/s/${BUSINESS_OFFICE_DEPLOYMENT_ID}/exec?app=business-office";QUOTE_BUILDER_URL="${BUSINESS_URL}&quoteBuilder=1"
 printf '%s' "$OWNER_URL" > "$EVIDENCE/owner-portal-url.txt";printf '%s' "$BUSINESS_URL" > "$EVIDENCE/business-office-url.txt";printf '%s' "$QUOTE_BUILDER_URL" > "$EVIDENCE/quote-builder-url.txt"
