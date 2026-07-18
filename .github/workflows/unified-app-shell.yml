@@ -1,0 +1,63 @@
+name: Verify Unified Apps Script Shell
+
+on:
+  pull_request:
+    paths:
+      - 'apps-script/unified-shell/**'
+      - 'apps-script/core-engine/owner-portal-next/**'
+      - 'apps-script/business-office/**'
+      - 'business-packs/highway38/**'
+      - 'scripts/build-unified-apps-script-shell.js'
+      - 'scripts/verify-unified-app-shell.js'
+      - 'scripts/deploy-unified-owner-portal-web.sh'
+      - 'package.json'
+      - '.github/workflows/unified-app-shell.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps-script/unified-shell/**'
+      - 'scripts/build-unified-apps-script-shell.js'
+      - 'scripts/verify-unified-app-shell.js'
+      - 'scripts/deploy-unified-owner-portal-web.sh'
+      - '.github/workflows/unified-app-shell.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify deterministic shell assembly and routing
+        run: node scripts/verify-unified-app-shell.js
+
+      - name: Verify Quote Builder replacement routing
+        run: node scripts/verify-quote-builder-business-office-routing.js
+
+      - name: Verify Business Office runtime helpers
+        run: node scripts/verify-business-office-runtime-helpers.js
+
+      - name: Verify Owner Portal routing contract
+        run: node scripts/verify-owner-portal-routing.js
+
+      - name: Upload shell evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-app-shell-${{ github.run_id }}
+          path: |
+            artifacts/unified-shell/
+            artifacts/owner-portal-routing/
+            artifacts/quote-builder-business-office-routing/
+          if-no-files-found: warn
+          retention-days: 90
