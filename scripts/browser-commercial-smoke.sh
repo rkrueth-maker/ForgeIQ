@@ -22,6 +22,7 @@ sleep 2
 
 pass() { echo "PASS: $1" | tee -a "$REPORT"; }
 fail() { echo "FAIL: $1" | tee -a "$REPORT"; exit 1; }
+count_class() { grep -Eo "class=\"[^\"]*(^|[[:space:]])$1([[:space:]]|\")[^\"]*\"" "$2" 2>/dev/null | wc -l | tr -d ' '; }
 
 active_pages=(index.html solutions.html products.html pricing.html sample-library-now.html how-it-works.html faq.html start-request.html ai-workflow.html shop-automation.html)
 for page in "${active_pages[@]}"; do
@@ -44,11 +45,11 @@ chrome_dump sample-library-now.html "$OUT/rendered-samples.html"
 chrome_dump start-request.html "$OUT/rendered-start-request.html"
 chrome_dump shop-automation.html "$OUT/rendered-manufacturing.html"
 
-product_count="$(grep -o 'class="detail-product"' "$OUT/rendered-products.html" | wc -l | tr -d ' ')"
-bundle_count="$(grep -o 'class="bundle-card"' "$OUT/rendered-products.html" | wc -l | tr -d ' ')"
-sample_count="$(grep -o 'class="sample-card"' "$OUT/rendered-samples.html" | wc -l | tr -d ' ')"
-sample_bundle_count="$(grep -o 'class="bundle-card"' "$OUT/rendered-samples.html" | wc -l | tr -d ' ')"
-manufacturing_count="$(grep -o 'class="product-card"' "$OUT/rendered-manufacturing.html" | wc -l | tr -d ' ')"
+product_count="$(count_class detail-product "$OUT/rendered-products.html")"
+bundle_count="$(count_class bundle-card "$OUT/rendered-products.html")"
+sample_count="$(count_class sample-card "$OUT/rendered-samples.html")"
+sample_bundle_count="$(count_class bundle-card "$OUT/rendered-samples.html")"
+manufacturing_count="$(count_class product-card "$OUT/rendered-manufacturing.html")"
 
 [[ "$product_count" == "15" ]] || fail "rendered Products page expected 15 product details and found $product_count"
 pass "rendered Products page contains 15 product details"
