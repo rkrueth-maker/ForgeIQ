@@ -7,7 +7,8 @@ function h38QuoteBuilderAddonEnabled(){
 
 function h38QuoteBuilderLaunchUrl(options){
   options=options||{};
-  var url=new URL(H38_UNIFIED&&H38_UNIFIED.serviceUrl||location.href);
+  var serviceUrl=H38_UNIFIED&&H38_UNIFIED.serviceUrl||location.href;
+  var url=new URL(serviceUrl);
   url.search='';
   url.hash='';
   url.searchParams.set('app','business-office');
@@ -16,6 +17,7 @@ function h38QuoteBuilderLaunchUrl(options){
   if(options.customerId)url.searchParams.set('customerId',String(options.customerId));
   if(options.quoteId)url.searchParams.set('quoteId',String(options.quoteId));
   url.searchParams.set('from','business-office');
+  url.searchParams.set('returnUrl',serviceUrl);
   return url.toString();
 }
 
