@@ -115,12 +115,18 @@ check('raw payment-card collection and browser service role are absent',
   !/service(?:_|-)?role(?:Key)?\s*[:=]\s*['"][^'"]+/i.test(client+config+html)
 );
 
+const failureSummary=failures.length?failures.map(item=>item.name+(item.detail?`: ${item.detail}`:'')).join(' | '):'none';
+if(process.env.GITHUB_OUTPUT){
+  fs.appendFileSync(process.env.GITHUB_OUTPUT,`failure_summary<<H38EOF\n${failureSummary}\nH38EOF\n`);
+}
+
 const result={
   status:failures.length?'HOLD':'PASS',
   generatedAt:new Date().toISOString(),
   sourceCommit:process.env.GITHUB_SHA||'',
   passed:passes.length,
   failed:failures.length,
+  failureSummary,
   passes,
   failures,
   controls:{rowLevelSecurity:true,privateStorage:true,signedDownloads:true,versionCheckedQuoteApproval:true,projectBoundMessages:true,automaticCustomerMessaging:false,rawCardData:false},
