@@ -22,7 +22,18 @@ sleep 2
 
 pass() { echo "PASS: $1" | tee -a "$REPORT"; }
 fail() { echo "FAIL: $1" | tee -a "$REPORT"; exit 1; }
-count_class() { grep -Eo "class=\"[^\"]*(^|[[:space:]])$1([[:space:]]|\")[^\"]*\"" "$2" 2>/dev/null | wc -l | tr -d ' '; }
+count_class() {
+  python3 - "$1" "$2" <<'PY'
+import re, sys
+name, file = sys.argv[1], sys.argv[2]
+text = open(file, encoding='utf-8').read()
+count = 0
+for value in re.findall(r'class="([^"]*)"', text):
+    if name in value.split():
+        count += 1
+print(count)
+PY
+}
 
 active_pages=(index.html solutions.html products.html pricing.html sample-library-now.html how-it-works.html faq.html start-request.html ai-workflow.html shop-automation.html)
 for page in "${active_pages[@]}"; do
