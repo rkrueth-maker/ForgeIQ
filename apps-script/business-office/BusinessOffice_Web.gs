@@ -1,6 +1,12 @@
-/** Business Office — private role-aware web application API. Quote Builder deployment refresh verified: 2026-07-17. */
+/** Business Office — private role-aware web application API. */
 
-function doGet() { return boSafeExecute_('Business Office web app',function(){boGetCurrentUser_();return boRenderWebApp_();},'System',boGetBusinessId_()); }
+function doGet(event) {
+  return boSafeExecute_('Business Office web app', function () {
+    if (boIsQuoteBuilderRequest_(event)) return boRenderQuoteBuilderApp_();
+    boGetCurrentUser_();
+    return boRenderWebApp_();
+  }, 'System', boGetBusinessId_());
+}
 
 function boRenderWebApp_(){
   const title=boBusinessOfficeTitle_(),branding=boBranding_();
@@ -36,6 +42,11 @@ function boApi(request){
     createQuote:function(){return boCreateQuote(args.payload||{});},
     reviseQuote:function(){return boReviseQuote(args.quoteId,args.changes||{});},
     duplicateQuote:function(){return boDuplicateQuote_(args.quoteId);},
+    quoteBuilderDirectBootstrap:function(){return boQuoteBuilderDirectBootstrap_();},
+    quoteBuilderCustomers:function(){return boQuoteBuilderCustomers_();},
+    quoteBuilderDocuments:function(){return boQuoteBuilderDocuments_();},
+    quoteBuilderQuoteDetails:function(){return boQuoteBuilderQuoteDetails_(args.quoteId);},
+    quoteBuilderPerformance:function(){return boQuoteBuilderPerformance_();},
     quoteBuilderDashboard:function(){return boQuoteBuilderDashboard_();},
     quoteBuilderPriceBook:function(){return boQuoteBuilderPriceBook_(args.options||{});},
     quoteBuilderTemplates:function(){return boQuoteBuilderTemplates_();},
