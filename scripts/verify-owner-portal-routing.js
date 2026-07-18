@@ -19,6 +19,7 @@ const portalRawIncludes = read('apps-script/core-engine/owner-portal-next/Portal
 const unifiedServer = read('apps-script/core-engine/owner-portal-next/Portal_Unified.js');
 const unifiedShell = read('apps-script/core-engine/owner-portal-next/Portal_UX_Client_Shell.html');
 const nativeBusinessServer = read('apps-script/core-engine/owner-portal-next/Portal_Business.js');
+const portalAuthBridge = read('apps-script/core-engine/owner-portal-next/Portal_00_BusinessAuth.js');
 const nativeBusinessClient = read('apps-script/core-engine/owner-portal-next/Portal_Business_Client.html');
 const businessUi = read('apps-script/business-office/BusinessOffice_Index.html');
 const businessCore = read('apps-script/business-office/BusinessOffice_Core.gs');
@@ -72,16 +73,20 @@ assert('native Business Office client supports direct back-and-forth module swit
 assert('native Business Office client renders explicit empty and owner-safe failure states', /No .* yet\./.test(nativeBusinessClient) && /ownerSafeFailure/.test(nativeBusinessClient));
 
 assert('Business Office authentication defines the unified user guard', /function boGetCurrentUser_\(\)/.test(businessAuth) && /function boGetActiveEmail_\(\)/.test(businessAuth));
+assert('Portal auth bridge publishes guarded fallback functions', /global\.boGetCurrentUser_ = function/.test(portalAuthBridge) && /global\.boGetRole_ = function/.test(portalAuthBridge));
+assert('native adapter resolves canonical or global auth functions explicitly', /function h38PortalResolveAuthFunction_/.test(nativeBusinessServer) && /typeof globalThis !== 'undefined'/.test(nativeBusinessServer) && /function h38PortalGetCurrentUser_/.test(nativeBusinessServer));
+assert('native adapter does not depend on a bare current-user call', !/var user = boGetCurrentUser_\(\)/.test(nativeBusinessServer) && /var user = h38PortalGetCurrentUser_\(\)/.test(nativeBusinessServer));
 assert('Business Office package modules are enforced server-side', /boGuardApiRequest_\(action,args\)/.test(businessWeb) && /MODULE NOT INCLUDED/.test(businessGate));
 assert('native adapter enforces package modules before list save workspace and upload', /boAssertModuleEnabled_\(moduleKey\)/.test(nativeBusinessServer) && /boAssertModuleEnabled_\('documents'\)/.test(nativeBusinessServer));
 assert('Business Office compatibility route remains available without controlling unified navigation', /BusinessOffice_Unified_Client/.test(businessWeb) && /h38-embedded-business-office/.test(businessUnified));
 assert('Documents and OCR keep upload inside the unified app', /Upload PDF \/ Take Picture/.test(nativeBusinessClient) && /capture="environment"/.test(nativeBusinessClient));
 assert('complete package explicitly enables command and Business Office modules', /package:Object\.freeze\(\{id:'complete-business-system'/.test(pack) && /commandCenter:true/.test(pack) && /documents:true/.test(pack));
 assert('production deployment replaces inherited clasp ignore rules', /cat > "\$PROJECT\/\.claspignore"/.test(deploySource) && /\*\*\/\*\.md/.test(deploySource));
-assert('production deployment requires Business Office authentication source before push', /BusinessOffice_Auth\.gs/.test(deploySource) && /function boGetCurrentUser_\(\)/.test(deploySource));
-assert('production deployment verifies tracked Business Office source', /clasp status/.test(deploySource) && /clasp-status-before-push\.txt/.test(deploySource));
-assert('production deployment pulls and verifies remote Apps Script source before deploy', /REMOTE_VERIFY/.test(deploySource) && /remote-project-pull\.txt/.test(deploySource) && /remote-source-verification\.txt/.test(deploySource));
-assert('production deployment blocks the observed missing-auth runtime error', /ReferenceError: boGetCurrentUser_ is not defined/.test(deploySource));
+assert('production deployment requires authentication and adapter source before push', /BusinessOffice_Auth\.gs/.test(deploySource) && /Portal_Business\.js/.test(deploySource) && /Portal_00_BusinessAuth\.js/.test(deploySource));
+assert('production deployment uses clasp 3 file status and force push', /clasp show-file-status/.test(deploySource) && /clasp push --force/.test(deploySource) && /clasp-status-before-push\.txt/.test(deploySource));
+assert('production deployment pulls and verifies remote Apps Script source before deployment update', /REMOTE_VERIFY/.test(deploySource) && /remote-project-pull\.txt/.test(deploySource) && /remote-source-verification\.txt/.test(deploySource) && /REMOTE_BUSINESS_ADAPTER/.test(deploySource));
+assert('production deployment verifies explicit auth resolver on Google', /function h38PortalResolveAuthFunction_/.test(deploySource) && /h38PortalGetCurrentUser_\(\);/.test(deploySource));
+assert('production deployment blocks missing canonical and resolver auth runtime errors', /ReferenceError: boGetCurrentUser_ is not defined/.test(deploySource) && /Authentication service is unavailable: boGetCurrentUser_/.test(deploySource));
 
 assert('legacy Owner Login links are routed to portal.html', /link\.href='portal\.html'/.test(brand));
 assert('legacy Owner Login rewrite removes new-window behavior', /link\.removeAttribute\('target'\)/.test(brand));
@@ -115,7 +120,7 @@ assert('public static pages contain no direct spreadsheet links', sheetLinks.len
 const result = {
   status: failures.length ? 'HOLD' : 'PASS',
   sourceCommit: process.env.GITHUB_SHA || '',
-  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true, deploymentRemoteSourceVerification: true },
+  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true, deploymentRemoteSourceVerification: true, portalAuthResolver: true },
   passes,
   failures
 };
