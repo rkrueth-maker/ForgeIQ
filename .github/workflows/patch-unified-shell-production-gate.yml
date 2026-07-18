@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - rebuild/unified-apps-script-shell
-    paths:
-      - '.github/workflows/patch-unified-shell-production-gate.yml'
 
 permissions:
   contents: write
