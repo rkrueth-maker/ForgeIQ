@@ -86,7 +86,7 @@ check('Owner one-shot styles included',portalIndex.includes('Portal_OneShot_UX_S
 check('Owner one-shot client included',portalIndex.includes('Portal_OneShot_Client')&&raw.includes('Portal_OneShot_Client'));
 const owner=read('apps-script/core-engine/owner-portal-next/Portal_OneShot_Client.html');
 ['Needs decision','Due today','Overdue','Money requiring attention','Next up','Recent activity'].forEach(marker=>check(`Owner Today marker ${marker}`,owner.includes(marker)));
-check("Owner Today marker Today's calendar",owner.replace(/\'/g,"'").includes("Today's calendar"));
+check("Owner Today marker Today's calendar",owner.replace(/\\'/g,"'").includes("Today's calendar"));
 check('Owner uses four primary metrics',(owner.match(/h38RoleMetric\(/g)||[]).length===4);
 check('Owner holds and errors are conditional alert',owner.includes('h38OwnerAttentionStrip')&&owner.includes("if(!holdCount)return ''"));
 check('Owner Next Up distinguishes waiting state',['Assigned to me','Waiting on customer','Waiting on another user','Blocked'].every(marker=>owner.includes(marker)));
