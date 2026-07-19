@@ -22,10 +22,13 @@ const productionClient=read(required[2]);
 const reusableClient=read(required[3]);
 const productionWeb=read(required[4]);
 const reusableWeb=read(required[5]);
-const appKeys=[...productionRegistry.matchAll(/key:'([^']+)'/g)].map(match=>match[1]);
+const keys=text=>[...text.matchAll(/key:'([^']+)'/g)].map(match=>match[1]);
+const appKeys=keys(productionRegistry), reusableKeys=keys(reusableRegistry);
 const expected=['quote-builder','customer-manager','work-manager','document-center','invoice-payment-tracker','expense-receipt-manager','field-proof','customer-portal','request-intake-manager','price-book-template-manager','approval-center','vendor-purchase-manager','maintenance-manager','shop-flow-manager','business-system'];
 check('all fifteen focused products are registered',expected.every(key=>appKeys.includes(key))&&appKeys.length===15,JSON.stringify(appKeys));
-check('production and reusable registries are identical',productionRegistry===reusableRegistry);
+check('branded and reusable registries expose identical app keys',JSON.stringify(appKeys)===JSON.stringify(reusableKeys));
+check('reusable registry remains white-label',!/Highway\s*38|H38_|rkrueth|highway-38-solutions/i.test(reusableRegistry));
+check('production registry carries Highway 38 product branding',/Highway 38 Quote Builder/.test(productionRegistry)&&/Highway 38 Business System/.test(productionRegistry));
 check('production and reusable clients expose the same focused launcher contract',['Your Business Apps','openBusinessApp','bo-app-workspace','Standalone view'].every(marker=>productionClient.includes(marker)&&reusableClient.includes(marker)));
 check('one shared platform statement is visible',productionClient.includes('One Core, one customer database, one document system, and one approval system'));
 check('standalone installations use configuration instead of copied data',productionRegistry.includes('BO_ENABLED_APPS')&&productionClient.includes("standalone')==='1"));
@@ -37,4 +40,4 @@ check('app catalog is read-only metadata',productionWeb.includes('appCatalog:fun
 check('controlled automation language remains visible',productionClient.includes('Controlled automation remains active.')&&productionRegistry.includes('externalActionsAutomatic: false'));
 check('shared modules include core customer document and approval records',['customers','documents','approvals'].every(marker=>productionRegistry.includes(`'${marker}'`)));
 if(failures.length){console.error(JSON.stringify({status:'FAIL',failures},null,2));process.exit(1);}
-console.log(JSON.stringify({status:'PASS',apps:appKeys.length,architecture:'one-core-many-focused-products',standaloneConfiguration:'BO_ENABLED_APPS',externalActionsAutomatic:false},null,2));
+console.log(JSON.stringify({status:'PASS',apps:appKeys.length,architecture:'one-core-many-focused-products',standaloneConfiguration:'BO_ENABLED_APPS',whiteLabelReusableSource:true,externalActionsAutomatic:false},null,2));
