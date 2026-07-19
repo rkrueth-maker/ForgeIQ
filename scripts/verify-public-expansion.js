@@ -22,12 +22,13 @@ need(home,'<strong>Clear plans.</strong>','home promise completion');
 need(home,'href="start-request.html">Start a Request','home primary CTA');
 need(home,'href="sample-library-now.html">See Examples','home secondary CTA');
 need(home,'Submitting a request creates no charge','home no-charge reassurance');
-need(home,'assets/approved-homepage-mockup.png','exact approved homepage visual');
+need(home,'assets/approved-website-images/10-project-planning-documents.jpg','clean approved homepage visual');
 need(home,'class="hero-copy"','responsive text column');
 need(home,'class="hero-media"','separate responsive image column');
 need(home,'Practical experience','verified experience section');
 if(home.includes('25,000+'))fail('unsupported CNC claim remains');
 if(/class="hotspot|Swipe horizontally|approved-home__stage/i.test(home))fail('retired raster hotspot shell remains');
+if(home.includes('assets/approved-homepage-mockup.png'))fail('retired homepage mockup remains embedded');
 if((home.match(/class="outcome-card"/g)||[]).length!==4)fail('homepage must contain four approved outcome paths');
 
 const systems=read('business-systems-data.js');
@@ -62,7 +63,7 @@ need(publicJs,'exp-best-for','Best for rendering');
 need(publicJs,'business-system-interest','business system intake');
 need(publicJs,'Filter samples by result','sample result filtering');
 
-const approvedImages=['assets/approved-website-images/homepage-hero-garage-workspace.webp','assets/approved-website-images/project-planning-desk.webp','assets/approved-website-images/business-workflow-office.webp','assets/approved-website-images/manufacturing-automation.webp','assets/approved-website-images/05-organized-tool-wall-workbench.jpg','assets/approved-website-images/06-garage-layout-zones.jpg','assets/approved-website-images/07-storage-organization-system.jpg','assets/approved-website-images/08-request-process-checklist.jpg','assets/approved-website-images/09-clean-working-shop-floor.jpg','assets/approved-website-images/10-project-planning-documents.jpg','assets/approved-website-images/11-exterior-shop-building.jpg','assets/approved-website-images/12-cnc-machining-closeup.jpg','assets/approved-website-images/13-digital-organization-file-system.jpg','assets/approved-homepage-mockup.png'];
+const approvedImages=['assets/approved-website-images/homepage-hero-garage-workspace.webp','assets/approved-website-images/project-planning-desk.webp','assets/approved-website-images/business-workflow-office.webp','assets/approved-website-images/manufacturing-automation.webp','assets/approved-website-images/05-organized-tool-wall-workbench.jpg','assets/approved-website-images/06-garage-layout-zones.jpg','assets/approved-website-images/07-storage-organization-system.jpg','assets/approved-website-images/08-request-process-checklist.jpg','assets/approved-website-images/09-clean-working-shop-floor.jpg','assets/approved-website-images/10-project-planning-documents.jpg','assets/approved-website-images/11-exterior-shop-building.jpg','assets/approved-website-images/12-cnc-machining-closeup.jpg','assets/approved-website-images/13-digital-organization-file-system.jpg'];
 approvedImages.forEach(p=>{if(!exists(p))fail(`missing approved image ${p}`)});
 
 const guides=read('service-guides.html');
