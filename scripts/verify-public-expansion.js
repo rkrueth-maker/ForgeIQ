@@ -2,8 +2,8 @@
 const fs=require('fs');
 const path=require('path');
 const root=path.resolve(__dirname,'..');
-const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const exists=p=>fs.existsSync(path.join(root,p));
+const read=p=>exists(p)?fs.readFileSync(path.join(root,p),'utf8'):'';
 const failures=[];
 const check=(name,condition,detail='')=>{if(!condition)failures.push({name,detail});};
 const requireFile=p=>check(`required file ${p}`,exists(p),p);
