@@ -8,8 +8,9 @@ function doGet() {
 }
 
 function boRenderWebApp_() {
-  return HtmlService.createTemplateFromFile('BusinessOffice_Index')
-    .evaluate()
+  let html = HtmlService.createTemplateFromFile('BusinessOffice_Index').evaluate().getContent();
+  html = html.replace('</body>', boInclude_('BusinessOffice_Modular_Suite') + '</body>');
+  return HtmlService.createHtmlOutput(html)
     .setTitle(boGetBranding_().businessOfficeName)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -31,6 +32,7 @@ function boBootstrap_() {
     dashboard: boGetOwnerDashboard_(),
     modules: boGetModuleNavigation_(definitions),
     definitions: definitions,
+    apps: boGetBusinessAppCatalog_(),
     savedViews: {
       quotes: boGetSavedViews('Quotes'),
       invoices: boGetSavedViews('Invoices')
@@ -52,6 +54,8 @@ function boApi(request) {
   const args = payload.args || {};
   const handlers = {
     bootstrap: function () { return boBootstrap_(); },
+    appCatalog: function () { return boGetBusinessAppCatalog_(); },
+    app: function () { return boGetBusinessApp_(args.appKey); },
     list: function () { return boListRecords(args.module, args.options || {}); },
     dashboard: function () { return boGetOwnerDashboard_(); },
     savedViews: function () { return boGetSavedViews(args.module); },

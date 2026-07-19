@@ -28,6 +28,8 @@ const sources = [
   ['packages/accounting/apps-script/BusinessOffice_Accounting.gs','BusinessOffice_Accounting.gs'],
   ['packages/payroll-preparation/apps-script/BusinessOffice_PayrollTax.gs','BusinessOffice_PayrollTax.gs'],
   ['packages/shared-ui/BusinessOffice_Index.html','BusinessOffice_Index.html'],
+  ['packages/shared-ui/BusinessOffice_Modular_Suite.html','BusinessOffice_Modular_Suite.html'],
+  ['apps/business-office/BusinessOffice_ModuleRegistry.gs','BusinessOffice_ModuleRegistry.gs'],
   ['apps/business-office/BusinessOffice_Web.gs','BusinessOffice_Web.gs'],
   ['apps/business-office/BusinessOffice_Installer.gs','BusinessOffice_Installer.gs'],
   ['apps/business-office/BusinessOffice_Test.gs','BusinessOffice_Test.gs'],
