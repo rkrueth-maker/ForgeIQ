@@ -5,23 +5,25 @@ document.addEventListener('keydown',function(event){
   }
 });
 (function(){
-  var started=false;
+  var started=false,finished=false;
   function launch(){
-    if(started||typeof refresh!=='function')return;
+    if(started||finished||typeof refresh!=='function')return;
     started=true;
-    Promise.resolve(refresh()).finally(function(){started=false;});
+    Promise.resolve(refresh()).then(function(){finished=true;}).finally(function(){started=false;});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(launch,100);},{once:true});
   else setTimeout(launch,100);
   setTimeout(function(){
     var noticeNode=document.getElementById('notice');
-    if(noticeNode&&/Loading secure user session/i.test(noticeNode.textContent||''))launch();
-  },5000);
+    if(!finished&&noticeNode&&/Loading secure user session/i.test(noticeNode.textContent||'')){
+      noticeNode.innerHTML='<b>Starting the secure Business Office session…</b> The first load after a deployment can take up to two minutes.';
+    }
+  },12000);
   setTimeout(function(){
     var noticeNode=document.getElementById('notice');
-    if(noticeNode&&/Loading secure user session/i.test(noticeNode.textContent||'')){
+    if(!finished&&noticeNode&&/Starting the secure Business Office session|Loading secure user session/i.test(noticeNode.textContent||'')){
       noticeNode.className='notice bad';
-      noticeNode.innerHTML='<b>The secure session did not finish loading.</b> Check the connection, then <button class="btn" type="button" onclick="location.reload()">reload the application</button>.';
+      noticeNode.innerHTML='<b>The secure session did not finish loading.</b> <button class="btn" type="button" onclick="location.reload()">Reload the application</button>.';
     }
-  },22000);
+  },130000);
 })();
