@@ -13,16 +13,15 @@ function doPost(event) {
     var idempotency = h38PublicIntakeText_(payload.idempotencyKey, 100);
     if (!idempotency) throw new Error('VALIDATION HOLD — duplicate-protection key is required.');
     var requestSheet = typeof H38_BO_MODULES !== 'undefined' && H38_BO_MODULES.requests ? H38_BO_MODULES.requests : 'BO Requests';
+    var duplicateProperty = 'H38_PUBLIC_INTAKE_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, idempotency)).slice(0,40);
+    var properties = PropertiesService.getScriptProperties();
     var lock = LockService.getScriptLock();
     lock.waitLock(15000);
     try {
-      var duplicate = boReadTable_(requestSheet, {includeVoided:true}).find(function(row){return row['Duplicate Key'] === idempotency;});
-      if (duplicate) {
-        requestId = duplicate['Request ID'];
-        return h38PublicIntakeResponse_({ok:true,requestId:requestId,status:'DUPLICATE_ACCEPTED',message:'Request already received. No duplicate was created.'}, event);
-      }
-      var record = boAppendRecord_(requestSheet, {
-        'Duplicate Key':idempotency,
+      var existingId = String(properties.getProperty(duplicateProperty) || '').trim();
+      if (existingId) return h38PublicIntakeResponse_({ok:true,requestId:existingId,status:'DUPLICATE_ACCEPTED',message:'Request already received. No duplicate was created.'}, event);
+      var headers = boHeaders_(requestSheet);
+      var values = {
         'Received Time':boNow_(),
         'Source':'website-direct-intake',
         'Status':'New',
@@ -40,8 +39,12 @@ function doPost(event) {
         'Budget':h38PublicIntakeText_(payload.budget,100),
         'Timing':h38PublicIntakeText_(payload.timing,100),
         'Next Action':'Owner review and qualification'
-      }, 'Public website intake');
+      };
+      if (headers.indexOf('Idempotency Key') >= 0) values['Idempotency Key'] = idempotency;
+      if (headers.indexOf('Duplicate Key') >= 0) values['Duplicate Key'] = idempotency;
+      var record = boAppendRecord_(requestSheet, values, 'Public website intake');
       requestId = record['Request ID'];
+      properties.setProperty(duplicateProperty, requestId);
       try { boProof_('PUBLIC SUBMISSION', requestSheet, requestId, 'PASS', 'Request created for owner review. External actions remain locked.', email); } catch (proofError) { console.error(proofError); }
     } finally { lock.releaseLock(); }
     return h38PublicIntakeResponse_({ok:true,requestId:requestId,status:'OWNER_REVIEW_REQUIRED',message:'Request received for Owner review. No work or charge has started.'}, event);
