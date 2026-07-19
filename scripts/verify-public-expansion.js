@@ -12,7 +12,7 @@ const requireFile=p=>check(`required file ${p}`,exists(p),p);
   'index.html','products.html','business-systems.html','sample-library-now.html','free-tools.html','start-request.html',
   'solutions.html','service-guides.html','case-study-template.html','business-systems-data.js','public-expansion.css',
   'public-expansion.js','tool-downloads.js','public-site-config.js','visual-cleanup.css','visual-cleanup-secondary.css',
-  'request-flow.js','apps-script/unified-shell/Public_Intake.gs','docs/public-website/CUSTOM_DOMAIN_READINESS.md'
+  'request-flow.js','apps-script/unified-shell/Unified_PublicIntake.gs','docs/public-website/CUSTOM_DOMAIN_READINESS.md'
 ].forEach(requireFile);
 
 const catalog=read('catalog-data.js');
@@ -33,7 +33,7 @@ check('unsupported quantitative CNC claim absent',!home.includes('25,000+'));
 
 const request=read('start-request.html');
 const requestFlow=read('request-flow.js');
-const intake=read('apps-script/unified-shell/Public_Intake.gs');
+const intake=read('apps-script/unified-shell/Unified_PublicIntake.gs');
 check('request flow preserves three steps',[1,2,3].every(step=>request.includes(`data-request-step="${step}"`)));
 check('request form is connected to existing unified deployment',request.includes('data-intake-endpoint="https://script.google.com/macros/s/'));
 check('request performs secure direct submission',requestFlow.includes('function submitDirect')&&requestFlow.includes("message.type!=='h38-public-intake'")&&requestFlow.includes('post.submit()'));
@@ -53,7 +53,7 @@ check('product families remain present',['data-products="plans"','data-products=
 const samples=read('sample-library-now.html');
 check('sample library preserves all product samples',samples.includes('data-samples="all"'));
 check('sample library preserves system demonstrations',samples.includes('data-system-scenarios'));
-check('sample library preserves proof classification',/hypothetical demonstration/i.test(samples));
+check('sample library preserves proof classification',/Hypothetical examples|hypothetical demonstration/i.test(samples));
 
 const tools=read('tool-downloads.js');
 const toolNames=['Problem Definition Worksheet','Project Planning Checklist','Space Measurement Checklist','Garage and Shop Photo Checklist','Owner Decision Checklist','Project Scope Template','Shop Flow Observation Sheet','Tool and Material Zone Worksheet','Lead-to-Job Status Tracker','Follow-Up Checklist','Workflow Mapping Worksheet','Repeated Task Audit','File Cleanup Planning Checklist','Automation Opportunity Checklist','Machine Idle-Reason Tracker','Basic ROI Assumption Worksheet','Vendor RFQ Preparation Checklist','Fixture Concept Question Sheet','Vision Inspection Sample Checklist','Robot Tending Information Checklist','Automation Vendor Comparison Sheet','Small-Business Website Planning Checklist','Website Content Collection Worksheet','Business Office Readiness Checklist','Customer and Job Workflow Checklist','Command Center Requirements Worksheet','User Role Planning Sheet','Business System Implementation Checklist','Business Data Migration Checklist','Backup and Recovery Readiness Checklist'];
