@@ -30,6 +30,7 @@ function h38PortalRawInclude_(fileName) {
     'Portal_Application_Client_Business',
     'Portal_Application_Client_SafeActions',
     'Portal_Application_Client_Core',
+    'Portal_ProductApps_Client',
     'Portal_QuoteBuilder_Addon_Client',
     'Portal_QuoteBuilder_QuickCapture_Client',
     'Portal_UX_Client_Boot'
