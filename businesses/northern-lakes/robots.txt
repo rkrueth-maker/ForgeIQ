@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /owner-login.html
 Disallow: /customer-portal.html
 Disallow: /owner-portal.html
 Disallow: /business-office.html
