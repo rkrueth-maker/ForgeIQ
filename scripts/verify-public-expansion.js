@@ -53,7 +53,7 @@ check('product families remain present',['data-products="plans"','data-products=
 const samples=read('sample-library-now.html');
 check('sample library preserves all product samples',samples.includes('data-samples="all"'));
 check('sample library preserves system demonstrations',samples.includes('data-system-scenarios'));
-check('sample library preserves proof classification',/Hypothetical examples|hypothetical demonstration/i.test(samples));
+check('sample library preserves proof classification',samples.includes('data-image-classification="hypothetical-demonstration"'));
 
 const tools=read('tool-downloads.js');
 const toolNames=['Problem Definition Worksheet','Project Planning Checklist','Space Measurement Checklist','Garage and Shop Photo Checklist','Owner Decision Checklist','Project Scope Template','Shop Flow Observation Sheet','Tool and Material Zone Worksheet','Lead-to-Job Status Tracker','Follow-Up Checklist','Workflow Mapping Worksheet','Repeated Task Audit','File Cleanup Planning Checklist','Automation Opportunity Checklist','Machine Idle-Reason Tracker','Basic ROI Assumption Worksheet','Vendor RFQ Preparation Checklist','Fixture Concept Question Sheet','Vision Inspection Sample Checklist','Robot Tending Information Checklist','Automation Vendor Comparison Sheet','Small-Business Website Planning Checklist','Website Content Collection Worksheet','Business Office Readiness Checklist','Customer and Job Workflow Checklist','Command Center Requirements Worksheet','User Role Planning Sheet','Business System Implementation Checklist','Business Data Migration Checklist','Backup and Recovery Readiness Checklist'];
