@@ -26,7 +26,7 @@ const appKeys=[...productionRegistry.matchAll(/key:'([^']+)'/g)].map(match=>matc
 const expected=['quote-builder','customer-manager','work-manager','document-center','invoice-payment-tracker','expense-receipt-manager','field-proof','customer-portal','request-intake-manager','price-book-template-manager','approval-center','vendor-purchase-manager','maintenance-manager','shop-flow-manager','business-system'];
 check('all fifteen focused products are registered',expected.every(key=>appKeys.includes(key))&&appKeys.length===15,JSON.stringify(appKeys));
 check('production and reusable registries are identical',productionRegistry===reusableRegistry);
-check('production and reusable clients expose the same product vocabulary',expected.every(key=>productionClient.includes(key)&&reusableClient.includes(key)));
+check('production and reusable clients expose the same focused launcher contract',['Your Business Apps','openBusinessApp','bo-app-workspace','Standalone view'].every(marker=>productionClient.includes(marker)&&reusableClient.includes(marker)));
 check('one shared platform statement is visible',productionClient.includes('One Core, one customer database, one document system, and one approval system'));
 check('standalone installations use configuration instead of copied data',productionRegistry.includes('BO_ENABLED_APPS')&&productionClient.includes("standalone')==='1"));
 check('production bootstrap publishes installed apps',productionWeb.includes('apps:boGetBusinessAppCatalog_()'));
