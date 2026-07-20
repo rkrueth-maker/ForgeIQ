@@ -38,6 +38,7 @@ CSS_URL_RE = re.compile(r'url\(["\']?([^"\')]+)["\']?\)', re.I)
 
 IGNORED_PREFIXES = ("http://", "https://", "data:", "mailto:", "tel:", "#")
 LOGO_PATH = "assets/highway38-logo.png"
+MIN_IMAGE_BYTES = 128
 
 
 def raw_path(raw: str) -> str:
@@ -73,9 +74,28 @@ def local_asset_exists(raw: str, base_file: Path) -> bool:
     return candidate is not None and candidate.exists()
 
 
+def image_file_is_valid(path: Path) -> bool:
+    if not path.exists() or path.stat().st_size < MIN_IMAGE_BYTES:
+        return False
+    head = path.read_bytes()[:16]
+    suffix = path.suffix.lower()
+    if suffix == ".png":
+        return head.startswith(b"\x89PNG\r\n\x1a\n")
+    if suffix in {".jpg", ".jpeg"}:
+        return head.startswith(b"\xff\xd8\xff")
+    if suffix == ".webp":
+        return head.startswith(b"RIFF") and head[8:12] == b"WEBP"
+    if suffix == ".gif":
+        return head.startswith((b"GIF87a", b"GIF89a"))
+    if suffix == ".svg":
+        return b"<svg" in path.read_bytes()[:512].lower()
+    return True
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
+    checked_assets: set[Path] = set()
 
     for page_name in PUBLIC_PAGES:
         page = ROOT / page_name
@@ -90,8 +110,13 @@ def main() -> int:
         for match in matches:
             src = match.group(1)
             tag = match.group(0)
+            candidate = resolve_local_asset(src, page)
             if not local_asset_exists(src, page):
                 errors.append(f"BROKEN IMAGE: {page_name} -> {src}")
+            elif candidate is not None and candidate not in checked_assets:
+                checked_assets.add(candidate)
+                if not image_file_is_valid(candidate):
+                    errors.append(f"INVALID IMAGE FILE: {candidate.relative_to(ROOT)}")
             alt_match = ALT_RE.search(tag)
             if alt_match is None or not alt_match.group(1).strip():
                 errors.append(f"MISSING ALT: {page_name} -> {src}")
@@ -110,11 +135,17 @@ def main() -> int:
         for raw in CSS_URL_RE.findall(css_text):
             if raw.startswith(IGNORED_PREFIXES):
                 continue
+            candidate = resolve_local_asset(raw, css)
             if not local_asset_exists(raw, css):
                 errors.append(f"BROKEN CSS IMAGE: assets/css/h38-site-v2.css -> {raw}")
+            elif candidate is not None and candidate not in checked_assets:
+                checked_assets.add(candidate)
+                if not image_file_is_valid(candidate):
+                    errors.append(f"INVALID CSS IMAGE FILE: {candidate.relative_to(ROOT)}")
 
     print("Highway 38 public image verification")
     print(f"Marketing pages checked: {len(PUBLIC_PAGES)}")
+    print(f"Image files checked: {len(checked_assets)}")
     print(f"Errors: {len(errors)}")
     print(f"Warnings: {len(warnings)}")
 
