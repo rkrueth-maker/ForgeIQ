@@ -14,6 +14,7 @@
   "approved_public_image_directory": "assets/approved-website-images/",
   "shared_public_css": "assets/css/h38-site-v2.css",
   "shared_public_js": "assets/js/h38-site-v2.js",
+  "business_office_config": "business-packs/highway38/business-office.config.json",
   "production_branch": "main",
   "production_url": "https://rkrueth-maker.github.io/highway-38-solutions/",
   "forbidden_logo_substitutes": [
