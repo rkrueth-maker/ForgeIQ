@@ -94,8 +94,12 @@ jobs:
             boAssert_(email,'The deploying Google account could not be identified.');
             return email;
           }
-          function boNorthernLakesValidateOwner_(){
-            var user=boGetCurrentUser_(),role=boGetRole_(user['Role ID']);
+          function boNorthernLakesValidateOwner_(ownerEmail){
+            var email=boNormalizeText_(ownerEmail).toLowerCase();
+            var user=boReadTable_(H38_BO_SHEETS.USERS,{includeVoided:true}).find(function(row){return boNormalizeText_(row.Email).toLowerCase()===email&&row.Status==='Active';});
+            boAssert_(user,'Northern Lakes owner user validation failed.');
+            boAssert_(boNormalizeText_(user['Business ID'])==='NLPS','Northern Lakes owner is not bound to NLPS.');
+            var role=boGetRole_(user['Role ID']);
             boAssert_(role&&role['Role Name']==='Owner','Northern Lakes owner role validation failed.');
             return{email:user.Email,role:role['Role Name']};
           }
@@ -103,13 +107,13 @@ jobs:
             var properties=PropertiesService.getScriptProperties();
             var spreadsheetKey=boPackPropertyKey_('spreadsheetId');
             var existing=properties.getProperty(spreadsheetKey)||'';
+            var ownerEmail=boNorthernLakesOwnerContext_();
             if(existing){
               var existingValidation=boValidateInstallation();
               boAssert_(existingValidation.valid,'Existing Northern Lakes installation is not valid: '+JSON.stringify(existingValidation));
-              var existingOwner=boNorthernLakesValidateOwner_();
+              var existingOwner=boNorthernLakesValidateOwner_(ownerEmail);
               return{status:'PASS',reused:true,businessId:existingValidation.businessId,spreadsheetId:existingValidation.spreadsheetId,sheetCount:SpreadsheetApp.openById(existingValidation.spreadsheetId).getSheets().length,ownerRole:existingOwner.role,validation:existingValidation};
             }
-            var ownerEmail=boNorthernLakesOwnerContext_();
             var folders=boPackValue_('storage.betaDrive',{});
             ['rootFolderId','documentFolderId','pdfFolderId','exportFolderId','backupFolderId'].forEach(function(key){boAssert_(folders[key],'Northern Lakes dedicated folder is missing: '+key);});
             var installationId='NLPS-'+Utilities.getUuid();
@@ -147,7 +151,7 @@ jobs:
             });
             var validation=boValidateInstallation();
             boAssert_(validation.valid,'Northern Lakes installation validation failed: '+JSON.stringify(validation));
-            var owner=boNorthernLakesValidateOwner_();
+            var owner=boNorthernLakesValidateOwner_(ownerEmail);
             boProof_('BOOTSTRAP INSTALL','System','NLPS','PASS',JSON.stringify({installationId:installationId,spreadsheetId:provisioned.spreadsheetId}),ownerEmail);
             return{status:'PASS',reused:false,businessId:'NLPS',spreadsheetId:provisioned.spreadsheetId,sheetCount:provisioned.sheetCount,installationId:installationId,ownerRole:owner.role,validation:validation};
           }
