@@ -94,29 +94,29 @@ These rules apply to any request that mentions deploy, deployment, GitHub Pages,
 
 ## Required Preflight
 
-Before any deploy or deploy recommendation, run the guard script when possible:
+Before any image-heavy build, rebuild, or deployment:
+
+```bash
+python3 scripts/verify-public-images.py
+```
+
+For the Sample Library, use the manifest-driven wrapper rather than hard-coded historical markers:
+
+```bash
+scripts/deploy_sample_library.sh
+```
+
+For another page, use page-appropriate markers that are present in the **current** source and intended live result:
 
 ```bash
 python3 scripts/guard_deploy.py \
-  --page sample-library-now.html \
-  --live-url "https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html" \
-  --match "Browse 15 samples" \
-  --match "Compare products & pricing" \
-  --match 'data-samples="all"'
+  --page <page.html> \
+  --live-url "https://rkrueth-maker.github.io/highway-38-solutions/<page.html>" \
+  --match "<current unique page marker>" \
+  --match "<current approved CTA or heading>"
 ```
 
-Use page-appropriate `--match` markers for other deploy targets.
-
-Optional wrapper command:
-
-```bash
-scripts/deploy_with_guard.sh \
-  --page sample-library-now.html \
-  --live-url "https://rkrueth-maker.github.io/highway-38-solutions/sample-library-now.html" \
-  --match "Browse 15 samples" \
-  --match "Compare products & pricing" \
-  --match 'data-samples="all"'
-```
+Do not copy retired catalog, sample-count, logo-cache, or navigation markers from historical documentation. Read the approved asset values from `scripts/config/approved-public-assets.json` and inspect the current target page before choosing verification markers.
 
 ## Reference Docs
 
