@@ -1,10 +1,13 @@
 {
-  "status": "hold",
+  "status": "pass",
   "businessId": "NLPS",
   "scriptId": "1_RbfPyqgg-VWNHVLWQLKh7PFBNs1XnBSYRZ969raabhen7LuWgQjAnlX",
-  "deploymentId": "",
-  "businessOfficeUrl": "",
-  "updatedAt": "2026-07-20T19:40:00Z",
+  "deploymentId": "AKfycbzQVvg-1E0ofK5QuBseKjTdJ5NhEjtArvbHxVCO_W329BbZxfSO0F6ENJd5zgvMLGaL",
+  "version": "2",
+  "businessOfficeUrl": "https://script.google.com/macros/s/AKfycbzQVvg-1E0ofK5QuBseKjTdJ5NhEjtArvbHxVCO_W329BbZxfSO0F6ENJd5zgvMLGaL/exec",
+  "updatedAt": "2026-07-20T19:44:33Z",
+  "commit": "a4ce47f00c0143b6e09ccd2c5675bc1603b29ee0",
   "isolated": true,
-  "externalActionsEnabled": false
+  "externalActionsEnabled": false,
+  "openAiKeyAvailableToWorkflow": false
 }
