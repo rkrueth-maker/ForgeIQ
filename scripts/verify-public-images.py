@@ -37,6 +37,7 @@ def load_manifest() -> dict:
         "approved_public_image_directory",
         "shared_public_css",
         "shared_public_js",
+        "business_office_config",
         "production_branch",
         "production_url",
         "forbidden_logo_substitutes",
@@ -148,6 +149,7 @@ def main() -> int:
     forbidden_substitutes = tuple(manifest.get("forbidden_logo_substitutes", []))
     shared_js_path = ROOT / manifest["shared_public_js"]
     shared_css_path = ROOT / manifest["shared_public_css"]
+    business_office_config_path = ROOT / manifest["business_office_config"]
 
     actual_logo_blob = validate_approved_logo(
         logo_file,
@@ -157,6 +159,31 @@ def main() -> int:
     )
     if bool(approved_logo["allow_image_substitute"]):
         errors.append("APPROVED LOGO POLICY ERROR: image substitution must remain disabled")
+
+    expected_absolute_logo_url = (
+        manifest["production_url"].rstrip("/") + "/" + expected_logo_reference
+    )
+    if not business_office_config_path.exists():
+        errors.append(
+            f"MISSING BUSINESS OFFICE CONFIG: {business_office_config_path.relative_to(ROOT)}"
+        )
+    else:
+        try:
+            business_office_config = json.loads(
+                business_office_config_path.read_text(encoding="utf-8")
+            )
+            branding = business_office_config.get("branding", {})
+            if branding.get("logoPath") != logo_path:
+                errors.append(
+                    f"BUSINESS OFFICE LOGO PATH MISMATCH: {branding.get('logoPath')!r}; expected {logo_path!r}"
+                )
+            if branding.get("logoUrl") != expected_absolute_logo_url:
+                errors.append(
+                    f"BUSINESS OFFICE LOGO URL MISMATCH: {branding.get('logoUrl')!r}; "
+                    f"expected {expected_absolute_logo_url!r}"
+                )
+        except (OSError, ValueError) as exc:
+            errors.append(f"INVALID BUSINESS OFFICE CONFIG: {exc}")
 
     scanned_text: dict[str, str] = {}
 
