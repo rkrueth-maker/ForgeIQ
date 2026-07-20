@@ -6,4 +6,4 @@ Use existing dedicated Northern Lakes folders
 Do not copy Highway 38 business data
 External actions remain disabled
 Authorization: fix both systems now
-Retry: one-time token-protected owner web installation with normal app restoration guaranteed
+Retry: corrected shell parser now invokes the token-protected owner installer URL
