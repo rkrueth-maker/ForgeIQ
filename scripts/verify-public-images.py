@@ -40,20 +40,37 @@ IGNORED_PREFIXES = ("http://", "https://", "data:", "mailto:", "tel:", "#")
 LOGO_PATH = "assets/highway38-logo.png"
 
 
-def clean_path(raw: str) -> str:
-    return urlsplit(raw).path.lstrip("./")
+def raw_path(raw: str) -> str:
+    return urlsplit(raw).path
+
+
+def resolve_local_asset(raw: str, base_file: Path) -> Path | None:
+    if raw.startswith(IGNORED_PREFIXES):
+        return None
+    path_text = raw_path(raw)
+    if path_text.startswith("/"):
+        candidate = (ROOT / path_text.lstrip("/")).resolve()
+    else:
+        candidate = (base_file.parent / path_text).resolve()
+    try:
+        candidate.relative_to(ROOT.resolve())
+    except ValueError:
+        return None
+    return candidate
+
+
+def repo_path(raw: str, base_file: Path) -> str | None:
+    candidate = resolve_local_asset(raw, base_file)
+    if candidate is None:
+        return None
+    return candidate.relative_to(ROOT.resolve()).as_posix()
 
 
 def local_asset_exists(raw: str, base_file: Path) -> bool:
     if raw.startswith(IGNORED_PREFIXES):
         return True
-    clean = clean_path(raw)
-    candidate = (base_file.parent / clean).resolve()
-    try:
-        candidate.relative_to(ROOT.resolve())
-    except ValueError:
-        return False
-    return candidate.exists()
+    candidate = resolve_local_asset(raw, base_file)
+    return candidate is not None and candidate.exists()
 
 
 def main() -> int:
@@ -78,7 +95,7 @@ def main() -> int:
             alt_match = ALT_RE.search(tag)
             if alt_match is None or not alt_match.group(1).strip():
                 errors.append(f"MISSING ALT: {page_name} -> {src}")
-            if clean_path(src) != LOGO_PATH:
+            if repo_path(src, page) != LOGO_PATH:
                 content_images += 1
 
         if content_images < 1:
