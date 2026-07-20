@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..');
 const failures=[]; const passes=[];
 function check(name,condition,detail=''){(condition?passes:failures).push({name,detail});console.log(`${condition?'PASS':'FAIL'}: ${name}${detail?' — '+detail:''}`);}
 function read(p){return fs.readFileSync(path.join(root,p),'utf8');}
-const neutralRoots=['packages/business-office-core','packages/authentication','packages/document-intake','packages/accounting','packages/payroll-preparation','packages/shared-ui','apps/business-office'];
+const neutralRoots=['packages/business-office-core','packages/business-office-control-plane','packages/authentication','packages/document-intake','packages/accounting','packages/payroll-preparation','packages/shared-ui','apps/business-office'];
 let neutral='';
 for(const start of neutralRoots){
   const stack=[path.join(root,start)];
@@ -16,18 +16,25 @@ for(const start of neutralRoots){
 check('neutral core contains no Highway 38 identity',!/Highway\s*38|rkrueth|highway-38-solutions/i.test(neutral));
 check('neutral core contains no H38 identifiers',!(/\bH38(?:_|\b)/.test(neutral)));
 check('neutral core contains no live resource IDs',!/[A-Za-z0-9_-]{25,}/.test(neutral.match(/(?:SPREADSHEET|FOLDER|DEPLOYMENT)[^\n]{0,80}/gi)?.join('\n')||''));
+check('neutral control plane contains assigned task and field services',/function boTaskAssign_/.test(neutral)&&/function boControlClockIn_/.test(neutral)&&/function boControlSaveTaskProof_/.test(neutral)&&/function boControlCaptureReceipt_/.test(neutral));
+check('neutral Social Control keeps provider publishing locked',/External social publishing is locked\./.test(neutral)&&!/UrlFetchApp\s*\.\s*fetch/.test(neutral));
+check('neutral cellphone UI uses large actions and rear camera',/min-height:94px/.test(neutral)&&/capture="environment"/.test(neutral)&&/Scan receipt/i.test(neutral));
 const h38=JSON.parse(read('business-packs/highway38/business-office.config.json'));
 const template=JSON.parse(read('business-packs/template-business/business-office.config.json'));
 check('Highway 38 pack carries Highway 38 identity',h38.business.id==='H38'&&/Highway 38/.test(h38.branding.businessName));
 check('Highway 38 pack uses property references rather than embedded resource IDs',Object.values(h38.resources.propertyKeys).every(v=>/^[A-Z0-9_]+$/.test(v)));
 check('template pack is neutral',!/Highway\s*38|rkrueth|highway-38-solutions|H38_/i.test(JSON.stringify(template)));
 check('template pack has empty catalog',template.catalog.mode==='empty'&&template.validation.expectedProductCount===0&&template.validation.expectedBundleCount===0);
-check('template pack retains safety boundaries',template.tax.directFiling===false);
+check('template pack retains safety boundaries',template.tax.directFiling===false&&template.social.externalActionsEnabled===false&&template.social.automaticPublishingEnabled===false&&template.social.bulkPublishingEnabled===false);
+check('template pack declares nine credential roles',['Owner','Administrator','Foreman','Estimator','Field Staff','Staff','Bookkeeper','Payroll','Viewer'].every(role=>template.defaults.roles.includes(role)));
 for(const [pack,mode] of [['highway38','combined'],['template-business','standalone']]){
   const out=path.join(root,'artifacts','separate-business-office-platform','builds',`${pack}-${mode}`);
   cp.execFileSync(process.execPath,[path.join(root,'scripts/build-business-office-installation.js'),'--pack',pack,'--mode',mode,'--out',out],{stdio:'inherit'});
   check(`${pack} ${mode} bundle generated`,fs.existsSync(path.join(out,'installation-manifest.json')));
-  const all=fs.readdirSync(out).filter(n=>/\.(gs|html|json)$/.test(n)).map(n=>fs.readFileSync(path.join(out,n),'utf8')).join('\n');
+  const names=fs.readdirSync(out),all=names.filter(n=>/\.(gs|html|json)$/.test(n)).map(n=>fs.readFileSync(path.join(out,n),'utf8')).join('\n');
+  ['BusinessOffice_ControlRules.gs','BusinessOffice_TaskCore.gs','BusinessOffice_ControlCore.gs','BusinessOffice_ControlLive.gs','BusinessOffice_ControlPlane.html'].forEach(file=>check(`${pack} bundle includes ${file}`,names.includes(file)));
+  check(`${pack} bundle includes Field Operations and Social Control`,all.includes("key:'field-operations'")&&all.includes("key:'social-control'"));
+  check(`${pack} bundle keeps social external actions disabled`,all.includes('External social publishing is locked.')&&!/UrlFetchApp\s*\.\s*fetch/.test(all));
   if(pack==='template-business') check('clean bundle has no Highway 38 leakage',!/Highway\s*38|rkrueth|highway-38-solutions|H38_|AKfyc/i.test(all));
 }
 const result={status:failures.length?'HOLD':'PASS',passes,failures};
