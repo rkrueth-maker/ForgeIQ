@@ -6,4 +6,4 @@ Use existing dedicated Northern Lakes folders
 Do not copy Highway 38 business data
 External actions remain disabled
 Authorization: fix both systems now
-Retry: validate the existing NLPS owner directly from the seeded workbook
+Retry: bridge structural validation to the seeded NLPS Owner and permissions
