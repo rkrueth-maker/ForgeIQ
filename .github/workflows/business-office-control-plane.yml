@@ -43,14 +43,25 @@ jobs:
       - name: Syntax check assembled Apps Script
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          OUT=artifacts/business-office-control-plane
+          mkdir -p "$OUT"
+          : > "$OUT/assembled-syntax.txt"
+          FAILED=0
           for file in dist/control-plane-business-office/*.gs; do
-            node --check "$file"
+            echo "CHECK $(basename "$file")" | tee -a "$OUT/assembled-syntax.txt"
+            if node --check "$file" >> "$OUT/assembled-syntax.txt" 2>&1; then
+              echo "PASS $(basename "$file")" | tee -a "$OUT/assembled-syntax.txt"
+            else
+              echo "FAIL $(basename "$file")" | tee -a "$OUT/assembled-syntax.txt"
+              FAILED=1
+            fi
           done
+          exit "$FAILED"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: business-office-control-plane-${{ github.run_id }}
-          path: artifacts/business-office-control-plane/verification.json
+          path: artifacts/business-office-control-plane
           if-no-files-found: warn
           retention-days: 30
