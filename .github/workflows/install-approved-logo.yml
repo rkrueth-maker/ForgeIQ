@@ -1,10 +1,6 @@
-name: Install exact approved Highway 38 logo
+name: Refresh exact approved logo references
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/install-approved-logo.yml'
   pull_request:
     branches: [main]
     paths:
@@ -14,46 +10,48 @@ permissions:
   contents: write
 
 jobs:
-  install-approved-logo:
+  refresh-logo-references:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out target branch
+      - name: Check out pull request branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-      - name: Download exact approved logo
-        env:
-          APPROVED_LOGO_URL: "https://lh7-rt.googleusercontent.com/slidesz/AGV_vUc7rJPGDoPdMabjPO2JwNghcrfw3GUXr059hE5rxHfEnOUq0A488n52EuGTI-TXseIv5tVtLfuGdfubbHMOYAcKNQynLyiIMWr4ufSSszPCb7B_DcH6TdowVoS6Ljf86D7d4PN0l51nFVRLIs5gATIC9fFMoUa8ywLiaPo1y4bZ_cWEZ97bhA=s2048?key=NLYyqrEaw-WzR5yeMX5W6g"
+      - name: Verify exact approved logo binary
         run: |
-          curl --fail --location --retry 4 --retry-all-errors "$APPROVED_LOGO_URL" --output assets/highway38-logo.png
+          test "$(git hash-object assets/highway38-logo.png)" = "0cbc4514e645dfb25c12ee393b3633a145ebeb2a"
 
-      - name: Validate exact image file
+      - name: Refresh root-page logo and script cache keys
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import hashlib, struct
-          p = Path('assets/highway38-logo.png')
-          data = p.read_bytes()
-          assert data[:8] == b'\x89PNG\r\n\x1a\n', 'not a PNG'
-          assert len(data) > 1_000_000, f'logo unexpectedly small: {len(data)} bytes'
-          width, height = struct.unpack('>II', data[16:24])
-          assert width >= 1000 and height >= 1000, f'logo dimensions too small: {width}x{height}'
-          print(f'Approved logo: {width}x{height}, {len(data)} bytes')
-          print('SHA256=' + hashlib.sha256(data).hexdigest())
+          import re
+          logo = 'assets/highway38-logo.png?v=20260720-exact-0cbc4514'
+          script = 'assets/js/h38-site-v2.js?v=20260720-no-substitute'
+          for path in Path('.').glob('*.html'):
+              text = path.read_text(encoding='utf-8')
+              updated = re.sub(r'assets/highway38-logo\.png(?:\?v=[^"\']*)?', logo, text)
+              updated = re.sub(r'assets/js/h38-site-v2\.js(?:\?v=[^"\']*)?', script, updated)
+              if updated != text:
+                  path.write_text(updated, encoding='utf-8')
+                  print(path)
           PY
 
-      - name: Commit approved logo to target branch
+      - name: Run public image release gate
+        run: python3 scripts/verify-public-images.py
+
+      - name: Commit refreshed public pages
         env:
-          TARGET_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
+          TARGET_BRANCH: ${{ github.head_ref }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/highway38-logo.png
+          git add -- '*.html'
           if git diff --cached --quiet; then
-            echo 'Approved logo already installed.'
+            echo 'Public page references are already current.'
             exit 0
           fi
-          git commit -m 'Install exact approved Highway 38 logo'
+          git commit -m 'Refresh exact approved logo references'
           git push origin HEAD:"$TARGET_BRANCH"
