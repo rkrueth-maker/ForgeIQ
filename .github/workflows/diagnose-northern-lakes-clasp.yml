@@ -58,14 +58,19 @@ jobs:
           mkdir -p "$ARTIFACT_DIR"
           cd "$GITHUB_WORKSPACE/dist/northern-lakes-business-office"
 
-          SCRIPT_LIST="$(clasp list-scripts 2>/dev/null)"
+          clasp list-scripts > "$ARTIFACT_DIR/script-list.txt" 2>&1
+          LIST_RC=$?
+          clasp list-scripts --json > "$ARTIFACT_DIR/script-list.json" 2>&1
+          JSON_LIST_RC=$?
+          SCRIPT_LIST="$(cat "$ARTIFACT_DIR/script-list.txt")"
           PROJECT_LINE="$(printf '%s\n' "$SCRIPT_LIST" | grep -F 'Northern Lakes Business Office' | head -1)"
-          SCRIPT_ID="$(printf '%s\n' "$PROJECT_LINE" | grep -oE '[A-Za-z0-9_-]{40,}' | head -1)"
+          SCRIPT_ID="$(printf '%s\n' "$PROJECT_LINE" | grep -oE '[A-Za-z0-9_-]{20,}' | head -1)"
           if [[ -z "$SCRIPT_ID" ]]; then
-            printf 'failed_command=project-recovery\n' > "$ARTIFACT_DIR/summary.txt"
-            printf 'The exact-title Northern Lakes project could not be recovered.\n' > "$ARTIFACT_DIR/project-recovery.log"
+            printf 'failed_command=project-recovery\nlist_exit_code=%s\njson_list_exit_code=%s\n' "$LIST_RC" "$JSON_LIST_RC" > "$ARTIFACT_DIR/summary.txt"
+            printf 'The exact-title Northern Lakes project could not be recovered. Review the private script-list files.\n' > "$ARTIFACT_DIR/project-recovery.log"
             exit 0
           fi
+          printf '%s\n' "$SCRIPT_ID" > "$ARTIFACT_DIR/recovered-script-id.txt"
           printf '{"scriptId":"%s","rootDir":"."}\n' "$SCRIPT_ID" > .clasp.json
 
           clasp push --force > "$ARTIFACT_DIR/01-push.log" 2>&1
