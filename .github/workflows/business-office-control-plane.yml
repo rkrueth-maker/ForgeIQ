@@ -4,18 +4,22 @@ on:
   pull_request:
     paths:
       - 'apps-script/business-office/**'
+      - 'apps/business-office/**'
       - 'apps-script/core-engine/owner-portal-next/**'
       - 'business-packs/highway38/**'
       - 'scripts/verify-business-office-control-plane.js'
+      - 'scripts/verify-business-office-live-readiness.js'
       - '.github/workflows/business-office-control-plane.yml'
   push:
     branches:
       - 'agent/business-office-mobile-field-social-overhaul'
     paths:
       - 'apps-script/business-office/**'
+      - 'apps/business-office/**'
       - 'apps-script/core-engine/owner-portal-next/**'
       - 'business-packs/highway38/**'
       - 'scripts/verify-business-office-control-plane.js'
+      - 'scripts/verify-business-office-live-readiness.js'
       - '.github/workflows/business-office-control-plane.yml'
 
 permissions:
@@ -31,6 +35,8 @@ jobs:
           node-version: '24'
       - name: Run control-plane simulations
         run: node scripts/verify-business-office-control-plane.js
+      - name: Run live-readiness simulations
+        run: node scripts/verify-business-office-live-readiness.js
       - name: Assemble exact Business Office source
         shell: bash
         run: |
