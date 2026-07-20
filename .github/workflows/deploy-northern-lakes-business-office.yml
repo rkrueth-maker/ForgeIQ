@@ -106,18 +106,12 @@ jobs:
           RESOLVED_SCRIPT_ID: ${{ steps.target.outputs.script_id }}
         run: |
           set -euo pipefail
-          mkdir -p ../../artifacts/northern-lakes-business-office
           if [[ -n "$RESOLVED_SCRIPT_ID" ]]; then
             printf '{"scriptId":"%s","rootDir":"."}\n' "$RESOLVED_SCRIPT_ID" > .clasp.json
             SCRIPT_ID="$RESOLVED_SCRIPT_ID"
           else
             CREATE_DIR="$(mktemp -d)"
-            set +e
-            (cd "$CREATE_DIR" && DEBUG=clasp:* clasp create-script --type standalone --title 'Northern Lakes Business Office') > ../../artifacts/northern-lakes-business-office/create-project.log 2>&1
-            CREATE_STATUS=$?
-            set -e
-            cat ../../artifacts/northern-lakes-business-office/create-project.log
-            [[ "$CREATE_STATUS" -eq 0 ]] || exit "$CREATE_STATUS"
+            (cd "$CREATE_DIR" && clasp create-script --type standalone --title 'Northern Lakes Business Office')
             SCRIPT_ID="$(node -p "require('$CREATE_DIR/.clasp.json').scriptId")"
             printf '{"scriptId":"%s","rootDir":"."}\n' "$SCRIPT_ID" > .clasp.json
             rm -rf "$CREATE_DIR"
