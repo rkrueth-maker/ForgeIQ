@@ -21,7 +21,7 @@ jobs:
 
       - name: Download exact approved logo
         env:
-          APPROVED_LOGO_URL: "https://oaisdmntprbrazilsouth.blob.core.windows.net/files/00000000-70c0-820e-9fca-7e5cf550210d/raw?se=2026-07-20T06%3A31%3A39Z&sp=r&sv=2026-02-06&sr=b&scid=019f7e31-f953-74d1-8b6a-d8200d41553d&skoid=127c13cb-e695-43ea-b6b2-0a863d41dbf7&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-19T14%3A07%3A44Z&ske=2026-07-21T14%3A07%3A44Z&sks=b&skv=2026-02-06&sig=TiKBEJ7p/kxDXUjn0WeXUitkHpWPnul76AqdMQfqdOY%3D"
+          APPROVED_LOGO_URL: "https://lh7-rt.googleusercontent.com/slidesz/AGV_vUfStzhjcpA6b-stYIO-ynroNPLj0OSIlsA2r3fgyaOTpaF0Jwsng977kvBiXzD1bHobfkhFnYFVCkOqIkbS8nP4V_qWHWXtEcBQ90UGzvMzMLIOyA3AuBD8GqOZQgumDTXJ_k2t572jGgYdm_hQOGrf05xTjIqmbIks9NegM7N4z48s875z_g=s2048?key=NLYyqrEaw-WzR5yeMX5W6g"
         run: |
           curl --fail --location --retry 4 --retry-all-errors "$APPROVED_LOGO_URL" --output assets/highway38-logo.png
 
