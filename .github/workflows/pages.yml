@@ -49,6 +49,7 @@ jobs:
             --exclude='.github/' \
             --exclude='.venv/' \
             --exclude='__pycache__/' \
+            --exclude='deployment-status/' \
             --exclude='logs/' \
             --exclude='reports/' \
             --exclude='shopify/' \
