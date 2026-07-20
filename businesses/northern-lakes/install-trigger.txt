@@ -6,4 +6,4 @@ Use existing dedicated Northern Lakes folders
 Do not copy Highway 38 business data
 External actions remain disabled
 Authorization: fix both systems now
-Retry: corrected shell parser now invokes the token-protected owner installer URL
+Retry: validate the existing NLPS owner directly from the seeded workbook
