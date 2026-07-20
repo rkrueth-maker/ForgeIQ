@@ -64,7 +64,7 @@ function boFieldSessionTransition_(session,event,payload,now){
 }
 
 function boFieldCloseoutValidation_(task,proofs,payload){
-  var row=task||{},items=Array.isArray(proofs)?proofs:[],input=payload||{},required=String(row['Required Proof']||'Progress Photo,Completion Photo,Notes').split(',').map(function(value){return value.trim();}).filter(Boolean),missing=[];
+  var row=task||{},items=Array.isArray(proofs)?proofs:[],input=payload||{},required=String(row['Required Proof']||'Completion Photo,Notes').split(',').map(function(value){return value.trim();}).filter(Boolean),missing=[];
   function has(type){return items.some(function(item){return String(item.photoType||item['Photo Type']||'')===type&&String(item.documentId||item['Document ID']||'');});}
   required.forEach(function(rule){
     if(rule==='Before Photo'&&!has('Before'))missing.push(rule);
