@@ -9,7 +9,7 @@ function doGet() {
 
 function boRenderWebApp_() {
   let html = HtmlService.createTemplateFromFile('BusinessOffice_Index').evaluate().getContent();
-  html = html.replace('</body>', boInclude_('BusinessOffice_Modular_Suite') + boInclude_('BusinessOffice_ControlPlane') + '</body>');
+  html = html.replace('</body>', boInclude_('BusinessOffice_Modular_Suite') + boInclude_('BusinessOffice_ControlPlane') + boInclude_('BusinessOffice_ControlPlane_Routes') + '</body>');
   return HtmlService.createHtmlOutput(html)
     .setTitle(boGetBranding_().businessOfficeName)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
