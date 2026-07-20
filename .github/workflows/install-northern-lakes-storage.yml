@@ -202,10 +202,7 @@ jobs:
             RC=$?
             set -e
             if [[ $RC -eq 0 && -s "$RAW" ]]; then
-              RESULT="$(node - "$RAW" <<'NODE'
-              const fs=require('fs');try{const v=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));process.stdout.write(String(v.status||'JSON'));}catch(e){process.stdout.write('INVALID');}
-              NODE
-              )"
+              RESULT="$(node -e "const fs=require('fs');try{const v=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(v.status||'JSON'));}catch(e){process.stdout.write('INVALID');}" "$RAW")"
               if [[ "$RESULT" == "PASS" ]]; then
                 cp "$RAW" "$OUT/install-result.json"
                 SUCCESS=true
