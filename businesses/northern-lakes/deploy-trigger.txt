@@ -5,4 +5,4 @@ Business ID: NLPS
 External actions: disabled
 ALLOW_FIRST_INSTALL=TRUE
 Authorization: build deploy go
-Retry: replacement Google OAuth credential installed; safe deployment recovery authorized
+Retry: package push and version creation verified; execute protected production deployment
