@@ -19,6 +19,7 @@ function h38PortalRawInclude_(fileName) {
     'Portal_Application_UX_Styles',
     'Portal_OneShot_UX_Styles',
     'Portal_Product_Unification_Styles',
+    'Portal_ControlPlane_Styles',
     'Portal_UX_Client_Shell',
     'Portal_Business_Client',
     'Portal_Business_Create_Client',
@@ -34,6 +35,7 @@ function h38PortalRawInclude_(fileName) {
     'Portal_ProductApps_Client',
     'Portal_QuoteBuilder_Addon_Client',
     'Portal_QuoteBuilder_QuickCapture_Client',
+    'Portal_ControlPlane_Client',
     'Portal_UX_Client_Boot'
   ];
   fileName = String(fileName || '');
