@@ -8,9 +8,18 @@ function h38OwnerDaypart(){
   if(hour<18)return 'Good afternoon';
   return 'Good evening';
 }
+function h38ExpectedPortalBrand(){
+  try{
+    if(typeof h38FieldClientKnown==='function'&&h38FieldClientKnown()&&typeof h38FieldClientProfile==='function'){
+      var profile=h38FieldClientProfile();
+      if(profile&&profile.portalLabel)return String(profile.portalLabel);
+    }
+  }catch(error){}
+  return 'Owner Portal';
+}
 function h38NormalizeBrand(){
-  var release=document.getElementById('release');
-  if(release){if(!release.dataset.fullRelease)release.dataset.fullRelease=release.textContent||'';release.textContent='Owner Portal';release.title=release.dataset.fullRelease;}
+  var release=document.getElementById('release'),label=h38ExpectedPortalBrand();
+  if(release){if(!release.dataset.fullRelease)release.dataset.fullRelease=release.textContent||'';if(release.textContent!==label)release.textContent=label;release.title=release.dataset.fullRelease;}
   var packageName=document.getElementById('packageName');
   if(packageName&&/installed business package/i.test(packageName.textContent||''))packageName.textContent='Complete Business System';
 }
@@ -19,7 +28,7 @@ function h38InstallBrandGuard(){
   var release=document.getElementById('release');
   if(release&&release.dataset.brandGuard!=='1'){
     release.dataset.brandGuard='1';
-    new MutationObserver(function(){if(release.textContent!=='Owner Portal')h38NormalizeBrand();}).observe(release,{childList:true,subtree:true});
+    new MutationObserver(function(){if(release.textContent!==h38ExpectedPortalBrand())h38NormalizeBrand();}).observe(release,{childList:true,subtree:true});
   }
 }
 function h38OpenOwnerAi(){
