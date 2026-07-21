@@ -14,7 +14,7 @@ function exists(file){return fs.existsSync(file)}
 function syntax(source,label){try{new vm.Script(source,{filename:label});check(`syntax ${label}`,true)}catch(error){check(`syntax ${label}`,false,error.message)}}
 function run(script,label){try{const result=cp.spawnSync(process.execPath,[path.join(root,script)],{cwd:root,encoding:'utf8',maxBuffer:20*1024*1024});check(label,result.status===0,result.status===0?'':(result.stdout||'').slice(-1200)+(result.stderr||'').slice(-1200))}catch(error){check(label,false,error.message)}}
 const ownerFiles=['Portal_UX.js','Portal_UX_Styles.html','Portal_UX_Client_Shell.html','Portal_UX_Client_Tasks.html','Portal_UX_Client_Workspace.html','Portal_UX_Client_Forms.html','Portal_UX_Client_Boot.html'];
-const officeFiles=['BusinessOffice_UX.gs','BusinessOffice_UX_Client.html'];
+const officeFiles=['BusinessOffice_UX.gs','BusinessOffice_UX_Client.html','BusinessOffice_ClientManifest.gs'];
 ownerFiles.forEach(file=>check(`Owner Portal UX file ${file}`,exists(path.join(owner,file))));
 officeFiles.forEach(file=>check(`Business Office UX file ${file}`,exists(path.join(office,file))));
 const ownerIndex=read(path.join(owner,'Portal_Index.html'));
@@ -39,12 +39,15 @@ check('Owner Portal blank workspace prevention',ownerClient.includes('uxWorkspac
 check('Owner Portal mobile accessibility',/@media\(max-width:800px\)/.test(ownerStyles)&&ownerClient.includes("event.key==='Escape'")&&ownerClient.includes("event.key==='Enter'"));
 check('Owner Portal external locks preserved',ownerClient.includes('External actions locked')&&ownerServer.includes('externalActionsOccurred:false'));
 const officeWeb=read(path.join(office,'BusinessOffice_Web.gs'));
+const officeClientManifest=read(path.join(office,'BusinessOffice_ClientManifest.gs'));
 const officeServer=read(path.join(office,'BusinessOffice_UX.gs'));
 const officeUx=read(path.join(office,'BusinessOffice_UX_Client.html'));
 const officeScript=(officeUx.match(/<script>([\s\S]*)<\/script>/)||[])[1]||'';
 syntax(officeServer,'BusinessOffice_UX.gs');
 syntax(officeScript,'BusinessOffice UX client');
-check('Business Office injects UX',officeWeb.includes("boInclude_('BusinessOffice_UX_Client')"));
+syntax(officeClientManifest,'BusinessOffice client manifest');
+check('Business Office injects UX through controlled manifest',officeWeb.includes('boRenderClientIncludes_()')&&officeClientManifest.includes("'BusinessOffice_UX_Client'"));
+check('Business Office includes each UX client once',(officeClientManifest.match(/BusinessOffice_UX_Client/g)||[]).length===1);
 check('Business Office UX APIs',['uxDashboard','uxWorkspace','uxSearch','uxPipeline'].every(action=>officeWeb.includes(action)));
 check('Business Office grouped process navigation',['Sales','Fulfillment','Purchasing','Revenue','Accounting & Tax','Control'].every(text=>officeUx.includes(text)));
 check('Business Office action dashboard',['What needs to move next?','Financial snapshot','Exceptions','Recently changed'].every(text=>officeUx.includes(text)));

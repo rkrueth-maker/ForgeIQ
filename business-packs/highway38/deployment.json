@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "packId": "highway38",
   "businessId": "H38",
   "ownerEmail": "rkrueth@gmail.com",
@@ -13,7 +13,9 @@
     "backendSpreadsheetId": "1P5_7iUVf-yY9ffUEM7Iy5v10VsjE2LZdX7vNMcoQ1Uo"
   },
   "appsScript": {
+    "productionProjectId": "13Bes6_rs3LD-Sch4Vi5DKssCnlU_qb4hzZpGpDVfoRELRak0htXEj7O-",
     "ownerPortalProjectId": "13Bes6_rs3LD-Sch4Vi5DKssCnlU_qb4hzZpGpDVfoRELRak0htXEj7O-",
+    "businessOfficeProjectId": "13Bes6_rs3LD-Sch4Vi5DKssCnlU_qb4hzZpGpDVfoRELRak0htXEj7O-",
     "ownerPortalDeploymentId": "AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg",
     "businessOfficeDeploymentId": "AKfycbyf9ivM04iKqg9QqM1PgRQgD4Imf6VY_mMpCLLsU6lRbGYsprTEEzlwEE93pRgqPzCcmg"
   },
@@ -22,9 +24,12 @@
     "ownerPortalUrl": "https://rkrueth-maker.github.io/highway-38-solutions/portal.html"
   },
   "controls": {
+    "singleProductionAuthority": "Deploy Unified Owner Portal",
     "updateExistingProjectOnly": true,
     "createNewProject": false,
     "createNewProductionDeployment": false,
-    "externalActionsEnabled": false
+    "externalActionsEnabled": false,
+    "aiMayDeploy": false,
+    "aiMayChangePermissions": false
   }
 }

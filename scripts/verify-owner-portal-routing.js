@@ -26,6 +26,7 @@ const businessUi = read('apps-script/business-office/BusinessOffice_Index.html')
 const businessCore = read('apps-script/business-office/BusinessOffice_Core.gs');
 const businessAuth = read('apps-script/business-office/BusinessOffice_Auth.gs');
 const businessWeb = read('apps-script/business-office/BusinessOffice_Web.gs');
+const businessClientManifest = read('apps-script/business-office/BusinessOffice_ClientManifest.gs');
 const businessGate = read('apps-script/business-office/BusinessOffice_ModuleAccess.gs');
 const businessUnified = read('apps-script/business-office/BusinessOffice_Unified_Client.html');
 const pack = read('business-packs/highway38/apps-script/BusinessOffice_Pack.gs');
@@ -82,13 +83,14 @@ assert('native adapter resolves canonical auth functions explicitly', /function 
 assert('native adapter does not depend on a bare current-user call', !/var user = boGetCurrentUser_\(\)/.test(nativeBusinessServer) && /var user = h38PortalGetCurrentUser_\(\)/.test(nativeBusinessServer));
 assert('Business Office package modules are enforced server-side', /boGuardApiRequest_\(action,args\)/.test(businessWeb) && /MODULE NOT INCLUDED/.test(businessGate));
 assert('native adapter enforces package modules before list save workspace and upload', /boAssertModuleEnabled_\(moduleKey\)/.test(nativeBusinessServer) && /boAssertModuleEnabled_\('documents'\)/.test(nativeBusinessServer));
-assert('Business Office compatibility route remains available without controlling unified navigation', /BusinessOffice_Unified_Client/.test(businessWeb) && /h38-embedded-business-office/.test(businessUnified));
+assert('Business Office compatibility route remains available without controlling unified navigation', /BusinessOffice_Unified_Client/.test(businessClientManifest) && /h38-embedded-business-office/.test(businessUnified));
+assert('Business Office compatibility client is assembled once through the controlled manifest', (businessClientManifest.match(/BusinessOffice_Unified_Client/g) || []).length === 1 && /boRenderClientIncludes_\(\)/.test(businessWeb));
 assert('Documents and OCR keep upload inside the unified app', /Upload PDF \/ Take Picture/.test(nativeBusinessClient) && /capture="environment"/.test(nativeBusinessClient));
 assert('complete package explicitly enables command and Business Office modules', /package:Object\.freeze\(\{id:'complete-business-system'/.test(pack) && /commandCenter:true/.test(pack) && /documents:true/.test(pack));
 assert('production deployment replaces inherited clasp ignore rules', /cat > "\$PROJECT\/\.claspignore"/.test(deploySource) && /\*\*\/\*\.md/.test(deploySource));
 assert('production deployment builds the checked-in unified shell before push', /build-unified-apps-script-shell\.js/.test(deploySource) && /Unified_AppShell\.gs/.test(deploySource) && /Portal_Business\.js/.test(deploySource) && /BusinessOffice_Auth\.gs/.test(deploySource));
 assert('production deployment uses clasp 3 file status and force push', /clasp show-file-status/.test(deploySource) && /clasp push --force/.test(deploySource) && /clasp-status-before-push\.txt/.test(deploySource));
-assert('production deployment pulls and verifies remote Apps Script source before deployment update', /REMOTE_VERIFY/.test(deploySource) && /remote-project-pull\.txt/.test(deploySource) && /remote-source-verification\.txt/.test(deploySource) && /REMOTE_SHELL/.test(deploySource));
+assert('production deployment pulls and verifies exact remote Apps Script source before deployment update', /REMOTE_VERIFY/.test(deploySource) && /remote-project-pull\.txt/.test(deploySource) && /remote-source-verification\.txt/.test(deploySource) && /controlled-source-local\.json/.test(deploySource) && /controlled-source-remote\.json/.test(deploySource));
 assert('production deployment verifies one deterministic shell entry point on Google', /Remote project must contain one unified doGet/.test(deploySource) && /var H38_PORTAL_AUTH_BRIDGE = \(function\(\)\{/.test(deploySource));
 assert('production deployment removes the legacy combined Portal auth bridge', /test ! -e "\$PROJECT\/Portal_00_BusinessAuth\.js"/.test(deploySource) && /fs\.unlinkSync\(legacyPortalBridge\)/.test(shellBuilder));
 assert('production deployment blocks known authentication runtime errors', /ReferenceError: boGetCurrentUser_ is not defined/.test(deploySource) && /ReferenceError: boNormalizeText_ is not defined/.test(deploySource) && /Authentication service is unavailable: boGetCurrentUser_/.test(deploySource));
@@ -125,7 +127,7 @@ assert('public static pages contain no direct spreadsheet links', sheetLinks.len
 const result = {
   status: failures.length ? 'HOLD' : 'PASS',
   sourceCommit: process.env.GITHUB_SHA || '',
-  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true, deploymentRemoteSourceVerification: true, deterministicUnifiedShell: true },
+  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true, deploymentRemoteSourceVerification: true, deterministicUnifiedShell: true, controlledClientManifest: true },
   passes,
   failures
 };
