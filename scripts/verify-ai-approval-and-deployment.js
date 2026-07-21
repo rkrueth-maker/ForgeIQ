@@ -30,7 +30,7 @@ parseScript('AI action engine', actions);
 parseScript('AI assistant', assistant);
 parseScript('Business Office web API', web);
 parseScript('client manifest', clientManifest);
-parseScript('AI approval engine simulation', engineTest);
+parseScript('AI approval engine simulation', engineTest.replace(/^#!.*\r?\n/, ''));
 const scriptMatches = [...client.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 check('AI client script exists', scriptMatches.length === 1, `found ${scriptMatches.length}`);
 if (scriptMatches[0]) parseScript('AI client', scriptMatches[0][1]);
