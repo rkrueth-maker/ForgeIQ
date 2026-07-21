@@ -13,6 +13,7 @@ const checkScript=(text,label)=>{
 };
 
 const web=read('apps-script/business-office/BusinessOffice_Web.gs');
+const clientManifest=read('apps-script/business-office/BusinessOffice_ClientManifest.gs');
 const workspace=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Client.html');
 const completion=read('apps-script/business-office/BusinessOffice_QuoteBuilder_Completion.html');
 const gateway=read('quote-builder.html');
@@ -20,8 +21,11 @@ const portal=read('customer-portal.html');
 const decisions=read('customer-portal-quote-decisions.js');
 const migration=read('supabase/migrations/20260718_customer_quote_decisions.sql');
 
-need(web,"boInclude_('BusinessOffice_QuoteBuilder_Client')",'Quote Builder workspace include');
-need(web,"boInclude_('BusinessOffice_QuoteBuilder_Completion')",'Quote Builder completion include');
+need(web,'boRenderClientIncludes_()','controlled client renderer');
+need(clientManifest,"'BusinessOffice_QuoteBuilder_Client'",'Quote Builder workspace manifest entry');
+need(clientManifest,"'BusinessOffice_QuoteBuilder_Completion'",'Quote Builder completion manifest entry');
+if((clientManifest.match(/BusinessOffice_QuoteBuilder_Client/g)||[]).length!==1)throw new Error('Quote Builder workspace must be included exactly once.');
+if((clientManifest.match(/BusinessOffice_QuoteBuilder_Completion/g)||[]).length!==1)throw new Error('Quote Builder completion must be included exactly once.');
 need(gateway,'quoteBuilder=1#module=quoteBuilder','focused secure gateway');
 need(completion,"new URLSearchParams(location.search).get('quoteBuilder')==='1'",'focus-mode query');
 need(completion,'type="file" multiple','photo/PDF intake');
@@ -45,4 +49,4 @@ checkScript(workspace,'Quote Builder workspace');
 checkScript(completion,'Quote Builder completion');
 new Function(decisions);
 
-console.log('PASS — Quote Builder focus mode, photo/PDF intake, shared quote workflows, and customer approve/revise/decline controls verified.');
+console.log('PASS — Quote Builder focus mode, controlled client manifest, photo/PDF intake, shared quote workflows, and customer approve/revise/decline controls verified.');
