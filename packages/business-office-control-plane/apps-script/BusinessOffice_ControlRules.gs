@@ -1,21 +1,22 @@
-/** Business Office Platform — deterministic mobile, field, receipt, and social rules. */
+/** Business Office Platform — deterministic mobile, field, receipt, equipment, and social rules. */
 var BO_CONTROL_ROLES=Object.freeze({OWNER:'Owner',ADMIN:'Administrator',FOREMAN:'Foreman',ESTIMATOR:'Estimator',FIELD:'Field Staff',STAFF:'Staff',BOOKKEEPER:'Bookkeeper',PAYROLL:'Payroll',VIEWER:'Viewer'});
 function boControlRole_(value){return String(value||'').trim();}
 function boControlAction_(key,label,icon,route,primary){return{key:key,label:label,icon:icon,route:route,primary:primary===true};}
 function boControlCapabilities_(role){
   role=boControlRole_(role);
   var owner=role===BO_CONTROL_ROLES.OWNER,admin=role===BO_CONTROL_ROLES.ADMIN,foreman=role===BO_CONTROL_ROLES.FOREMAN,estimator=role===BO_CONTROL_ROLES.ESTIMATOR,field=role===BO_CONTROL_ROLES.FIELD,staff=role===BO_CONTROL_ROLES.STAFF,bookkeeper=role===BO_CONTROL_ROLES.BOOKKEEPER,payroll=role===BO_CONTROL_ROLES.PAYROLL;
-  return{controlPlane:owner||admin,assignWork:owner||admin||foreman,clockWork:owner||admin||foreman||field||staff,captureProgress:owner||admin||foreman||field||staff,captureReceipt:owner||admin||foreman||field||staff||bookkeeper,reviewReceipt:owner||admin||bookkeeper,createQuote:owner||admin||foreman||estimator||staff,sendQuote:owner||admin,prepareSocial:owner||admin||foreman||staff,approveSocial:owner,markSocialPosted:owner||admin,payrollReview:owner||admin||bookkeeper||payroll,customerVisibility:owner||admin||foreman,readOnly:role===BO_CONTROL_ROLES.VIEWER};
+  return{controlPlane:owner||admin,assignWork:owner||admin||foreman,clockWork:owner||admin||foreman||field||staff,captureProgress:owner||admin||foreman||field||staff,captureReceipt:owner||admin||foreman||field||staff||bookkeeper,reviewReceipt:owner||admin||bookkeeper,createQuote:owner||admin||foreman||estimator||staff,sendQuote:owner||admin,prepareSocial:owner||admin||foreman||staff,approveSocial:owner,markSocialPosted:owner||admin,payrollReview:owner||admin||bookkeeper||payroll,customerVisibility:owner||admin||foreman,viewEquipment:owner||admin||foreman||field||staff||bookkeeper,manageEquipment:owner||admin,assignEquipment:owner||admin||foreman,inspectEquipment:owner||admin||foreman||field||staff,serviceEquipment:owner||admin||foreman,equipmentCostReview:owner||admin||bookkeeper,readOnly:role===BO_CONTROL_ROLES.VIEWER};
 }
 function boControlFastActions_(role,state){
   var caps=boControlCapabilities_(role),current=state&&state.currentSession||null,actions=[];
   if(caps.clockWork)actions.push(boControlAction_(current?'field-session':'clock-in',current?'Open Current Work':'Clock In','⏱','control:field',true));
-  if(caps.assignWork)actions.push(boControlAction_('assign-task','Assign Task','✓','control:assign',true));
+  if(caps.assignWork)actions.push(boControlAction_('assign-work','Assign Work','✓','control:assign',true));
   if(caps.captureProgress)actions.push(boControlAction_('progress-photo','Add Job Photo','📷','control:photo',true));
   if(caps.captureReceipt)actions.push(boControlAction_('scan-receipt','Scan Receipt','🧾','control:receipt',true));
+  if(caps.viewEquipment)actions.push(boControlAction_('equipment',caps.assignEquipment?'Equipment & Assets':'My Equipment','🛠','control:equipment',true));
   if(caps.createQuote)actions.push(boControlAction_('create-quote','Create Quote','＋','app:quote-builder',true));
   if(caps.controlPlane)actions.push(boControlAction_('approvals','Review Approvals','✓','bo:approvals',false));
-  if(caps.prepareSocial)actions.push(boControlAction_('social','Social Control','◉','control:social',false));
+  if(caps.prepareSocial)actions.push(boControlAction_('social','Social Media','◉','control:social',false));
   if(caps.payrollReview)actions.push(boControlAction_('timecards','Time & Payroll','👥','bo:time',false));
   return actions;
 }
