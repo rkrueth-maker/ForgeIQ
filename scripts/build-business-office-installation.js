@@ -25,6 +25,7 @@ const sources=[
  ['packages/business-office-core/apps-script/BusinessOffice_Workflows.gs','BusinessOffice_Workflows.gs'],
  ['packages/authentication/apps-script/BusinessOffice_Auth.gs','BusinessOffice_Auth.gs'],
  ['packages/business-office-control-plane/apps-script/BusinessOffice_ControlRules.gs','BusinessOffice_ControlRules.gs'],
+ ['packages/business-office-control-plane/apps-script/BusinessOffice_EquipmentRules.gs','BusinessOffice_EquipmentRules.gs'],
  ['packages/business-office-control-plane/apps-script/BusinessOffice_TaskCore.gs','BusinessOffice_TaskCore.gs'],
  ['packages/business-office-control-plane/apps-script/BusinessOffice_ControlCore.gs','BusinessOffice_ControlCore.gs'],
  ['packages/business-office-control-plane/apps-script/BusinessOffice_EquipmentCore.gs','BusinessOffice_EquipmentCore.gs'],
@@ -54,7 +55,7 @@ fs.writeFileSync(path.join(output,'installation-manifest.json'),JSON.stringify(m
 if(mode==='combined')fs.writeFileSync(path.join(output,'combined-deployment.json'),JSON.stringify({ownerPortalUrl:pack.website?.ownerPortalUrl||'',publicWebsiteUrl:pack.website?.publicUrl||'',businessOfficeEmbedded:true},null,2)+'\n');
 const generated=fs.readdirSync(output).filter(name=>/\.(?:gs|html|json)$/.test(name)).map(name=>fs.readFileSync(path.join(output,name),'utf8')).join('\n');
 if(packName==='template-business'&&/Highway\s*38|rkrueth|highway-38-solutions|H38_BUSINESS_OFFICE|AKfyc/i.test(generated))throw new Error('Template installation contains Highway 38 leakage.');
-for(const required of ['BusinessOffice_ControlRules.gs','BusinessOffice_TaskCore.gs','BusinessOffice_ControlCore.gs','BusinessOffice_EquipmentCore.gs','BusinessOffice_ControlLive.gs','BusinessOffice_ControlPlane.html','BusinessOffice_ControlPlane_Routes.html','BusinessOffice_Equipment.html'])if(!fs.existsSync(path.join(output,required)))throw new Error(`Generated installation is missing ${required}.`);
+for(const required of ['BusinessOffice_ControlRules.gs','BusinessOffice_EquipmentRules.gs','BusinessOffice_TaskCore.gs','BusinessOffice_ControlCore.gs','BusinessOffice_EquipmentCore.gs','BusinessOffice_ControlLive.gs','BusinessOffice_ControlPlane.html','BusinessOffice_ControlPlane_Routes.html','BusinessOffice_Equipment.html'])if(!fs.existsSync(path.join(output,required)))throw new Error(`Generated installation is missing ${required}.`);
 if(!generated.includes("key:'field-operations'")||!generated.includes("key:'social-control'")||!generated.includes("key:'equipment-asset-manager'"))throw new Error('Generated installation is missing Field Operations, Equipment & Asset Manager, or Social Control.');
 if(!generated.includes('External social publishing is locked.'))throw new Error('Generated installation is missing the social publishing hold.');
 if(!generated.includes('BO Equipment Events')||!generated.includes('Equipment Checkout Photo')||!generated.includes('Assign / check out'))throw new Error('Generated installation is missing equipment schema, proof, or cellphone controls.');
