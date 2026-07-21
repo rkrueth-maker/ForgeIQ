@@ -1,0 +1,182 @@
+name: Commercial Install Acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Installer operation
+        required: true
+        default: VALIDATE_ONLY
+        type: choice
+        options:
+          - VALIDATE_ONLY
+          - NEW_INSTALL
+          - RESUME
+          - REPAIR
+          - UPGRADE
+          - ROLLBACK_VERIFY
+          - CONTROLLED_ACCEPTANCE
+      product_package:
+        description: Product entitlement package
+        required: true
+        default: quote-builder
+        type: choice
+        options:
+          - quote-builder
+          - business-system
+      environment:
+        description: Installation environment
+        required: true
+        default: sanitized-test
+        type: choice
+        options:
+          - sanitized-test
+          - customer-assisted
+          - controlled-beta-acceptance
+      business_pack_path:
+        description: Repository path to a sanitized or approved Business Pack source
+        required: true
+        default: core-engine/product/fixtures/sanitized-property-services-business.v1.json
+        type: string
+      manifest_path:
+        description: Existing Installation Manifest path for RESUME, UPGRADE or rollback verification
+        required: false
+        type: string
+      installation_id:
+        description: Stable installation identity; blank creates one for validation or sanitized testing
+        required: false
+        type: string
+      owner_account:
+        description: Customer Owner account; use example.invalid only for sanitized testing
+        required: true
+        default: owner@example.invalid
+        type: string
+      deploying_account:
+        description: Deploying account; customer-owned authorization is required for live resources
+        required: true
+        default: owner@example.invalid
+        type: string
+      owner_authorization_reference:
+        description: Recorded Owner approval reference; required before controlled acceptance or live provisioning
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: commercial-install-acceptance-${{ inputs.installation_id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  contract-and-safety-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify commercial installer contracts and safety controls
+        run: node scripts/verify-commercial-installer.js
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-installer-verification-${{ github.run_id }}
+          path: artifacts/commercial-install-acceptance
+          if-no-files-found: error
+          retention-days: 90
+
+  installation-plan-or-sanitized-acceptance:
+    needs: contract-and-safety-verification
+    runs-on: ubuntu-latest
+    env:
+      OPERATION: ${{ inputs.operation }}
+      PRODUCT_PACKAGE: ${{ inputs.product_package }}
+      INSTALL_ENVIRONMENT: ${{ inputs.environment }}
+      BUSINESS_PACK_PATH: ${{ inputs.business_pack_path }}
+      MANIFEST_PATH: ${{ inputs.manifest_path }}
+      INSTALLATION_ID: ${{ inputs.installation_id }}
+      OWNER_ACCOUNT: ${{ inputs.owner_account }}
+      DEPLOYING_ACCOUNT: ${{ inputs.deploying_account }}
+      OWNER_AUTHORIZATION_REFERENCE: ${{ inputs.owner_authorization_reference }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate input boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -f "$BUSINESS_PACK_PATH" ]] || { echo "HOLD — Business Pack does not exist: $BUSINESS_PACK_PATH"; exit 78; }
+          case "$BUSINESS_PACK_PATH" in
+            business-packs/northern-lakes/*)
+              echo 'HOLD — Northern Lakes production configuration may not be used as the automated commercial fixture.'
+              exit 78
+              ;;
+            business-packs/highway38/*)
+              echo 'HOLD — Highway 38 production configuration may not be used as a commercial customer template.'
+              exit 78
+              ;;
+          esac
+          if [[ "$INSTALL_ENVIRONMENT" != 'sanitized-test' && "$OWNER_ACCOUNT" == *'example.invalid' ]]; then
+            echo 'HOLD — A real customer Owner account is required outside sanitized testing.'
+            exit 78
+          fi
+          if [[ "$INSTALL_ENVIRONMENT" != 'sanitized-test' && -z "$OWNER_AUTHORIZATION_REFERENCE" ]]; then
+            echo 'HOLD — Owner authorization reference is required outside sanitized testing.'
+            exit 78
+          fi
+          if [[ "$OPERATION" =~ ^(RESUME|UPGRADE|ROLLBACK_VERIFY)$ && -z "$MANIFEST_PATH" ]]; then
+            echo "HOLD — $OPERATION requires manifest_path."
+            exit 78
+          fi
+      - name: Run requested installer operation
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/commercial-install-acceptance/run
+          PACKAGE_PATH="core-engine/product/packages/${PRODUCT_PACKAGE}.v1.json"
+          OUTPUT="artifacts/commercial-install-acceptance/run/installation-manifest.json"
+          ARGS=(
+            --operation "$OPERATION"
+            --environment "$INSTALL_ENVIRONMENT"
+            --product-package "$PACKAGE_PATH"
+            --business-pack "$BUSINESS_PACK_PATH"
+            --output "$OUTPUT"
+            --owner "$OWNER_ACCOUNT"
+            --deploying-account "$DEPLOYING_ACCOUNT"
+          )
+          [[ -z "$INSTALLATION_ID" ]] || ARGS+=(--installation-id "$INSTALLATION_ID")
+          [[ -z "$OWNER_AUTHORIZATION_REFERENCE" ]] || ARGS+=(--owner-approval-reference "$OWNER_AUTHORIZATION_REFERENCE")
+          [[ -z "$MANIFEST_PATH" ]] || ARGS+=(--manifest "$MANIFEST_PATH")
+          node core-engine/product/commercial-installer/cli.js "${ARGS[@]}"
+      - name: Record workflow boundary evidence
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p artifacts/commercial-install-acceptance/run
+          cat > artifacts/commercial-install-acceptance/run/workflow-boundaries.json <<EOF_BOUNDARIES
+          {
+            "workflow": "Commercial Install Acceptance",
+            "commit": "${GITHUB_SHA}",
+            "operation": "${OPERATION}",
+            "environment": "${INSTALL_ENVIRONMENT}",
+            "productPackage": "${PRODUCT_PACKAGE}",
+            "productionDeploymentInvoked": false,
+            "northernLakesDeploymentInvoked": false,
+            "googleResourceProvisioningInvoked": false,
+            "externalActionsEnabled": false,
+            "customerPortalReleased": false
+          }
+          EOF_BOUNDARIES
+      - name: Upload installation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-install-acceptance-${{ github.run_id }}
+          path: artifacts/commercial-install-acceptance/run
+          if-no-files-found: error
+          retention-days: 90
