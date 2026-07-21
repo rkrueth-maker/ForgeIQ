@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const cp = require('child_process');
 const root = path.resolve(__dirname, '..');
 const failures = [];
 const checks = [];
@@ -18,6 +19,7 @@ const assistant = read('apps-script/business-office/BusinessOffice_AI_Assistant.
 const client = read('apps-script/business-office/BusinessOffice_AI_Assistant_Client.html');
 const web = read('apps-script/business-office/BusinessOffice_Web.gs');
 const clientManifest = read('apps-script/business-office/BusinessOffice_ClientManifest.gs');
+const engineTest = read('scripts/test-ai-approval-engine.js');
 const manifest = JSON.parse(read('apps-script/business-office/appsscript.json'));
 const deployment = JSON.parse(read('business-packs/highway38/deployment.json'));
 const businessWorkflow = read('.github/workflows/business-office.yml');
@@ -28,6 +30,7 @@ parseScript('AI action engine', actions);
 parseScript('AI assistant', assistant);
 parseScript('Business Office web API', web);
 parseScript('client manifest', clientManifest);
+parseScript('AI approval engine simulation', engineTest);
 const scriptMatches = [...client.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 check('AI client script exists', scriptMatches.length === 1, `found ${scriptMatches.length}`);
 if (scriptMatches[0]) parseScript('AI client', scriptMatches[0][1]);
@@ -77,6 +80,13 @@ check('Unified workflow is production authority', unifiedWorkflow.includes('name
 check('Unified deploy reads pinned project', unifiedDeploy.includes('appsScript.productionProjectId'), 'deploy script does not use pinned project');
 check('Unified deploy compares controlled source', unifiedDeploy.includes('controlled-source-local.json') && unifiedDeploy.includes('controlled-source-remote.json'), 'remote exact-source comparison missing');
 
+const simulation = cp.spawnSync(process.execPath, [path.join(root, 'scripts/test-ai-approval-engine.js')], {
+  cwd: root,
+  encoding: 'utf8',
+  maxBuffer: 10 * 1024 * 1024
+});
+check('AI approval engine runtime simulation passes', simulation.status === 0, `${simulation.stdout || ''}\n${simulation.stderr || ''}`.trim().slice(-5000));
+
 const evidenceDir = path.join(root, 'artifacts', 'ai-approval');
 fs.mkdirSync(evidenceDir, { recursive: true });
 const evidence = {
@@ -84,11 +94,17 @@ const evidence = {
   generatedAt: new Date().toISOString(),
   checks,
   failures,
-  contractHash: crypto.createHash('sha256').update(actions + assistant + client + web + clientManifest).digest('hex')
+  runtimeSimulation: {
+    status: simulation.status === 0 ? 'PASS' : 'FAIL',
+    exitCode: simulation.status,
+    stdoutTail: String(simulation.stdout || '').slice(-4000),
+    stderrTail: String(simulation.stderr || '').slice(-4000)
+  },
+  contractHash: crypto.createHash('sha256').update(actions + assistant + client + web + clientManifest + engineTest).digest('hex')
 };
 fs.writeFileSync(path.join(evidenceDir, 'verification.json'), JSON.stringify(evidence, null, 2) + '\n');
 if (failures.length) {
   console.error(JSON.stringify(evidence, null, 2));
   process.exit(1);
 }
-console.log(`PASS — H38 AI owner approval, hands-free inbox, and single deployment authority verified (${checks.length} checks).`);
+console.log(`PASS — H38 AI owner approval, hands-free inbox, simulated execution controls, and single deployment authority verified (${checks.length} checks).`);
