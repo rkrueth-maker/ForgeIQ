@@ -1,14 +1,20 @@
 var H38_OWNER_RENDER_DASHBOARD=renderDashboard;
 var H38_OWNER_NORMALIZE_BRAND=h38NormalizeBrand;
+var H38_BASE_ROUTE_ALLOWED=h38AppRouteAllowed;
 
 function h38FieldClientRole(){return H38_UNIFIED&&H38_UNIFIED.user&&H38_UNIFIED.user.role||'';}
 function h38FieldClientKnown(role){return['Foreman','Employee','Field Staff'].indexOf(role||h38FieldClientRole())>=0;}
 function h38FieldClientProfile(){
   var role=h38FieldClientRole(),server=EXPERIENCE&&EXPERIENCE.fieldRole||BOOT&&BOOT.fieldRole;
   if(server&&server.role===role)return server;
-  if(role==='Foreman')return{role:role,portalLabel:'Foreman Portal',headline:"Run today's field work.",description:'Coordinate crews, jobs, time, equipment, photos, receipts, and blockers from one place.',canAssignCrew:true,externalActions:'Owner approval required'};
-  return{role:role,portalLabel:role==='Employee'?'Employee Portal':'Field Portal',headline:'What do I need to do today?',description:'See assigned work, job instructions, time, photos, receipts, equipment, and safety notes.',canAssignCrew:false,externalActions:'Internal updates only'};
+  if(role==='Foreman')return{role:role,portalLabel:'Foreman Portal',headline:"Run today's field work.",description:'Coordinate crews, jobs, time, equipment, photos, receipts, and blockers from one place.',canAssignCrew:true,modules:['commandCenter','assignedTasks','calendar','customers','quotes','workOrders','jobs','time','receipts','documents','equipment'],externalActions:'Owner approval required'};
+  return{role:role,portalLabel:role==='Employee'?'Employee Portal':'Field Portal',headline:'What do I need to do today?',description:'See assigned work, job instructions, time, photos, receipts, equipment, and safety notes.',canAssignCrew:false,modules:['commandCenter','assignedTasks','calendar','workOrders','jobs','time','receipts','documents','equipment'],externalActions:'Internal updates only'};
 }
+h38AppRouteAllowed=function(route){
+  if(!h38FieldClientKnown())return H38_BASE_ROUTE_ALLOWED(route);
+  var key=h38AppModuleKeyFromRoute(route),profile=h38FieldClientProfile(),state=h38AppModuleState(key);
+  return profile.modules.indexOf(key)>=0&&(!state||state.enabled!==false);
+};
 function h38NormalizeBrand(){
   H38_OWNER_NORMALIZE_BRAND();
   var role=h38FieldClientRole();if(!h38FieldClientKnown(role))return;
@@ -17,8 +23,7 @@ function h38NormalizeBrand(){
 }
 function h38FieldButton(label,action,primary){return'<button class="btn '+(primary||'')+'" type="button" onclick="'+action+'">'+esc(label)+'</button>';}
 function h38FieldHero(profile,openCount,holdCount){
-  var actions='<button class="btn h38-ai-hero" type="button" onclick="h38OpenOwnerAi()">✦ Ask H38 AI</button>'+
-    h38FieldButton('My Work',"show('bo:assignedTasks')",'primary');
+  var actions='<button class="btn h38-ai-hero" type="button" onclick="h38OpenOwnerAi()">✦ Ask H38 AI</button>'+h38FieldButton('My Work',"show('bo:assignedTasks')",'primary');
   if(profile.canAssignCrew)actions+=h38FieldButton('Assign crew','h38OpenForemanAssign()','')+h38FieldButton('Active jobs',"show('bo:jobs')",'');
   else actions+=h38FieldButton('Log time',"show('bo:time')",'')+h38FieldButton('Upload photo',"show('bo:documents')",'');
   return'<section class="h38-owner-hero h38-field-hero"><div class="h38-owner-hero-main"><div class="ux-eyebrow">'+esc(h38OwnerDaypart())+' · '+esc(h38OneShotDateLabel())+'</div><h1>'+esc(profile.headline)+'</h1><p>'+esc(profile.description)+'</p><div class="h38-owner-hero-actions">'+actions+'</div></div><div class="h38-owner-hero-status"><div><span>Role access</span><strong>'+esc(profile.role)+'</strong></div><div><span>External actions</span><strong>'+esc(profile.externalActions)+'</strong></div><div><span>Open work</span><strong>'+esc(openCount)+' item'+(Number(openCount)===1?'':'s')+'</strong></div><div><span>Blocked</span><strong>'+esc(holdCount)+' item'+(Number(holdCount)===1?'':'s')+'</strong></div></div></section>';
@@ -27,8 +32,7 @@ function h38RenderFieldDashboard(){
   h38NormalizeBrand();
   var profile=h38FieldClientProfile(),ux=H38_UX||{},m=ux.metrics||{},dueToday=uxRows(ux.dueToday),overdue=uxRows(ux.overdue),due=dueToday.concat(overdue).slice(0,16),activity=uxRows(ux.recentActivity).slice(0,10),openCount=EXPERIENCE&&EXPERIENCE.views&&EXPERIENCE.views.activeWork&&EXPERIENCE.views.activeWork.count||0,holdCount=Number(m.blocked)||0;
   document.getElementById('view').innerHTML=
-    h38FieldHero(profile,openCount,holdCount)+
-    h38OwnerAttentionStrip(holdCount)+
+    h38FieldHero(profile,openCount,holdCount)+h38OwnerAttentionStrip(holdCount)+
     '<div class="ux-metrics h38-primary-metrics">'+
       h38RoleMetric('My open work',openCount,'Assigned work still open',"show('bo:assignedTasks')")+
       h38RoleMetric('Due today',m.dueToday||0,'Tasks and job follow-ups due now',"openUxPreset('due-today')")+
