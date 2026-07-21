@@ -1,5 +1,6 @@
 /** H38 AI action engine — plan, preview, owner approval, deterministic execution, and audit. */
 var H38_AI_ACTION_TTL_SECONDS = 900;
+var H38_AI_ACTION_RESULT_TTL_SECONDS = 21600;
 var H38_AI_ACTION_CACHE_PREFIX = 'H38_AI_ACTION_';
 var H38_AI_ACTION_RESULT_PREFIX = 'H38_AI_ACTION_RESULT_';
 
@@ -122,18 +123,17 @@ function boAiConfirmAction_(payload) {
   payload = payload || {};
   const actionToken = String(payload.actionToken || payload.confirmationToken || '').trim();
   boAssert_(actionToken, 'AI action token is required.');
-  const userProperties = PropertiesService.getUserProperties();
+  const cache = CacheService.getUserCache();
   const completedKey = H38_AI_ACTION_RESULT_PREFIX + actionToken;
-  const completed = boAiJson_(userProperties.getProperty(completedKey), null);
+  const completed = boAiJson_(cache.get(completedKey), null);
   if (completed) return Object.assign({}, completed, { duplicatePrevented: true });
 
   const lock = LockService.getUserLock();
   lock.waitLock(10000);
   try {
-    const completedAfterLock = boAiJson_(userProperties.getProperty(completedKey), null);
+    const completedAfterLock = boAiJson_(cache.get(completedKey), null);
     if (completedAfterLock) return Object.assign({}, completedAfterLock, { duplicatePrevented: true });
 
-    const cache = CacheService.getUserCache();
     const raw = cache.get(H38_AI_ACTION_CACHE_PREFIX + actionToken);
     boAssert_(raw, 'This AI action expired. Prepare it again before approving it.');
     const stored = JSON.parse(raw);
@@ -165,7 +165,7 @@ function boAiConfirmAction_(payload) {
       result: boAiActionPublicResult_(stored.actionId, result),
       duplicatePrevented: false
     };
-    userProperties.setProperty(completedKey, JSON.stringify(completedResult));
+    cache.put(completedKey, JSON.stringify(completedResult), H38_AI_ACTION_RESULT_TTL_SECONDS);
     cache.remove(H38_AI_ACTION_CACHE_PREFIX + actionToken);
     boAiRecordEvent_({ type: 'ai_action_execute', module: stored.actionId, outcome: 'approved_and_completed' });
     boProof_('AI ACTION EXECUTE', 'AI Action', actionToken, 'PASS', stored.actionId, owner.Email);
