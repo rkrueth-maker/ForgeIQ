@@ -20,7 +20,7 @@ check('User Access fragments are allowlisted',['Portal_UserAccess_Styles','Porta
 check('visible management controls exist',['Add User','Edit user','Save Role Assignment','Google account email','Account status'].every(text=>client.includes(text)));
 check('Foreman and Employee guidance is visible',client.includes("Foreman:'Can coordinate assigned field work")&&client.includes("Employee:'Can see assigned work"));
 check('server protects owner and duplicate email',server.includes('The signed-in Owner cannot be deactivated')&&server.includes('That Google account is already authorized'));
-check('restricted access is role derived',server.includes('h38PortalUserAccessDefaultsForRole_')&&server.includes("role.name==='Owner'")&&server.includes("role.name==='Administrator'"));
+check('restricted access is role derived',server.includes('h38PortalUserAccessDefaultsForRole_')&&server.includes("roleName==='Owner'")&&server.includes("roleName==='Administrator'"));
 check('no invitation or external action occurs',client.includes('does not send an invitation')&&server.includes('externalActionsOccurred:false'));
 try{new Function(client);check('User Access client parses',true);}catch(error){check('User Access client parses',false,error.message);}
 try{new vm.Script(server);check('User Access server parses',true);}catch(error){check('User Access server parses',false,error.message);}
