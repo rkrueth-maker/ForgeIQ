@@ -45,6 +45,8 @@ check('AI verifies action integrity', has(actions, 'boAiActionDigest_'), 'digest
 check('AI records owner approval', has(actions, "boApproveSelectedRecord('AI Action'"), 'approval audit missing');
 check('AI records PASS and FAIL proof', has(actions, "'PASS'") && has(actions, "'FAIL'"), 'proof outcomes missing');
 check('AI forbids system mutations', ['source code','deploy','permission','credential','move money','fund payroll','file tax'].every(term => actions.includes(term)), 'protected boundary incomplete');
+check('AI action result cache expires', has(actions, 'H38_AI_ACTION_RESULT_TTL_SECONDS = 21600') && has(actions, 'cache.put(completedKey'), 'expiring result cache missing');
+check('AI action engine leaves no permanent user properties', !has(actions, 'PropertiesService.getUserProperties'), 'permanent action completion state found');
 check('Email compatibility route uses approval engine', has(assistant, "boAiPrepareAction_({actionId:'email.send'") && has(assistant, 'boAiConfirmAction_'), 'legacy email route bypasses engine');
 check('Voice client plans commands', has(client, "api('aiCommand'"), 'aiCommand missing');
 check('Voice client confirms actions', has(client, "api('aiConfirmAction'"), 'aiConfirmAction missing');
