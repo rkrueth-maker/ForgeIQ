@@ -70,7 +70,7 @@ check('role-specific dashboards are implemented', ['Administrator','Foreman','Em
 check('owner home exposes AI quote and decision actions', ['Ask H38 AI','Quick quote','Review \''].every(text => ownerHome.includes(text)) && /h38OpenOwnerAi/.test(ownerHome) && /h38OpenOwnerQuickQuote/.test(ownerHome));
 check('owner home has a premium command-center hero', /h38-owner-hero/.test(ownerHome) && /Owner access/.test(ownerHome) && /External actions/.test(ownerHome) && /Make decisions, answer customers/.test(ownerHome));
 check('approved logo is presented at readable sidebar size', /#h38PortalLogo\{width:188px!important;height:141px!important/.test(ownerHomeStyles) && /\.side \.brand:before\{display:none!important\}/.test(ownerHomeStyles));
-check('technical release string is hidden from the visible brand', /release\.textContent='Owner Portal'/.test(ownerHome) && /release\.dataset\.fullRelease/.test(ownerHome));
+check('technical release string is hidden behind role-aware portal branding', /function h38ExpectedPortalBrand\(\)/.test(ownerHome) && /return 'Owner Portal'/.test(ownerHome) && /profile\.portalLabel/.test(ownerHome) && /release\.dataset\.fullRelease/.test(ownerHome));
 check('owner brand remains responsive on smaller screens', /width:98px!important;height:74px!important/.test(ownerHomeStyles) && /@media\(max-width:850px\)/.test(ownerHomeStyles));
 
 check('Foreman and Employee are supported installation roles', [config,platformConfig].every(source => source.includes("'Foreman','Estimator','Employee','Field Staff'")));
@@ -111,7 +111,7 @@ check('activity timeline combines tasks and communications', /workspace\.related
 
 check('purpose-built module views cover boards aging reconciliation review and reports', ['h38BusinessBoard','h38InvoiceAging','h38PaymentReconcile','h38ReviewQueue','h38ReportSummary'].every(name => businessClient.includes(`function ${name}`)));
 check('same records can switch views without duplication', /H38_BO_VIEW_MODES/.test(businessClient) && /h38SetBusinessView/.test(businessClient));
-check('progressive disclosure and instructional empty states are present', /class=\\?['"]disclosure/.test(businessClient) || /disclosure/.test(businessClient) && /h38InstructionalEmpty/.test(businessClient));
+check('progressive disclosure and instructional empty states are present', /class=\?['"]disclosure/.test(businessClient) || /disclosure/.test(businessClient) && /h38InstructionalEmpty/.test(businessClient));
 check('forms preserve local drafts and offline state', /localStorage\.setItem/.test(businessClient) && /Offline · drafts preserved/.test(coreClient) && /Connection restored/.test(coreClient));
 check('three-level safe errors provide retry incident details and technical detail', /Retry/.test(businessClient) && /Open incident details/.test(businessClient) && /<code>/.test(businessClient));
 
@@ -141,4 +141,4 @@ const outDir = path.join(root, 'artifacts', 'unified-app-ux');
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'verification.json'), JSON.stringify(result, null, 2) + '\n');
 console.log(`\nRESULT: ${result.status} (${passes.length} pass, ${failures.length} fail)`);
-process.exit(failures.length ? 1 : 0);
+if (failures.length) process.exit(1);
