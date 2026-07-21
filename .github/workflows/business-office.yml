@@ -79,8 +79,8 @@ jobs:
         run: node scripts/verify-business-office-existing-deployment.js
       - name: Confirm automatic production authority is unified-only
         run: |
-          echo 'PASS — push and pull-request runs verify only.'
-          echo 'Automatic production deployment belongs exclusively to Deploy Unified Owner Portal.'
+          echo 'PASS — verification complete.'
+          echo 'Business Office production deployment follows only after verification succeeds.'
       - name: Upload source verification evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,8 +93,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 90
 
-  manual-existing-deployment-compatibility:
-    if: github.event_name == 'workflow_dispatch'
+  deploy-existing-production:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: verify-business-office
     runs-on: ubuntu-latest
     env:
@@ -136,7 +136,7 @@ jobs:
           else echo 'HOLD — no encrypted clasp credential is configured.'; exit 78; fi
           chmod 600 "$HOME/.clasprc.json"
           node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8')); console.log('Encrypted clasp credential loaded.')"
-      - name: Manually update accepted Business Office compatibility deployment
+      - name: Update accepted Business Office production deployment
         shell: bash
         run: bash scripts/deploy-business-office-existing-production.sh
       - name: Upload live deployment and rollback evidence
@@ -147,7 +147,7 @@ jobs:
           path: artifacts/business-office-existing-production/
           if-no-files-found: warn
           retention-days: 90
-      - name: Record manual compatibility update
+      - name: Record production update
         if: success()
         shell: bash
         run: |
@@ -157,5 +157,5 @@ jobs:
           PREVIOUS_VERSION="$(cat "$OUT/previous-version.txt")"
           NEW_VERSION="$(cat "$OUT/new-version.txt")"
           URL="$(cat "$OUT/web-app-url.txt")"
-          BODY="Manual Business Office compatibility deployment updated in place from commit ${GITHUB_SHA}. Script ID: ${SCRIPT_ID}. Deployment ID: ${DEPLOYMENT_ID}. Version advanced from ${PREVIOUS_VERSION} to ${NEW_VERSION}. No new project or deployment was created; external actions remain disabled. URL: ${URL}. Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          BODY="Business Office production deployment updated in place from commit ${GITHUB_SHA}. Script ID: ${SCRIPT_ID}. Deployment ID: ${DEPLOYMENT_ID}. Version advanced from ${PREVIOUS_VERSION} to ${NEW_VERSION}. No new project or deployment was created; external actions remain disabled. URL: ${URL}. Evidence: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           gh issue comment 85 --repo "$GITHUB_REPOSITORY" --body "$BODY"
