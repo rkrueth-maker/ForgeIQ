@@ -30,6 +30,8 @@ const viewsClient = read('apps-script/core-engine/owner-portal-next/Portal_Appli
 const businessClient = read('apps-script/core-engine/owner-portal-next/Portal_Application_Client_Business.html');
 const safeClient = read('apps-script/core-engine/owner-portal-next/Portal_Application_Client_SafeActions.html');
 const styles = read('apps-script/core-engine/owner-portal-next/Portal_Application_UX_Styles.html');
+const ownerHome = read('apps-script/core-engine/owner-portal-next/Portal_OneShot_Client.html');
+const ownerHomeStyles = read('apps-script/core-engine/owner-portal-next/Portal_OneShot_UX_Styles.html');
 
 const fragments = [
   'Portal_Application_UX_Styles',
@@ -46,9 +48,14 @@ check('seven adaptive spaces are defined', spaces.every(label => manifest.includ
 check('disabled and unauthorized modules disappear', /filter\(function\(item\)\{return h38PortalUnifiedCanViewItem_/.test(manifest) && /state\.enabled&&state\.canView/.test(coreClient));
 check('role-aware application startup is installed', ['h38PortalApplicationBootstrap','h38PortalApplicationClientSchema','h38PortalApplicationControlCenter'].every(name => coreClient.includes(`call('${name}')`)));
 
-check('Today is the daily default', /defaultModule\s*=\s*access\.ownerMode\s*\?\s*'today'/.test(manifest) && /What needs attention now\?/.test(viewsClient));
+check('Today is the daily default', /defaultModule\s*=\s*access\.ownerMode\s*\?\s*'today'/.test(manifest) && /What needs attention now\?/.test(ownerHome));
 check('Today includes decisions deadlines health money exceptions and changes', ['Needs your decision','Business health','Exceptions','Recently changed','Cash expected','Open errors'].every(text => viewsClient.includes(text)));
 check('role-specific dashboards are implemented', ['Administrator','Staff','Viewer','Bookkeeper','Payroll'].every(role => roleDashboard.includes(`${role}:`)) && /roleDashboard/.test(roleDashboard));
+check('owner home exposes AI quote and decision actions', ['Ask H38 AI','Quick quote','Review \''].every(text => ownerHome.includes(text)) && /h38OpenOwnerAi/.test(ownerHome) && /h38OpenOwnerQuickQuote/.test(ownerHome));
+check('owner home has a premium command-center hero', /h38-owner-hero/.test(ownerHome) && /Owner access/.test(ownerHome) && /External actions/.test(ownerHome) && /Make decisions, answer customers/.test(ownerHome));
+check('approved logo is presented at readable sidebar size', /#h38PortalLogo\{width:188px!important;height:141px!important/.test(ownerHomeStyles) && /\.side \.brand:before\{display:none!important\}/.test(ownerHomeStyles));
+check('technical release string is hidden from the visible brand', /release\.textContent='Owner Portal'/.test(ownerHome) && /release\.dataset\.fullRelease/.test(ownerHome));
+check('owner brand remains responsive on smaller screens', /width:98px!important;height:74px!important/.test(ownerHomeStyles) && /@media\(max-width:850px\)/.test(ownerHomeStyles));
 
 check('command launcher supports keyboard and grouped record search', /Ctrl K/.test(coreClient) && /event\.key\.toLowerCase\(\)===['"]k['"]/.test(coreClient) && /h38PortalBusinessSearch/.test(coreClient) && /Search customers, jobs, invoices, files, tasks/.test(coreClient));
 check('mobile daily navigation is installed', /mobile-bottom-nav/.test(styles) && ['Today','Search','Add','Approvals','More'].every(text => coreClient.includes(`>${text}<`)));
@@ -96,6 +103,7 @@ parses('Portal_Application_Client_Core', coreClient);
 parses('Portal_Application_Client_Views', viewsClient);
 parses('Portal_Application_Client_Business', businessClient);
 parses('Portal_Application_Client_SafeActions', safeClient);
+parses('Portal_OneShot_Client', ownerHome);
 
 const result = { status: failures.length ? 'HOLD' : 'PASS', passes, failures, sourceCommit: process.env.GITHUB_SHA || '' };
 const outDir = path.join(root, 'artifacts', 'unified-app-ux');
