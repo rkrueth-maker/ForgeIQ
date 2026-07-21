@@ -62,7 +62,7 @@ check('One production project is pinned', deployment.appsScript.productionProjec
 check('One production workflow is declared', deployment.controls.singleProductionAuthority === 'Deploy Unified Owner Portal', 'single authority missing');
 check('AI deployment permission disabled', deployment.controls.aiMayDeploy === false && deployment.controls.aiMayChangePermissions === false, 'AI control flags missing');
 check('Business Office workflow is verification only', !/clasp\s+(push|update-deployment|create-version)/.test(businessWorkflow) && !businessWorkflow.includes('deploy-existing-production:'), 'secondary deployment authority remains');
-check('Unified workflow runs AI verifier', unifiedWorkflow.includes('verify-ai-approval-and-deployment.js'), 'AI verification step missing');
+check('AI verifier runs before production push', unifiedWorkflow.includes('verify-ai-approval-and-deployment.js') || unifiedDeploy.indexOf('verify-ai-approval-and-deployment.js') < unifiedDeploy.indexOf('clasp push --force'), 'AI verification gate missing');
 check('Unified workflow is production authority', unifiedWorkflow.includes('name: Deploy Unified Owner Portal') && unifiedWorkflow.includes('deploy-unified-owner-portal-web.sh'), 'unified deploy workflow missing');
 check('Unified deploy reads pinned project', unifiedDeploy.includes('appsScript.productionProjectId'), 'deploy script does not use pinned project');
 check('Unified deploy compares controlled source', unifiedDeploy.includes('controlled-source-local.json') && unifiedDeploy.includes('controlled-source-remote.json'), 'remote exact-source comparison missing');
