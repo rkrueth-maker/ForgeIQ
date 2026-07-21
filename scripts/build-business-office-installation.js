@@ -1,48 +1,62 @@
 #!/usr/bin/env node
 'use strict';
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-
-const root = path.resolve(__dirname, '..');
-const args = process.argv.slice(2);
-function arg(name, fallback='') { const i=args.indexOf(name); return i>=0 ? args[i+1] : fallback; }
-const packName = arg('--pack');
-const mode = arg('--mode','standalone');
-const output = path.resolve(root, arg('--out', `dist/business-office/${packName || 'installation'}`));
-if (!packName) throw new Error('--pack is required.');
-if (!['standalone','combined'].includes(mode)) throw new Error('--mode must be standalone or combined.');
-const packPath = path.join(root,'business-packs',packName,'business-office.config.json');
-if (!fs.existsSync(packPath)) throw new Error(`Business pack not found: ${packPath}`);
-const pack = JSON.parse(fs.readFileSync(packPath,'utf8'));
-for (const required of ['installationId','business','branding','resources']) if (!pack[required]) throw new Error(`Business pack missing ${required}.`);
-if (!pack.business.id || !pack.branding.businessName || !pack.resources.propertyKeys) throw new Error('Business pack is incomplete.');
-
-const sources = [
-  ['packages/business-office-core/apps-script/BusinessOffice_Config.gs','BusinessOffice_Config.gs'],
-  ['packages/business-office-core/apps-script/BusinessOffice_Core.gs','BusinessOffice_Core.gs'],
-  ['packages/business-office-core/apps-script/BusinessOffice_Dashboard.gs','BusinessOffice_Dashboard.gs'],
-  ['packages/business-office-core/apps-script/BusinessOffice_Workflows.gs','BusinessOffice_Workflows.gs'],
-  ['packages/authentication/apps-script/BusinessOffice_Auth.gs','BusinessOffice_Auth.gs'],
-  ['packages/document-intake/apps-script/BusinessOffice_DocumentsPDF.gs','BusinessOffice_DocumentsPDF.gs'],
-  ['packages/accounting/apps-script/BusinessOffice_Accounting.gs','BusinessOffice_Accounting.gs'],
-  ['packages/payroll-preparation/apps-script/BusinessOffice_PayrollTax.gs','BusinessOffice_PayrollTax.gs'],
-  ['packages/shared-ui/BusinessOffice_Index.html','BusinessOffice_Index.html'],
-  ['packages/shared-ui/BusinessOffice_Modular_Suite.html','BusinessOffice_Modular_Suite.html'],
-  ['apps/business-office/BusinessOffice_ModuleRegistry.gs','BusinessOffice_ModuleRegistry.gs'],
-  ['apps/business-office/BusinessOffice_Web.gs','BusinessOffice_Web.gs'],
-  ['apps/business-office/BusinessOffice_Installer.gs','BusinessOffice_Installer.gs'],
-  ['apps/business-office/BusinessOffice_Test.gs','BusinessOffice_Test.gs'],
-  ['apps/business-office/appsscript.json','appsscript.json']
+const fs=require('fs');
+const path=require('path');
+const crypto=require('crypto');
+const root=path.resolve(__dirname,'..');
+const args=process.argv.slice(2);
+function arg(name,fallback=''){const i=args.indexOf(name);return i>=0?args[i+1]:fallback;}
+const packName=arg('--pack');
+const mode=arg('--mode','standalone');
+const output=path.resolve(root,arg('--out',`dist/business-office/${packName||'installation'}`));
+if(!packName)throw new Error('--pack is required.');
+if(!['standalone','combined'].includes(mode))throw new Error('--mode must be standalone or combined.');
+const packPath=path.join(root,'business-packs',packName,'business-office.config.json');
+if(!fs.existsSync(packPath))throw new Error(`Business pack not found: ${packPath}`);
+const pack=JSON.parse(fs.readFileSync(packPath,'utf8'));
+for(const required of ['installationId','business','branding','resources'])if(!pack[required])throw new Error(`Business pack missing ${required}.`);
+if(!pack.business.id||!pack.branding.businessName||!pack.resources.propertyKeys)throw new Error('Business pack is incomplete.');
+if(!pack.social||pack.social.externalActionsEnabled!==false||pack.social.automaticPublishingEnabled!==false||pack.social.bulkPublishingEnabled!==false)throw new Error('Business pack social boundaries must default to disabled.');
+if(!pack.modules||pack.modules.equipment!==true)throw new Error('Business pack must explicitly enable Equipment & Asset Management.');
+const sources=[
+ ['packages/business-office-core/apps-script/BusinessOffice_Config.gs','BusinessOffice_Config.gs'],
+ ['packages/business-office-core/apps-script/BusinessOffice_Core.gs','BusinessOffice_Core.gs'],
+ ['packages/business-office-core/apps-script/BusinessOffice_Dashboard.gs','BusinessOffice_Dashboard.gs'],
+ ['packages/business-office-core/apps-script/BusinessOffice_Workflows.gs','BusinessOffice_Workflows.gs'],
+ ['packages/authentication/apps-script/BusinessOffice_Auth.gs','BusinessOffice_Auth.gs'],
+ ['packages/business-office-control-plane/apps-script/BusinessOffice_ControlRules.gs','BusinessOffice_ControlRules.gs'],
+ ['packages/business-office-control-plane/apps-script/BusinessOffice_EquipmentRules.gs','BusinessOffice_EquipmentRules.gs'],
+ ['packages/business-office-control-plane/apps-script/BusinessOffice_TaskCore.gs','BusinessOffice_TaskCore.gs'],
+ ['packages/business-office-control-plane/apps-script/BusinessOffice_ControlCore.gs','BusinessOffice_ControlCore.gs'],
+ ['packages/business-office-control-plane/apps-script/BusinessOffice_EquipmentCore.gs','BusinessOffice_EquipmentCore.gs'],
+ ['packages/business-office-control-plane/apps-script/BusinessOffice_ControlLive.gs','BusinessOffice_ControlLive.gs'],
+ ['packages/document-intake/apps-script/BusinessOffice_DocumentsPDF.gs','BusinessOffice_DocumentsPDF.gs'],
+ ['packages/accounting/apps-script/BusinessOffice_Accounting.gs','BusinessOffice_Accounting.gs'],
+ ['packages/payroll-preparation/apps-script/BusinessOffice_PayrollTax.gs','BusinessOffice_PayrollTax.gs'],
+ ['packages/shared-ui/BusinessOffice_Index.html','BusinessOffice_Index.html'],
+ ['packages/shared-ui/BusinessOffice_Modular_Suite.html','BusinessOffice_Modular_Suite.html'],
+ ['packages/shared-ui/BusinessOffice_ControlPlane.html','BusinessOffice_ControlPlane.html'],
+ ['packages/shared-ui/BusinessOffice_ControlPlane_Routes.html','BusinessOffice_ControlPlane_Routes.html'],
+ ['packages/shared-ui/BusinessOffice_Equipment.html','BusinessOffice_Equipment.html'],
+ ['apps/business-office/BusinessOffice_ModuleRegistry.gs','BusinessOffice_ModuleRegistry.gs'],
+ ['apps/business-office/BusinessOffice_Web.gs','BusinessOffice_Web.gs'],
+ ['apps/business-office/BusinessOffice_Installer.gs','BusinessOffice_Installer.gs'],
+ ['apps/business-office/BusinessOffice_Test.gs','BusinessOffice_Test.gs'],
+ ['apps/business-office/appsscript.json','appsscript.json']
 ];
 fs.rmSync(output,{recursive:true,force:true});
 fs.mkdirSync(output,{recursive:true});
-for (const [source,dest] of sources) fs.copyFileSync(path.join(root,source),path.join(output,dest));
-const configSource = `/** Generated installation business pack. Do not edit this file directly. */\nconst BO_BUSINESS_PACK = Object.freeze(${JSON.stringify(pack,null,2)});\n`;
+for(const [source,dest] of sources)fs.copyFileSync(path.join(root,source),path.join(output,dest));
+const configSource=`/** Generated installation business pack. Do not edit this file directly. */\nconst BO_BUSINESS_PACK = Object.freeze(${JSON.stringify(pack,null,2)});\n`;
 fs.writeFileSync(path.join(output,'BusinessOffice_InstallationConfig.gs'),configSource);
-const manifest={installationId:pack.installationId,businessId:pack.business.id,businessName:pack.branding.businessName,mode,generatedAt:new Date().toISOString(),sourceFiles:sources.map(x=>x[0]),configurationHash:crypto.createHash('sha256').update(JSON.stringify(pack)).digest('hex')};
+const apps=['quote-builder','customer-manager','work-manager','field-operations','equipment-asset-manager','document-center','invoice-payment-tracker','expense-receipt-manager','field-proof','social-control','customer-portal','request-intake-manager','price-book-template-manager','approval-center','vendor-purchase-manager','maintenance-manager','shop-flow-manager','business-system'];
+const manifest={installationId:pack.installationId,businessId:pack.business.id,businessName:pack.branding.businessName,mode,generatedAt:new Date().toISOString(),sourceFiles:sources.map(x=>x[0]),configurationHash:crypto.createHash('sha256').update(JSON.stringify(pack)).digest('hex'),apps,externalActionsEnabled:false,socialPublishingEnabled:false,equipmentAssetManagement:true};
 fs.writeFileSync(path.join(output,'installation-manifest.json'),JSON.stringify(manifest,null,2)+'\n');
-if (mode==='combined') fs.writeFileSync(path.join(output,'combined-deployment.json'),JSON.stringify({ownerPortalUrl:pack.website?.ownerPortalUrl||'',publicWebsiteUrl:pack.website?.publicUrl||'',businessOfficeEmbedded:true},null,2)+'\n');
+if(mode==='combined')fs.writeFileSync(path.join(output,'combined-deployment.json'),JSON.stringify({ownerPortalUrl:pack.website?.ownerPortalUrl||'',publicWebsiteUrl:pack.website?.publicUrl||'',businessOfficeEmbedded:true},null,2)+'\n');
 const generated=fs.readdirSync(output).filter(name=>/\.(?:gs|html|json)$/.test(name)).map(name=>fs.readFileSync(path.join(output,name),'utf8')).join('\n');
-if (packName==='template-business' && /Highway\s*38|rkrueth|highway-38-solutions|H38_BUSINESS_OFFICE|AKfyc/i.test(generated)) throw new Error('Template installation contains Highway 38 leakage.');
+if(packName==='template-business'&&/Highway\s*38|rkrueth|highway-38-solutions|H38_BUSINESS_OFFICE|AKfyc/i.test(generated))throw new Error('Template installation contains Highway 38 leakage.');
+for(const required of ['BusinessOffice_ControlRules.gs','BusinessOffice_EquipmentRules.gs','BusinessOffice_TaskCore.gs','BusinessOffice_ControlCore.gs','BusinessOffice_EquipmentCore.gs','BusinessOffice_ControlLive.gs','BusinessOffice_ControlPlane.html','BusinessOffice_ControlPlane_Routes.html','BusinessOffice_Equipment.html'])if(!fs.existsSync(path.join(output,required)))throw new Error(`Generated installation is missing ${required}.`);
+if(!generated.includes("key:'field-operations'")||!generated.includes("key:'social-control'")||!generated.includes("key:'equipment-asset-manager'"))throw new Error('Generated installation is missing Field Operations, Equipment & Asset Manager, or Social Control.');
+if(!generated.includes('External social publishing is locked.'))throw new Error('Generated installation is missing the social publishing hold.');
+if(!generated.includes('BO Equipment Events')||!generated.includes('Equipment Checkout Photo')||!generated.includes('Assign / check out'))throw new Error('Generated installation is missing equipment schema, proof, or cellphone controls.');
 console.log(JSON.stringify(manifest,null,2));

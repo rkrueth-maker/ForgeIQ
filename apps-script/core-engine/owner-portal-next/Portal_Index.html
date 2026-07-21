@@ -11,6 +11,7 @@
   <style><?!= h38PortalRawInclude_('Portal_Application_UX_Styles'); ?></style>
   <style><?!= h38PortalRawInclude_('Portal_OneShot_UX_Styles'); ?></style>
   <style><?!= h38PortalRawInclude_('Portal_Product_Unification_Styles'); ?></style>
+  <style><?!= h38PortalRawInclude_('Portal_ControlPlane_Styles'); ?></style>
   <style>.unified-package{display:block;margin-top:4px;color:#d8e6f2;font-size:.72rem;font-weight:600}</style>
 </head>
 <body>
@@ -44,6 +45,9 @@ window.H38_QB_ADDON_ENABLED=<?!= (typeof boPackValue_ === 'function' && boPackVa
 <?!= h38PortalRawInclude_('Portal_ProductApps_Client'); ?>
 <?!= h38PortalRawInclude_('Portal_QuoteBuilder_Addon_Client'); ?>
 <?!= h38PortalRawInclude_('Portal_QuoteBuilder_QuickCapture_Client'); ?>
+<?!= h38PortalRawInclude_('Portal_ControlPlane_Client'); ?>
+<?!= h38PortalRawInclude_('Portal_ControlPlane_Live_Client'); ?>
+<?!= h38PortalRawInclude_('Portal_Equipment_Client'); ?>
 <?!= h38PortalRawInclude_('Portal_UX_Client_Boot'); ?>
 </script>
 </body>

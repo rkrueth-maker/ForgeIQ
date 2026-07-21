@@ -54,7 +54,7 @@ const requiredFunctions=['boGetBusinessPack_','boPackPropertyKey_','boGetCurrent
 for(const fn of requiredFunctions) assert(`function ${fn}`,new RegExp(`function\\s+${fn.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\s*\\(`).test(allSource));
 assert('Highway 38 live acceptance is outside reusable core',!allSource.includes('function boRunLiveAcceptance(')&&/function\s+boRunLiveAcceptance\s*\(/.test(h38Acceptance));
 
-assert('core resolves storage through business pack',allSource.includes('boPackPropertyKey_')&&allSource.includes("SPREADSHEET_PROPERTY: 'spreadsheetId'"));
+assert('core resolves storage through business pack',allSource.includes('boPackPropertyKey_')&&/SPREADSHEET_PROPERTY\s*:\s*['"]spreadsheetId['"]/.test(allSource));
 assert('core has no live Highway 38 resource defaults',!/(1kDDKWx9|1Vq8UjAz|11ak4QZ7|1Jn2vW5g|1rjl_m8u)/.test(allSource));
 assert('Highway 38 pack retains Highway 38 property names',h38Pack.storage.propertyKeys.spreadsheetId==='H38_BUSINESS_OFFICE_SPREADSHEET_ID');
 assert('template pack uses neutral property names',templatePack.storage.propertyKeys.spreadsheetId==='BUSINESS_OFFICE_SPREADSHEET_ID');
