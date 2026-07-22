@@ -11,11 +11,14 @@ const required=['apps-script/business-office/BusinessOffice_ModuleRegistry.gs','
 required.forEach(file=>check(`required ${file}`,exists(file)));
 const productionRegistry=read(required[0]),reusableRegistry=read(required[1]),productionClient=read(required[2]),reusableClient=read(required[3]),productionWeb=read(required[4]),productionClientManifest=read(required[5]),reusableWeb=read(required[6]);
 const keys=text=>[...text.matchAll(/key:'([^']+)'/g)].map(match=>match[1]);
-const appKeys=keys(productionRegistry),reusableKeys=keys(reusableRegistry);
 const expected=['quote-builder','customer-manager','work-manager','field-operations','equipment-asset-manager','document-center','invoice-payment-tracker','expense-receipt-manager','field-proof','social-control','customer-portal','request-intake-manager','price-book-template-manager','approval-center','vendor-purchase-manager','maintenance-manager','shop-flow-manager','business-system'];
+const productPackKeys=['h38-core','sales-customer','operations','finance-office','growth','equipment-maintenance','shop-flow-manufacturing','customer-portal-advanced','advanced-purchasing','advanced-financial-controls'];
+const productionAllKeys=keys(productionRegistry),reusableAllKeys=keys(reusableRegistry);
+const appKeys=productionAllKeys.filter(key=>expected.includes(key)),reusableKeys=reusableAllKeys.filter(key=>expected.includes(key));
 const sharedMenu=['Business Apps','Today','Customers','Work','Documents','Money','Approvals','Reports','Setup'];
 check('all eighteen focused products are registered',expected.every(key=>appKeys.includes(key))&&appKeys.length===18,JSON.stringify(appKeys));
-check('branded and reusable registries expose identical app keys',JSON.stringify(appKeys)===JSON.stringify(reusableKeys));
+check('branded and reusable registries expose identical legacy app keys',JSON.stringify(appKeys)===JSON.stringify(reusableKeys));
+check('new H38 pack catalog is additive to legacy products',productPackKeys.every(key=>productionAllKeys.includes(key))&&productionRegistry.includes('function boGetProductPackCatalog_()')&&productionRegistry.includes('function boGetLegacyProductPackAliasMap_()'));
 check('reusable registry remains white-label',!/Highway\s*38|H38_|rkrueth|highway-38-solutions/i.test(reusableRegistry));
 check('production registry carries Highway 38 product branding',/Highway 38 Quote Builder/.test(productionRegistry)&&/Highway 38 Business System/.test(productionRegistry));
 check('production and reusable clients expose the same focused launcher contract',['Your Business Apps','openBusinessApp','bo-app-workspace','Standalone view'].every(marker=>productionClient.includes(marker)&&reusableClient.includes(marker)));
@@ -39,4 +42,4 @@ check('Field Operations is reusable and standalone-capable',productionRegistry.i
 check('Equipment Asset Manager is reusable and standalone-capable',productionRegistry.includes("key:'equipment-asset-manager'")&&reusableRegistry.includes("key:'equipment-asset-manager'")&&productionRegistry.includes("name:'Highway 38 Equipment & Asset Manager'")&&reusableRegistry.includes("name:'Equipment & Asset Manager'")&&productionRegistry.includes("modules:['equipment','jobs','assignedTasks','employees','documents','expenses','vendors']"));
 check('Social Control is reusable and owner-approval controlled',productionRegistry.includes("key:'social-control'")&&reusableRegistry.includes("key:'social-control'")&&productionRegistry.includes("modules:['social','documents','approvals','reports']"));
 if(failures.length){console.error(JSON.stringify({status:'FAIL',failures},null,2));process.exit(1);}
-console.log(JSON.stringify({status:'PASS',apps:appKeys.length,sharedMenuItems:sharedMenu.length,architecture:'app-first-shared-office-with-focused-menus',standaloneConfiguration:'BO_ENABLED_APPS',whiteLabelReusableSource:true,externalActionsAutomatic:false,controlledClientManifest:true},null,2));
+console.log(JSON.stringify({status:'PASS',apps:appKeys.length,productPacks:productPackKeys.length,sharedMenuItems:sharedMenu.length,architecture:'app-first-shared-office-with-additive-pack-catalog',standaloneConfiguration:'BO_ENABLED_APPS',whiteLabelReusableSource:true,externalActionsAutomatic:false,controlledClientManifest:true},null,2));
