@@ -1,5 +1,4 @@
-@import url('contractor-demo-base.css?v=20260722-exact-originals-1');
-.project-grid>.project-card:nth-child(5)::before,.project-grid>.project-card:nth-child(6)::before,.project-grid>.project-card:nth-child(7)::before{content:"";display:block;width:100%;aspect-ratio:369/134;background-repeat:no-repeat;background-position:center;background-size:cover;background-color:#e8ecea;border-bottom:3px solid var(--wf-ink)}
-.project-grid>.project-card:nth-child(5)::before{background-image:url('assets/demo-workthroughs/deck-pair.jpg?v=20260722-exact-originals-1')}
-.project-grid>.project-card:nth-child(6)::before{background-image:url('assets/demo-workthroughs/irrigation-pair.jpg?v=20260722-exact-originals-1')}
-.project-grid>.project-card:nth-child(7)::before{background-image:url('assets/demo-workthroughs/kitchen-pair.jpg?v=20260722-exact-originals-1')}
+@import url('contractor-demo-base.css?v=20260722-exact-originals-2');
+.project-visual.project-pair{grid-template-columns:1fr;gap:0}
+.project-visual.project-pair figure{width:100%}
+.project-visual.project-pair img{width:100%;height:auto;aspect-ratio:369/134;object-fit:cover}
