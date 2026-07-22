@@ -81,13 +81,13 @@ function server(){return http.createServer((req,res)=>{
 
     const page=await browser.newPage({viewport:{width:390,height:844}});
     await page.goto(`${base}/index.html`,{waitUntil:'networkidle'});
-    const logo=page.locator('.site-header .brand img,.site-header .site-brand img,.site-nav img.brand-logo').first();
+    const logo=page.locator('.pi-brand img,.site-header .brand img,.site-header .site-brand img,.site-nav img.brand-logo').first();
     if(!await logo.count())fail('approved logo visible in primary navigation');
     else{
       const src=await logo.getAttribute('src'),alt=await logo.getAttribute('alt');
       if(src!==approvedLogo.public_reference||alt!==approvedLogo.alt_text)fail('approved logo contract',`${src} | ${alt}`);else pass('manifest-controlled approved logo, cache key, and alt text are visible');
     }
-    const menu=page.locator('.menu,.menu-button,.eco-menu,.nav-toggle').first();
+    const menu=page.locator('.pi-menu,.menu,.menu-button,.eco-menu,.nav-toggle').first();
     if(await menu.count()){await menu.click();const expanded=await menu.getAttribute('aria-expanded');if(expanded!=='true')fail('mobile menu opens');else pass('mobile menu opens');}
 
     await page.goto(`${base}/products.html`,{waitUntil:'networkidle'});
