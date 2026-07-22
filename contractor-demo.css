@@ -1,4 +1,7 @@
-@import url('contractor-demo-base.css?v=20260722-exact-originals-2');
-.project-visual.project-pair{grid-template-columns:1fr;gap:0}
-.project-visual.project-pair figure{width:100%}
-.project-visual.project-pair img{width:100%;height:auto;aspect-ratio:369/134;object-fit:cover}
+@import url('contractor-demo-base.css?v=20260722-first-render-final');
+.project-visual.project-pair{grid-template-columns:1fr;gap:0;position:relative}
+.project-visual.project-pair figure{width:100%;position:relative}
+.project-visual.project-pair figure:before,.project-visual.project-pair figure:after{position:absolute;top:12px;z-index:2;padding:7px 10px;border-radius:999px;background:rgba(11,31,52,.9);color:#fff;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+.project-visual.project-pair figure:before{content:'Before';left:12px}
+.project-visual.project-pair figure:after{content:'After';left:calc(50% + 12px)}
+.project-visual.project-pair img{display:block;width:100%;height:auto;aspect-ratio:369/134;object-fit:cover}
