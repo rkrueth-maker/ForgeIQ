@@ -1,18 +1,18 @@
 window.H38ContractorDemo = Object.freeze({
-  version: "2026.07.22.3",
+  version: "2026.07.22.4",
   updated: "July 22, 2026",
   region: "Deer River / Grand Rapids, Minnesota",
   notice: "Hypothetical contractor demonstration — not a real customer, accepted contract, or completed project. Regional benchmark pricing requires field and supplier verification.",
   imageUrl(id) {
     const images = {
-      "1QqR5oj3Nw8sjykCnu7Vp5hh6VDIJ6GS9": "assets/contractor-demo/flower-before.svg",
-      "1BIXaFXIVK9FUEyWRSzQgM7CiH_tgk405": "assets/contractor-demo/flower-after.svg",
-      "1MkSHG4k734T7dmhOmy5JsKFUJyoXW8Dz": "assets/contractor-demo/driveway-before.svg",
-      "11fGOY_PJxwvgQm_uMwISvF98XrSXfJK0": "assets/contractor-demo/driveway-after.svg",
-      "12YDZ4GVNUnF0gRWuBqVxTAgzG8tiY6z3": "assets/contractor-demo/pond-before.svg",
-      "18d2FE5VGjM_q62KKTq12w6rsQ0otdUfk": "assets/contractor-demo/pond-after.svg",
-      "1DZ55aulS2fzUrJsy1BsibrzzwaiZ_lv5": "assets/contractor-demo/lot-before.svg",
-      "1JU1RbFotwLziQJ5SJsEWgwE2lterUSh9": "assets/contractor-demo/lot-after.svg"
+      "1QqR5oj3Nw8sjykCnu7Vp5hh6VDIJ6GS9": "assets/contractor-demo/flower-before.png?v=20260722-exact",
+      "1BIXaFXIVK9FUEyWRSzQgM7CiH_tgk405": "assets/contractor-demo/flower-after.png?v=20260722-exact",
+      "1MkSHG4k734T7dmhOmy5JsKFUJyoXW8Dz": "assets/contractor-demo/driveway-before.jpg?v=20260722-exact",
+      "11fGOY_PJxwvgQm_uMwISvF98XrSXfJK0": "assets/contractor-demo/driveway-after.jpg?v=20260722-exact",
+      "12YDZ4GVNUnF0gRWuBqVxTAgzG8tiY6z3": "assets/contractor-demo/pond-before.jpg?v=20260722-exact",
+      "18d2FE5VGjM_q62KKTq12w6rsQ0otdUfk": "assets/contractor-demo/pond-after.jpg?v=20260722-exact",
+      "1DZ55aulS2fzUrJsy1BsibrzzwaiZ_lv5": "assets/contractor-demo/lot-before.jpg?v=20260722-exact",
+      "1JU1RbFotwLziQJ5SJsEWgwE2lterUSh9": "assets/contractor-demo/lot-after.jpg?v=20260722-exact"
     };
     return images[id] || "assets/approved-website-images/10-project-planning-documents.jpg";
   },
