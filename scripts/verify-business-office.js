@@ -12,9 +12,10 @@ const h38PackDir = path.join(root, 'business-packs', 'highway38');
 const h38PackPath = path.join(h38PackDir, 'business-pack.json');
 const h38AcceptancePath = path.join(h38PackDir, 'apps-script', 'BusinessOffice_Highway38Acceptance.gs');
 const templatePackPath = path.join(root, 'business-packs', 'template-business', 'business-pack.json');
+const productArchitectureVerifierPath = path.join(root, 'scripts', 'verify-product-pack-architecture.js');
 const requiredFiles = [
   'BusinessOffice_BusinessPack.gs','BusinessOffice_Config.gs','BusinessOffice_Auth.gs','BusinessOffice_Core.gs','BusinessOffice_Workflows.gs',
-  'BusinessOffice_Accounting.gs','BusinessOffice_PayrollTax.gs','BusinessOffice_DocumentsPDF.gs',
+  'BusinessOffice_Accounting.gs','BusinessOffice_PayrollTax.gs','BusinessOffice_DocumentsPDF.gs','BusinessOffice_ModuleRegistry.gs',
   'BusinessOffice_TaskMessaging_10_Core.gs','BusinessOffice_TaskMessaging_20_SMS.gs','BusinessOffice_TaskMessaging_30_Web.gs',
   'BusinessOffice_Installer.gs','BusinessOffice_Provisioning.gs','BusinessOffice_Web.gs','BusinessOffice_Test.gs','BusinessOffice_PlatformAcceptance.gs',
   'BusinessOffice_Index.html','appsscript.json','README.md'
@@ -39,6 +40,7 @@ assert('Highway 38-specific acceptance exists in Highway 38 pack',fs.existsSync(
 assert('template business pack exists',fs.existsSync(templatePackPath));
 assert('separate intake sync source',fs.existsSync(path.join(syncDir,'BusinessOffice_Sync.gs')));
 assert('separate intake sync manifest',fs.existsSync(path.join(syncDir,'appsscript.json')));
+assert('product architecture verifier exists',fs.existsSync(productArchitectureVerifierPath));
 
 for(const dir of [boDir,syncDir]){
   for(const file of fs.readdirSync(dir).filter(name=>name.endsWith('.gs'))) syntaxCheck(path.join(dir,file),`${dir===syncDir?'sync ':''}${file}`);
@@ -59,6 +61,7 @@ assert('core has no live Highway 38 resource defaults',!/(1kDDKWx9|1Vq8UjAz|11ak
 assert('Highway 38 pack retains Highway 38 property names',h38Pack.storage.propertyKeys.spreadsheetId==='H38_BUSINESS_OFFICE_SPREADSHEET_ID');
 assert('template pack uses neutral property names',templatePack.storage.propertyKeys.spreadsheetId==='BUSINESS_OFFICE_SPREADSHEET_ID');
 assert('catalog requirements are pack driven',allSource.includes('boCatalogRequirements_')&&!/products\.length\s*===\s*15\s*&&\s*bundles\.length\s*===\s*9/.test(read(path.join(boDir,'BusinessOffice_Installer.gs'))));
+assert('new product pack catalog is additive',allSource.includes('boGetProductPackCatalog_')&&allSource.includes('boGetLegacyProductPackAliasMap_')&&allSource.includes('boGetBusinessAppCatalog_'));
 assert('source-preserving intake sync',syncSource.includes('h38BusinessOfficeSyncRequests')&&syncSource.includes('Backend Requests'));
 assert('sync bootstrap',syncSource.includes('h38BusinessOfficeBootstrapSync')&&syncSource.includes('H38_BACKEND_SPREADSHEET_ID'));
 assert('sync trigger installer',syncSource.includes('h38BusinessOfficeInstallSyncTrigger')&&syncSource.includes('everyMinutes(5)'));
@@ -115,6 +118,16 @@ assert('payroll test prepared net',payrollCase.net===900,JSON.stringify(payrollC
 assert('payroll test employer tax estimate',payrollCase.employerTax===72.68,JSON.stringify(payrollCase));
 const journal=[{debit:1070,credit:0},{debit:0,credit:1000},{debit:0,credit:70}].reduce((acc,line)=>({debit:money(acc.debit+line.debit),credit:money(acc.credit+line.credit)}),{debit:0,credit:0});
 assert('double-entry test balances',journal.debit===journal.credit,JSON.stringify(journal));
+
+if(fs.existsSync(productArchitectureVerifierPath)){
+  try{
+    execFileSync(process.execPath,[productArchitectureVerifierPath],{stdio:'inherit'});
+    pass('product architecture static and runtime regression gate');
+  }catch(error){
+    fail('product architecture static and runtime regression gate',error.message);
+  }
+}
+
 const packageJson=JSON.parse(read(path.join(root,'package.json')));
 const businessTest=packageJson.scripts&&packageJson.scripts['test:business-office']||'';
 assert('package test script',businessTest.includes('node scripts/verify-business-office.js')&&businessTest.includes('node scripts/verify-task-messaging.js')&&businessTest.includes('node scripts/verify-task-messaging-hardening.js'));
