@@ -41,15 +41,15 @@ vm.createContext(context);
 vm.runInContext(read('catalog-data.js'), context, { filename: 'catalog-data.js' });
 const catalog = context.window.H38_CATALOG;
 
-check('homepage headline is approved', /<h1>\s*<span>Big problems\.<\/span>\s*<strong>Clear plans\.<\/strong>\s*<\/h1>/i.test(index));
-check('homepage has dominant outcome-first request CTA', /href="start-request\.html"[^>]*>\s*Start a Request/i.test(index) && index.includes('outcome-card'));
-check('homepage has finished examples secondary CTA', /href="sample-library-now\.html"[^>]*>\s*See Examples/i.test(index));
-check('homepage explains no charge on request', /Submitting a request creates no charge\./i.test(index));
-check('homepage uses real responsive navigation and sections', index.includes('class="site-header"') && index.includes('class="menu-button"') && index.includes('class="hero"'));
+check('homepage headline is approved', index.includes('From photos to plans.') && index.includes('profitable work.'));
+check('homepage has dominant project request CTA', /href="start-request\.html"[^>]*>\s*Start a Project/i.test(index));
+check('homepage has examples secondary CTA', /href="sample-library-now\.html"[^>]*>\s*View Examples/i.test(index));
+check('homepage connects capture quote guidance and business records', ['Capture once. Use the information everywhere.','Quote Builder','Job Guide','Business Office'].every(marker => index.includes(marker)));
+check('homepage uses real responsive navigation and sections', index.includes('class="pi-nav"') && index.includes('class="pi-menu"') && index.includes('class="pi-hero"'));
 check('homepage removes raster hotspot shell and swipe notice', !/class="[^"]*hotspot|approved-home__stage|Swipe horizontally/i.test(index));
-check('homepage uses clean approved hero photography without embedded mockup', index.includes('class="hero-copy"') && index.includes('class="hero-media"') && index.includes('assets/approved-website-images/10-project-planning-documents.jpg') && !index.includes('assets/approved-homepage-mockup.png'));
-check('homepage includes the four approved outcome paths', (index.match(/class="outcome-card"/g) || []).length === 4);
-check('homepage promotes the two software products', index.includes('Highway 38 Quote Builder') && index.includes('Highway 38 Business System') && index.includes('Software for small business'));
+check('homepage uses approved local photography without embedded mockup', index.includes('class="pi-hero-copy"') && index.includes('class="pi-hero-media"') && index.includes('assets/approved-website-images/') && !index.includes('assets/approved-homepage-mockup.png'));
+check('homepage includes four approved audience paths', ['Contractors & Builders','Manufacturing & CNC','Robotics & Automation','DIY & Training'].every(marker => index.includes(marker)));
+check('homepage presents scalable platform direction', index.includes('Start small. Scale as you grow.') && index.includes('Teams, locations, reporting'));
 check('prohibited quantitative CNC claim removed', !/(?:25,000\+|25,000\s+(?:CNC\s+)?programs?)/i.test(index));
 check('homepage contains no personal owner attribution', !/Rick\s+Krueth/i.test(index));
 
