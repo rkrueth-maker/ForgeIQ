@@ -7,7 +7,7 @@ function h38AppModuleKeyFromRoute(route){
 }
 function h38AppModuleState(key){return uxRows(H38_APP_MODULE_MANAGER&&H38_APP_MODULE_MANAGER.modules).filter(function(item){return item.key===key;})[0]||null;}
 function h38AppRouteAllowed(route){var state=h38AppModuleState(h38AppModuleKeyFromRoute(route));return !state||state.enabled&&state.canView;}
-function h38AppIcon(group){return {command:'◉',sales:'♟',work:'▣',money:'$',documents:'▤',growth:'↗',control:'⚙'}[group]||'•';}
+function h38AppIcon(group){return {command:'◉',sales:'♟',work:'▣',money:'$',documents:'▤',growth:'↗',office:'⚙'}[group]||'•';}
 
 function h38EnsureApplicationChrome(){
   var top=document.getElementById('ownerTopbar');
@@ -82,7 +82,7 @@ async function show(module){
   if(!h38AppRouteAllowed(module)){
     CURRENT=module;renderNav();
     var state=h38AppModuleState(h38AppModuleKeyFromRoute(module));
-    document.getElementById('view').innerHTML=h38InstructionalEmpty('This module is not available.',state&&!state.enabled?'It is disabled by the installed business configuration. Existing records remain preserved.':'Your role does not have access to this workspace.','Open Module Manager','moduleManager');
+    document.getElementById('view').innerHTML=h38InstructionalEmpty('This module is not available.',state&&!state.enabled?'It is disabled by the installed business configuration. Existing records remain preserved.':'Your role does not have access to this workspace.','Open Apps & Modules','moduleManager');
     return null;
   }
   CURRENT=module;renderNav();document.getElementById('side').classList.remove('open');
