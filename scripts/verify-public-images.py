@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify public website images and the controlled Highway 38 logo."""
+"""Verify locked Highway 38 public image binaries and declared placements."""
 
 from __future__ import annotations
 
@@ -12,52 +12,25 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_PATH = ROOT / "scripts/config/approved-public-assets.json"
-PUBLIC_PAGES = [
-    "index.html", "solutions.html", "how-it-works.html", "sample-library-now.html",
-    "for-contractors.html", "business-systems.html", "pricing.html", "specials.html",
-    "about.html", "contact.html", "faq.html", "proof.html",
-]
+ASSET_MANIFEST_PATH = ROOT / "scripts/config/approved-public-assets.json"
+PLACEMENT_MANIFEST_PATH = ROOT / "scripts/config/approved-public-image-placements.json"
+ROUTE_MANIFEST_PATH = ROOT / "scripts/config/public-website-routes.json"
 IMG_RE = re.compile(r'<img\b[^>]*\bsrc=["\']([^"\']+)["\'][^>]*>', re.I)
 ALT_RE = re.compile(r'\balt=["\']([^"\']*)["\']', re.I)
 CSS_URL_RE = re.compile(r'url\(["\']?([^"\')]+)["\']?\)', re.I)
-LOGO_REF_RE = re.compile(r'assets/highway38-logo\.png(?:\?v=[^"\'\s<>]+)?', re.I)
 IGNORED_PREFIXES = ("http://", "https://", "data:", "mailto:", "tel:", "#")
 MIN_IMAGE_BYTES = 128
 MIN_LOGO_BYTES = 1_000_000
 MIN_LOGO_DIMENSION = 1000
 
 
-def load_manifest() -> dict:
-    if not MANIFEST_PATH.exists():
-        raise RuntimeError(f"missing approved asset manifest: {MANIFEST_PATH.relative_to(ROOT)}")
-    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    required_top_level = {
-        "approved_logo",
-        "approved_public_image_directory",
-        "shared_public_css",
-        "shared_public_js",
-        "business_office_config",
-        "production_branch",
-        "production_url",
-        "forbidden_logo_substitutes",
-    }
-    missing = sorted(required_top_level - set(manifest))
-    if missing:
-        raise RuntimeError(f"approved asset manifest missing keys: {', '.join(missing)}")
-    required_logo = {
-        "path",
-        "git_blob_sha",
-        "cache_key",
-        "public_reference",
-        "alt_text",
-        "visible_text_fallback",
-        "allow_image_substitute",
-    }
-    missing_logo = sorted(required_logo - set(manifest["approved_logo"]))
-    if missing_logo:
-        raise RuntimeError(f"approved logo manifest missing keys: {', '.join(missing_logo)}")
-    return manifest
+def load_json(path: Path, label: str) -> dict:
+    if not path.exists():
+        raise RuntimeError(f"missing {label}: {path.relative_to(ROOT)}")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"invalid {label}: {exc}") from exc
 
 
 def raw_path(raw: str) -> str:
@@ -68,17 +41,16 @@ def resolve_local_asset(raw: str, base_file: Path) -> Path | None:
     if raw.startswith(IGNORED_PREFIXES):
         return None
     path_text = raw_path(raw)
-    candidate = ((ROOT / path_text.lstrip("/")) if path_text.startswith("/") else (base_file.parent / path_text)).resolve()
+    candidate = (
+        ROOT / path_text.lstrip("/")
+        if path_text.startswith("/")
+        else base_file.parent / path_text
+    ).resolve()
     try:
         candidate.relative_to(ROOT.resolve())
     except ValueError:
         return None
     return candidate
-
-
-def repo_path(raw: str, base_file: Path) -> str | None:
-    candidate = resolve_local_asset(raw, base_file)
-    return None if candidate is None else candidate.relative_to(ROOT.resolve()).as_posix()
 
 
 def image_file_is_valid(path: Path) -> bool:
@@ -105,14 +77,9 @@ def git_blob_sha(path: Path) -> str:
     return hashlib.sha1(header + data).hexdigest()
 
 
-def validate_approved_logo(
-    logo_file: Path,
-    logo_path: str,
-    expected_blob_sha: str,
-    errors: list[str],
-) -> str:
+def validate_logo(logo_file: Path, expected_blob_sha: str, errors: list[str]) -> str:
     if not image_file_is_valid(logo_file):
-        errors.append(f"INVALID APPROVED LOGO: {logo_path}")
+        errors.append(f"INVALID APPROVED LOGO: {logo_file.relative_to(ROOT)}")
         return "MISSING_OR_INVALID"
     data = logo_file.read_bytes()
     if len(data) < MIN_LOGO_BYTES:
@@ -120,12 +87,29 @@ def validate_approved_logo(
     width, height = struct.unpack(">II", data[16:24])
     if width < MIN_LOGO_DIMENSION or height < MIN_LOGO_DIMENSION:
         errors.append(f"APPROVED LOGO DIMENSIONS TOO SMALL: {width}x{height}")
-    actual_blob_sha = git_blob_sha(logo_file)
-    if actual_blob_sha != expected_blob_sha:
+    actual = git_blob_sha(logo_file)
+    if actual != expected_blob_sha:
         errors.append(
-            f"APPROVED LOGO BINARY MISMATCH: expected Git blob {expected_blob_sha}, got {actual_blob_sha}"
+            f"APPROVED LOGO BINARY MISMATCH: expected Git blob {expected_blob_sha}, got {actual}"
         )
-    return actual_blob_sha
+    return actual
+
+
+def validate_declared_image(
+    raw: str,
+    base_file: Path,
+    checked_assets: set[Path],
+    errors: list[str],
+    context: str,
+) -> None:
+    candidate = resolve_local_asset(raw, base_file)
+    if candidate is None or not candidate.exists():
+        errors.append(f"BROKEN IMAGE: {context} -> {raw}")
+        return
+    if candidate not in checked_assets:
+        checked_assets.add(candidate)
+        if not image_file_is_valid(candidate):
+            errors.append(f"INVALID IMAGE FILE: {candidate.relative_to(ROOT)}")
 
 
 def main() -> int:
@@ -134,151 +118,178 @@ def main() -> int:
     checked_assets: set[Path] = set()
 
     try:
-        manifest = load_manifest()
-    except (OSError, ValueError, RuntimeError) as exc:
+        assets = load_json(ASSET_MANIFEST_PATH, "approved asset manifest")
+        placements = load_json(PLACEMENT_MANIFEST_PATH, "image placement manifest")
+        routes = load_json(ROUTE_MANIFEST_PATH, "public route manifest")
+    except RuntimeError as exc:
         print("Highway 38 public image verification")
         print(f"ERROR: {exc}")
         return 1
 
-    approved_logo = manifest["approved_logo"]
-    logo_path = approved_logo["path"]
-    logo_file = ROOT / logo_path
-    expected_blob_sha = approved_logo["git_blob_sha"].lower()
-    expected_logo_reference = approved_logo["public_reference"]
-    expected_logo_alt = approved_logo["alt_text"]
-    forbidden_substitutes = tuple(manifest.get("forbidden_logo_substitutes", []))
-    shared_js_path = ROOT / manifest["shared_public_js"]
-    shared_css_path = ROOT / manifest["shared_public_css"]
-    business_office_config_path = ROOT / manifest["business_office_config"]
+    required_assets = {
+        "approved_logo",
+        "shared_public_css",
+        "shared_public_js",
+        "business_office_config",
+        "production_url",
+        "forbidden_logo_substitutes",
+    }
+    missing = sorted(required_assets - set(assets))
+    if missing:
+        errors.append(f"APPROVED ASSET MANIFEST MISSING KEYS: {', '.join(missing)}")
 
-    actual_logo_blob = validate_approved_logo(
+    logo = assets.get("approved_logo", {})
+    logo_path = logo.get("path", "")
+    logo_reference = logo.get("public_reference", "")
+    logo_alt = logo.get("alt_text", "")
+    logo_file = ROOT / logo_path
+    actual_logo_blob = validate_logo(
         logo_file,
-        logo_path,
-        expected_blob_sha,
+        str(logo.get("git_blob_sha", "")).lower(),
         errors,
     )
-    if bool(approved_logo["allow_image_substitute"]):
+    if bool(logo.get("allow_image_substitute")):
         errors.append("APPROVED LOGO POLICY ERROR: image substitution must remain disabled")
 
-    expected_absolute_logo_url = (
-        manifest["production_url"].rstrip("/") + "/" + expected_logo_reference
-    )
-    if not business_office_config_path.exists():
-        errors.append(
-            f"MISSING BUSINESS OFFICE CONFIG: {business_office_config_path.relative_to(ROOT)}"
-        )
+    shared_js_path = ROOT / assets.get("shared_public_js", "")
+    shared_css_path = ROOT / assets.get("shared_public_css", "")
+    if not shared_js_path.exists():
+        errors.append(f"MISSING SHARED PUBLIC JS: {shared_js_path.relative_to(ROOT)}")
+        shared_js = ""
+    else:
+        shared_js = shared_js_path.read_text(encoding="utf-8", errors="replace")
+        if logo_reference not in shared_js:
+            errors.append(
+                f"CANONICAL SHELL LOGO REFERENCE MISMATCH: expected {logo_reference}"
+            )
+        if f'alt="{logo_alt}"' not in shared_js:
+            errors.append(f"CANONICAL SHELL LOGO ALT MISMATCH: expected {logo_alt!r}")
+        if not re.search(
+            r"imagePolicy:\{changeSource:false,insertImages:false,fallbackImages:false",
+            shared_js,
+        ):
+            errors.append("CANONICAL SHELL IMAGE-SOURCE LOCK IS MISSING")
+
+    business_config_path = ROOT / assets.get("business_office_config", "")
+    expected_logo_url = assets.get("production_url", "").rstrip("/") + "/" + logo_reference
+    if not business_config_path.exists():
+        errors.append(f"MISSING BUSINESS OFFICE CONFIG: {business_config_path.relative_to(ROOT)}")
     else:
         try:
-            business_office_config = json.loads(
-                business_office_config_path.read_text(encoding="utf-8")
-            )
-            branding = business_office_config.get("branding", {})
+            config = json.loads(business_config_path.read_text(encoding="utf-8"))
+            branding = config.get("branding", {})
             if branding.get("logoPath") != logo_path:
                 errors.append(
                     f"BUSINESS OFFICE LOGO PATH MISMATCH: {branding.get('logoPath')!r}; expected {logo_path!r}"
                 )
-            if branding.get("logoUrl") != expected_absolute_logo_url:
+            if branding.get("logoUrl") != expected_logo_url:
                 errors.append(
-                    f"BUSINESS OFFICE LOGO URL MISMATCH: {branding.get('logoUrl')!r}; "
-                    f"expected {expected_absolute_logo_url!r}"
+                    f"BUSINESS OFFICE LOGO URL MISMATCH: {branding.get('logoUrl')!r}; expected {expected_logo_url!r}"
                 )
         except (OSError, ValueError) as exc:
             errors.append(f"INVALID BUSINESS OFFICE CONFIG: {exc}")
 
     scanned_text: dict[str, str] = {}
-
-    if not shared_js_path.exists():
-        errors.append(f"MISSING SHARED PUBLIC JS: {shared_js_path.relative_to(ROOT)}")
-    else:
-        scanned_text[manifest["shared_public_js"]] = shared_js_path.read_text(
-            encoding="utf-8", errors="replace"
-        )
-
-    for page_name in PUBLIC_PAGES:
+    for page_name, declared in placements.get("pages", {}).items():
         page = ROOT / page_name
         if not page.exists():
-            errors.append(f"MISSING PAGE: {page_name}")
+            errors.append(f"MISSING IMAGE-BEARING PAGE: {page_name}")
             continue
-
         text = page.read_text(encoding="utf-8", errors="replace")
         scanned_text[page_name] = text
-        content_images = 0
-        logo_seen = False
+        tags = list(IMG_RE.finditer(text))
+        for item in declared:
+            src = item.get("src", "")
+            alt = item.get("alt", "")
+            matching = [match.group(0) for match in tags if raw_path(match.group(1)) == src]
+            if not matching:
+                errors.append(f"MISSING DECLARED IMAGE: {page_name} -> {src}")
+            elif not any(
+                (match_alt := ALT_RE.search(tag)) and match_alt.group(1).strip() == alt
+                for tag in matching
+            ):
+                errors.append(f"DECLARED IMAGE ALT MISMATCH: {page_name} -> {src}")
+            validate_declared_image(src, page, checked_assets, errors, page_name)
 
-        for logo_ref in LOGO_REF_RE.findall(text):
-            if logo_ref != expected_logo_reference:
-                errors.append(
-                    f"STALE OR UNCONTROLLED LOGO REFERENCE: {page_name} -> {logo_ref}; "
-                    f"expected {expected_logo_reference}"
-                )
-
-        for match in IMG_RE.finditer(text):
+        for match in tags:
             src = match.group(1)
-            tag = match.group(0)
-            candidate = resolve_local_asset(src, page)
-            current_repo_path = repo_path(src, page)
-
-            if candidate is None or not candidate.exists():
-                errors.append(f"BROKEN IMAGE: {page_name} -> {src}")
-            elif candidate not in checked_assets:
-                checked_assets.add(candidate)
-                if not image_file_is_valid(candidate):
-                    errors.append(f"INVALID IMAGE FILE: {candidate.relative_to(ROOT)}")
-
-            alt_match = ALT_RE.search(tag)
+            alt_match = ALT_RE.search(match.group(0))
             if alt_match is None or not alt_match.group(1).strip():
                 errors.append(f"MISSING ALT: {page_name} -> {src}")
+            validate_declared_image(src, page, checked_assets, errors, page_name)
 
-            if current_repo_path == logo_path:
-                logo_seen = True
-                if src != expected_logo_reference:
-                    errors.append(
-                        f"UNCONTROLLED LOGO SRC: {page_name} -> {src}; expected {expected_logo_reference}"
-                    )
-                if alt_match is not None and alt_match.group(1).strip() != expected_logo_alt:
-                    errors.append(
-                        f"UNCONTROLLED LOGO ALT: {page_name} -> {alt_match.group(1).strip()!r}; "
-                        f"expected {expected_logo_alt!r}"
-                    )
-            else:
-                content_images += 1
+    for page_name, config in placements.get("dynamicPages", {}).items():
+        page = ROOT / page_name
+        if not page.exists():
+            errors.append(f"MISSING DYNAMIC IMAGE PAGE: {page_name}")
+            continue
+        text = page.read_text(encoding="utf-8", errors="replace")
+        scanned_text[page_name] = text
+        for value in config.get("sourceConstants", {}).values():
+            if value not in text:
+                errors.append(f"MISSING DYNAMIC IMAGE SOURCE CONSTANT: {page_name} -> {value}")
+        for files in config.get("examples", {}).values():
+            for filename in files:
+                if filename not in text:
+                    errors.append(f"MISSING DYNAMIC IMAGE REFERENCE: {page_name} -> {filename}")
+                directory = (
+                    "assets/demo-workthroughs/"
+                    if filename.startswith(("deck-", "irrigation-", "kitchen-"))
+                    else "assets/contractor-demo/"
+                )
+                validate_declared_image(
+                    directory + filename,
+                    ROOT / page_name,
+                    checked_assets,
+                    errors,
+                    page_name,
+                )
 
-        if not logo_seen:
-            errors.append(f"MISSING APPROVED LOGO: {page_name}")
-        if content_images < 1:
-            errors.append(f"IMAGE-POOR PAGE: {page_name} has no explicit non-logo content image")
-        if "assets/css/h38-site-v2.css" in text and "?v=" not in text:
-            warnings.append(f"NO CSS CACHE BUSTER: {page_name}")
+    public_pages = [
+        item.get("path", "")
+        for item in routes.get("primary", [])
+        if item.get("visibility") == "public"
+    ]
+    for page_name in public_pages:
+        page = ROOT / page_name
+        if not page.exists():
+            errors.append(f"MISSING PRIMARY PUBLIC PAGE: {page_name}")
+            continue
+        text = page.read_text(encoding="utf-8", errors="replace")
+        scanned_text.setdefault(page_name, text)
+        if assets.get("shared_public_js", "") not in text:
+            errors.append(f"PRIMARY PAGE DOES NOT LOAD CANONICAL SHELL: {page_name}")
 
-    for target_name, text in scanned_text.items():
+    forbidden_substitutes = tuple(assets.get("forbidden_logo_substitutes", []))
+    scanned_text[assets.get("shared_public_js", "")] = shared_js
+    for target, text in scanned_text.items():
         for forbidden in forbidden_substitutes:
             if forbidden in text:
-                errors.append(f"FORBIDDEN LOGO SUBSTITUTE: {target_name} -> {forbidden}")
+                errors.append(f"FORBIDDEN LOGO SUBSTITUTE: {target} -> {forbidden}")
 
-    if shared_css_path.exists():
+    if not shared_css_path.exists():
+        errors.append(f"MISSING SHARED PUBLIC CSS: {shared_css_path.relative_to(ROOT)}")
+    else:
         css_text = shared_css_path.read_text(encoding="utf-8", errors="replace")
         for forbidden in forbidden_substitutes:
             if forbidden in css_text:
-                errors.append(
-                    f"FORBIDDEN LOGO SUBSTITUTE: {shared_css_path.relative_to(ROOT)} -> {forbidden}"
-                )
+                errors.append(f"FORBIDDEN LOGO SUBSTITUTE: {shared_css_path.relative_to(ROOT)} -> {forbidden}")
         for raw in CSS_URL_RE.findall(css_text):
             if raw.startswith(IGNORED_PREFIXES):
                 continue
-            candidate = resolve_local_asset(raw, shared_css_path)
-            if candidate is None or not candidate.exists():
-                errors.append(f"BROKEN CSS IMAGE: {shared_css_path.relative_to(ROOT)} -> {raw}")
-            elif candidate not in checked_assets:
-                checked_assets.add(candidate)
-                if not image_file_is_valid(candidate):
-                    errors.append(f"INVALID CSS IMAGE FILE: {candidate.relative_to(ROOT)}")
-    else:
-        errors.append(f"MISSING SHARED PUBLIC CSS: {shared_css_path.relative_to(ROOT)}")
+            validate_declared_image(
+                raw,
+                shared_css_path,
+                checked_assets,
+                errors,
+                str(shared_css_path.relative_to(ROOT)),
+            )
 
     print("Highway 38 public image verification")
-    print(f"Manifest: {MANIFEST_PATH.relative_to(ROOT)}")
+    print(f"Asset manifest: {ASSET_MANIFEST_PATH.relative_to(ROOT)}")
+    print(f"Placement manifest: {PLACEMENT_MANIFEST_PATH.relative_to(ROOT)}")
     print(f"Approved logo Git blob: {actual_logo_blob}")
-    print(f"Marketing pages checked: {len(PUBLIC_PAGES)}")
+    print(f"Image-bearing pages checked: {len(placements.get('pages', {}))}")
     print(f"Image files checked: {len(checked_assets)}")
     print(f"Errors: {len(errors)}")
     print(f"Warnings: {len(warnings)}")
