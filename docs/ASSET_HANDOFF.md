@@ -15,29 +15,37 @@ This file is the durable source of truth for public website assets across chats 
 
 Page: `sample-library-now.html`
 
-Canonical visual source:
+Canonical direct visual files:
 
-- `assets/demo-workthroughs/project-pairs-strip.svg`
+- `assets/demo-workthroughs/deck-before.webp`
+- `assets/demo-workthroughs/deck-after.webp`
+- `assets/demo-workthroughs/irrigation-before.webp`
+- `assets/demo-workthroughs/irrigation-after.webp`
+- `assets/demo-workthroughs/kitchen-before.webp`
+- `assets/demo-workthroughs/kitchen-after.webp`
 
 Card mapping:
 
-- Example 05 — 8 × 12 Pressure-Treated Deck — top row
-- Example 06 — Four-Zone Residential Irrigation System — middle row
-- Example 07 — Mid-Range Kitchen Remodel — bottom row
+- Example 05 — 8 × 12 Pressure-Treated Deck — deck before and after files
+- Example 06 — Four-Zone Residential Irrigation System — irrigation before and after files
+- Example 07 — Mid-Range Kitchen Remodel — kitchen before and after files
 
 Display implementation:
 
-- `contractor-demo.css`
-- Cards 5, 6, and 7 use the canonical strip with fixed background positions.
+- The six files must remain ordinary `<img>` elements in `sample-library-now.html` and `contractor-quote-complete.html`.
+- `contractor-demo.css` may size and crop those elements with `object-fit`, but must not hide them or replace them with a sprite, background image, remote URL, or generated fallback.
+- `scripts/config/approved-public-image-placements.json` is the machine-readable placement authority.
 
-Status:
+Verified defect correction:
 
-- Restored in commit `1c7d45f43c9fda0e721486f72c34270ccd914ae7`
-- Asset added in commit `31e3c3f4cc841ead1cec51546226f3b811e80932`
-- Do not regenerate or substitute the previous crude SVG illustrations.
+- The combined strip/background implementation produced blank and blurred crops at production card size.
+- It was retired in favor of the direct approved image elements.
+- The direct image paths, alt text, page placement, and visual role remain locked.
 
-## Legacy files not approved for public display
+## Files not approved for public display
 
+- `assets/demo-workthroughs/project-pairs-strip.svg`
+- `assets/demo-workthroughs/project-pairs-sprite.webp`
 - `assets/demo-workthroughs/deck-before.svg`
 - `assets/demo-workthroughs/deck-after.svg`
 - `assets/demo-workthroughs/irrigation-before.svg`
@@ -45,4 +53,4 @@ Status:
 - `assets/demo-workthroughs/kitchen-before.svg`
 - `assets/demo-workthroughs/kitchen-after.svg`
 
-These legacy illustrations may remain for history until separately removed, but public pages must not reference them.
+These files may remain only for historical traceability. Public pages and styles must not reference them.
