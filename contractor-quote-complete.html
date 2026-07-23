@@ -48,4 +48,24 @@ function render(){let up=0,selected=[];document.querySelectorAll('[data-up]').fo
 upgrades.innerHTML=x.ups.map((u,i)=>`<label><input type="checkbox" data-up="${i}"> <strong>${u[0]}</strong><br><small>${u[1]} — ${money(u[2])} additional</small></label>`).join('');document.querySelectorAll('[data-up]').forEach(c=>c.addEventListener('change',render));render();
 printBtn.addEventListener('click',()=>window.print());copyBtn.addEventListener('click',async()=>{const text=`${x.t}\n${x.s}\nBase: ${money(x.b)}\nTotal: ${total.textContent}`;try{await navigator.clipboard.writeText(text);copyBtn.textContent='Copied'}catch{copyBtn.textContent='Select and copy from page'}});
 </script>
+<script data-h38-project-pair-fix="20260723">
+(()=>{
+  const key=new URLSearchParams(location.search).get('example')||'flower';
+  const rows={deck:0,irrigation:1,kitchen:2};
+  if(!(key in rows))return;
+  const src='assets/demo-workthroughs/project-pairs-sprite.webp?v=20260723-final';
+  const before=document.getElementById('before');
+  const after=document.getElementById('after');
+  const row=rows[key];
+  [[before,'0%'],[after,'100%']].forEach(([img,x])=>{
+    if(!img)return;
+    img.removeAttribute('src');
+    img.style.backgroundImage=`url("${src}")`;
+    img.style.backgroundRepeat='no-repeat';
+    img.style.backgroundSize='200% 300%';
+    img.style.backgroundPosition=`${x} ${row===0?'0%':row===1?'50%':'100%'}`;
+    img.style.backgroundColor='#e8ecea';
+  });
+})();
+</script>
 </body></html>
