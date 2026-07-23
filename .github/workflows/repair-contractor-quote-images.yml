@@ -1,0 +1,61 @@
+name: Repair contractor quote images
+
+on:
+  push:
+    paths:
+      - '.github/workflows/repair-contractor-quote-images.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Store approved source and patch quote page
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/demo-workthroughs
+          curl -L --fail --retry 3 -o assets/demo-workthroughs/project-pairs-sprite.webp 'https://at.adobe.com/Gxbnz8YlpFSVHQEF'
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('contractor-quote-complete.html')
+          s = p.read_text()
+          marker = 'data-h38-project-pair-fix="20260723"'
+          if marker not in s:
+              inject = r'''<script data-h38-project-pair-fix="20260723">
+          (()=>{
+            const key=new URLSearchParams(location.search).get('example')||'flower';
+            const rows={deck:0,irrigation:1,kitchen:2};
+            if(!(key in rows))return;
+            const src='assets/demo-workthroughs/project-pairs-sprite.webp?v=20260723-final';
+            const before=document.getElementById('before');
+            const after=document.getElementById('after');
+            const row=rows[key];
+            [[before,'0%'],[after,'100%']].forEach(([img,x])=>{
+              if(!img)return;
+              img.removeAttribute('src');
+              img.style.backgroundImage=`url("${src}")`;
+              img.style.backgroundRepeat='no-repeat';
+              img.style.backgroundSize='200% 300%';
+              img.style.backgroundPosition=`${x} ${row===0?'0%':row===1?'50%':'100%'}`;
+              img.style.backgroundColor='#e8ecea';
+            });
+          })();
+          </script>'''
+              s = s.replace('</body>', inject + '\n</body>')
+              p.write_text(s)
+          PY
+      - name: Commit repaired image assets
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add contractor-quote-complete.html assets/demo-workthroughs/project-pairs-sprite.webp
+          git diff --cached --quiet && exit 0
+          git commit -m 'Repair contractor quote before and after images'
+          git push origin main
