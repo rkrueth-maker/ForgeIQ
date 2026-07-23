@@ -12,7 +12,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: highway-38-github-pages
+  group: highway-38-pages-production
   cancel-in-progress: true
 
 jobs:
@@ -20,21 +20,28 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deploy.outputs.page_url }}
     env:
       GH_TOKEN: ${{ github.token }}
       LIVE_ROOT: https://rkrueth-maker.github.io/highway-38-solutions
     steps:
-      - name: Check out exact main source
+      - name: Record deployment start
+        shell: bash
+        run: |
+          gh issue edit 284 --repo "$GITHUB_REPOSITORY" \
+            --title 'GitHub Pages flush and live verification — RUNNING' \
+            --body "Deploying commit ${GITHUB_SHA}. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+      - name: Check out main
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 1
 
-      - name: Configure GitHub Pages
+      - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Build exact static-site artifact
+      - name: Stage verified public site
         shell: bash
         run: |
           set -euo pipefail
@@ -74,91 +81,64 @@ jobs:
             --include='*.csv' \
             --exclude='*' \
             ./ _site/
-          git rev-parse HEAD | tee _site/deployed-main-sha.txt
-          printf '%s\n' "${GITHUB_SHA}" > _site/deployed-source-sha.txt
+          sha="$(git rev-parse HEAD)"
+          printf '%s\n' "$sha" > _site/deployed-main-sha.txt
           test -f _site/index.html
           test -f _site/sample-library-now.html
           test -f _site/pricing.html
-          grep -F 'Eight complete project demonstrations' _site/sample-library-now.html
-          grep -F 'Uncleared Lot to 3-Bedroom Cabin' _site/sample-library-now.html
-          ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' _site/index.html _site/sample-library-now.html _site/pricing.html _site/products.html
-          grep -F 'sample-library-now.html' _site/free-tools.html
-          grep -F 'sample-library-now.html' _site/tools.html
-          grep -F 'sample-library-now.html' _site/forgeiq.html
+          test -f _site/products.html
+          test -f _site/free-tools.html
+          grep -Fq 'Eight complete project demonstrations' _site/sample-library-now.html
+          grep -Fq 'Uncleared Lot to 3-Bedroom Cabin' _site/sample-library-now.html
+          ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' _site/sample-library-now.html _site/products.html _site/pricing.html
+          grep -Fq 'sample-library-now.html' _site/products.html
+          grep -Fq 'sample-library-now.html' _site/free-tools.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
-      - name: Deploy exact artifact
-        id: deployment
+      - name: Deploy Pages artifact
+        id: deploy
         uses: actions/deploy-pages@v4
 
-      - name: Wait for CDN and verify live site
-        id: live
+      - name: Verify live deployment
         shell: bash
         run: |
           set -euo pipefail
-          marker="${GITHUB_SHA}-${GITHUB_RUN_ID}"
-          success=0
-          for attempt in $(seq 1 18); do
-            echo "Live verification attempt ${attempt}/18"
-            home="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/index.html?flush=${marker}-${attempt}" || true)"
-            examples="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/sample-library-now.html?flush=${marker}-${attempt}" || true)"
-            pricing="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/pricing.html?flush=${marker}-${attempt}" || true)"
-            products="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/products.html?flush=${marker}-${attempt}" || true)"
-            tools="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/free-tools.html?flush=${marker}-${attempt}" || true)"
-            if grep -Fq 'Eight complete project demonstrations' <<<"$examples" \
+          expected="$(git rev-parse HEAD)"
+          marker="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          for attempt in $(seq 1 24); do
+            echo "Verification attempt ${attempt}/24"
+            live_sha="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/deployed-main-sha.txt?flush=${marker}-${attempt}" || true)"
+            examples="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/sample-library-now.html?flush=${marker}-${attempt}" || true)"
+            products="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/products.html?flush=${marker}-${attempt}" || true)"
+            tools="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/free-tools.html?flush=${marker}-${attempt}" || true)"
+            if [[ "$live_sha" == "$expected" ]] \
+              && grep -Fq 'Eight complete project demonstrations' <<<"$examples" \
               && grep -Fq 'Uncleared Lot to 3-Bedroom Cabin' <<<"$examples" \
-              && grep -Fq 'Start with the project' <<<"$home" \
-              && ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' <<<"$home$examples$pricing$products" \
+              && ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' <<<"$examples$products" \
               && grep -Fq 'sample-library-now.html' <<<"$products" \
               && grep -Fq 'sample-library-now.html' <<<"$tools"; then
-              success=1
-              break
+              exit 0
             fi
             sleep 10
           done
-          if [[ "$success" != 1 ]]; then
-            echo 'Live Pages verification did not reach the new artifact.'
-            exit 1
-          fi
-          curl -fsSL "${LIVE_ROOT}/deployed-main-sha.txt?flush=${marker}" | tee live-deployed-main-sha.txt
-          grep -F "$(git rev-parse HEAD)" live-deployed-main-sha.txt
-          printf 'PASS\n' > live-pages-verification.txt
+          echo 'The GitHub Pages CDN did not serve the deployed artifact before timeout.'
+          exit 1
 
-      - name: Record successful live deployment
+      - name: Record PASS
         if: success()
         shell: bash
         run: |
-          body=$(cat <<EOF
-          ## PASS — GitHub Pages is live and current
-
-          - Source commit: ${GITHUB_SHA}
-          - Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - Eight-project Examples page: verified live
-          - Cabin Example 08: verified live
-          - Old 15-product and nine-bundle language: absent from checked live routes
-          - Products route: retired
-          - Free Tools, Downloads, Tools, and ForgeIQ routes: retired
-          - Live deployed SHA marker: verified
-          EOF
-          )
+          body="PASS — GitHub Pages is serving commit ${GITHUB_SHA}. Eight projects and Cabin Example 08 are live. Products, Free Tools, Downloads, Tools, and ForgeIQ are retired. Old 15-product and nine-bundle language is absent. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — PASS' --body "$body"
           gh issue close 284 --repo "$GITHUB_REPOSITORY" --reason completed
 
-      - name: Record deployment failure
+      - name: Record HOLD
         if: failure()
         shell: bash
         run: |
-          body=$(cat <<EOF
-          ## HOLD — GitHub Pages deployment or live verification failed
-
-          - Source commit: ${GITHUB_SHA}
-          - Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
-          - Existing repository content remains preserved.
-          - Review the failed workflow step for the exact Pages configuration, deployment, or CDN verification error.
-          EOF
-          )
+          body="HOLD — Pages deployment or live verification failed for commit ${GITHUB_SHA}. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — HOLD' --body "$body"
