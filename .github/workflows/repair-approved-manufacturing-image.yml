@@ -16,30 +16,20 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       REPAIR_COMMIT: e61f6fb051d5978b6897bd8614ed2ea0531321b9
     steps:
-      - name: Publish prior exact-repair run and failure log
+      - name: Publish all runs for prior repair commit
         shell: bash
         run: |
           set -euo pipefail
-          run_json="$(gh run list --repo "$GITHUB_REPOSITORY" --commit "$REPAIR_COMMIT" --limit 100 --json databaseId,name,workflowName,status,conclusion,headSha,event,url,createdAt,updatedAt | jq -c '[.[] | select(.workflowName=="Restore Exact Approved Manufacturing Image")][0] // empty')"
-          run_id="$(jq -r '.databaseId // empty' <<<"$run_json")"
-          if [[ -n "$run_id" ]]; then
-            gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --log-failed > "$RUNNER_TEMP/failed.log" || true
-          else
-            echo 'No matching repair run found.' > "$RUNNER_TEMP/failed.log"
-          fi
+          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --commit "$REPAIR_COMMIT" --limit 100 --json databaseId,name,workflowName,status,conclusion,headSha,event,url,createdAt,updatedAt)"
           issue="$(gh issue list --repo "$GITHUB_REPOSITORY" --search 'Manufacturing image repair in:title' --state all --limit 1 --json number --jq '.[0].number // empty')"
           body_file="$RUNNER_TEMP/report.md"
           {
             echo '# Manufacturing image repair diagnostics'
             echo
-            echo '## Repair run'
-            echo '```json'
-            if [[ -n "$run_json" ]]; then echo "$run_json" | jq .; else echo '{}'; fi
-            echo '```'
+            echo "Commit: \`$REPAIR_COMMIT\`"
             echo
-            echo '## Failed log'
-            echo '```text'
-            tail -n 160 "$RUNNER_TEMP/failed.log"
+            echo '```json'
+            echo "$runs" | jq .
             echo '```'
           } > "$body_file"
           if [[ -n "$issue" ]]; then
