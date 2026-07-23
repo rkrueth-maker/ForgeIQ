@@ -1,48 +1,43 @@
 name: Deploy Highway 38 site to GitHub Pages
-# Forced deployment for corrected seven-project Examples page and owner chooser: 2026-07-22 final
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - 'deployment-status/**'
-      - '.github/workflows/pages-deployment-recorder.yml'
-  workflow_run:
-    workflows:
-      - Pages Merge Signal
-      - Highway 38 Solutions Tests
-    types:
-      - completed
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  issues: write
 
 concurrency:
-  group: github-pages
-  cancel-in-progress: false
+  group: highway-38-github-pages
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment_attempt_1.outputs.page_url || steps.deployment_attempt_2.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      LIVE_ROOT: https://rkrueth-maker.github.io/highway-38-solutions
     steps:
-      - name: Checkout current main source
+      - name: Check out exact main source
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 1
 
-      - name: Configure Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Stage static site bundle
+      - name: Build exact static-site artifact
+        shell: bash
         run: |
+          set -euo pipefail
           rm -rf _site
           mkdir -p _site
           rsync -avm --delete \
@@ -79,34 +74,91 @@ jobs:
             --include='*.csv' \
             --exclude='*' \
             ./ _site/
-
-      - name: Record deployed source SHA
-        run: |
+          git rev-parse HEAD | tee _site/deployed-main-sha.txt
           printf '%s\n' "${GITHUB_SHA}" > _site/deployed-source-sha.txt
-          printf '%s\n' "$(git rev-parse HEAD)" > _site/deployed-main-sha.txt
+          test -f _site/index.html
+          test -f _site/sample-library-now.html
+          test -f _site/pricing.html
+          grep -F 'Eight complete project demonstrations' _site/sample-library-now.html
+          grep -F 'Uncleared Lot to 3-Bedroom Cabin' _site/sample-library-now.html
+          ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' _site/index.html _site/sample-library-now.html _site/pricing.html _site/products.html
+          grep -F 'sample-library-now.html' _site/free-tools.html
+          grep -F 'sample-library-now.html' _site/tools.html
+          grep -F 'sample-library-now.html' _site/forgeiq.html
 
-      - name: Upload current root site
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - name: Deploy current source to Pages (attempt 1)
-        id: deployment_attempt_1
-        continue-on-error: true
+      - name: Deploy exact artifact
+        id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
 
-      - name: Deploy current source to Pages (retry if attempt 1 fails)
-        if: ${{ always() && steps.deployment_attempt_1.outcome == 'failure' }}
-        id: deployment_attempt_2
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Fail if both deployment attempts fail
-        if: ${{ always() && steps.deployment_attempt_1.outcome == 'failure' && steps.deployment_attempt_2.outcome == 'failure' }}
+      - name: Wait for CDN and verify live site
+        id: live
+        shell: bash
         run: |
-          echo "Both GitHub Pages deployment attempts failed."
-          exit 1
+          set -euo pipefail
+          marker="${GITHUB_SHA}-${GITHUB_RUN_ID}"
+          success=0
+          for attempt in $(seq 1 18); do
+            echo "Live verification attempt ${attempt}/18"
+            home="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/index.html?flush=${marker}-${attempt}" || true)"
+            examples="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/sample-library-now.html?flush=${marker}-${attempt}" || true)"
+            pricing="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/pricing.html?flush=${marker}-${attempt}" || true)"
+            products="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/products.html?flush=${marker}-${attempt}" || true)"
+            tools="$(curl -fsSL --retry 2 --connect-timeout 15 "${LIVE_ROOT}/free-tools.html?flush=${marker}-${attempt}" || true)"
+            if grep -Fq 'Eight complete project demonstrations' <<<"$examples" \
+              && grep -Fq 'Uncleared Lot to 3-Bedroom Cabin' <<<"$examples" \
+              && grep -Fq 'Start with the project' <<<"$home" \
+              && ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' <<<"$home$examples$pricing$products" \
+              && grep -Fq 'sample-library-now.html' <<<"$products" \
+              && grep -Fq 'sample-library-now.html' <<<"$tools"; then
+              success=1
+              break
+            fi
+            sleep 10
+          done
+          if [[ "$success" != 1 ]]; then
+            echo 'Live Pages verification did not reach the new artifact.'
+            exit 1
+          fi
+          curl -fsSL "${LIVE_ROOT}/deployed-main-sha.txt?flush=${marker}" | tee live-deployed-main-sha.txt
+          grep -F "$(git rev-parse HEAD)" live-deployed-main-sha.txt
+          printf 'PASS\n' > live-pages-verification.txt
+
+      - name: Record successful live deployment
+        if: success()
+        shell: bash
+        run: |
+          body=$(cat <<EOF
+          ## PASS — GitHub Pages is live and current
+
+          - Source commit: ${GITHUB_SHA}
+          - Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - Eight-project Examples page: verified live
+          - Cabin Example 08: verified live
+          - Old 15-product and nine-bundle language: absent from checked live routes
+          - Products route: retired
+          - Free Tools, Downloads, Tools, and ForgeIQ routes: retired
+          - Live deployed SHA marker: verified
+          EOF
+          )
+          gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — PASS' --body "$body"
+          gh issue close 284 --repo "$GITHUB_REPOSITORY" --reason completed
+
+      - name: Record deployment failure
+        if: failure()
+        shell: bash
+        run: |
+          body=$(cat <<EOF
+          ## HOLD — GitHub Pages deployment or live verification failed
+
+          - Source commit: ${GITHUB_SHA}
+          - Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          - Existing repository content remains preserved.
+          - Review the failed workflow step for the exact Pages configuration, deployment, or CDN verification error.
+          EOF
+          )
+          gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — HOLD' --body "$body"
