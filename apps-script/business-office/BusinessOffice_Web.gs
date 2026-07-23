@@ -13,5 +13,7 @@ function boApi(request){const payload=request||{},action=boNormalizeText_(payloa
  };boAssert_(handlers[action],'Unsupported Business Office action: '+action);return handlers[action]();}
 function boGetModuleDefinitions_(){
   boAssert_(typeof boGetUnifiedBusinessDefinitions_==='function','Canonical module contract is unavailable.');
-  return boGetUnifiedBusinessDefinitions_();
+  var definitions=boGetUnifiedBusinessDefinitions_();
+  if(definitions.approvalsData&&!definitions.approvals){definitions.approvals=definitions.approvalsData;delete definitions.approvalsData;}
+  return definitions;
 }
