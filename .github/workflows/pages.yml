@@ -41,8 +41,13 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Verify locked public image placements
-        run: node scripts/verify-public-image-placements.js
+      - name: Verify public website architecture, performance, and locked images
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-public-website-architecture.js
+          node scripts/verify-public-image-placements.js
+          python3 scripts/verify-public-images.py
 
       - name: Stage verified public site
         shell: bash
@@ -90,15 +95,30 @@ jobs:
           from pathlib import Path
           import os,re
           version=os.environ['SHA']
+          replacements={
+              r'contractor-demo\.css\?v=[A-Za-z0-9._-]+':f'contractor-demo.css?v={version}',
+              r'assets/js/h38-site-v2\.js\?v=[A-Za-z0-9._-]+':f'assets/js/h38-site-v2.js?v={version}',
+              r'assets/js/h38-request-options\.js\?v=[A-Za-z0-9._-]+':f'assets/js/h38-request-options.js?v={version}',
+              r'request-flow\.js\?v=[A-Za-z0-9._-]+':f'request-flow.js?v={version}',
+          }
           for path in Path('_site').glob('*.html'):
               text=path.read_text()
-              text=re.sub(r'contractor-demo\.css\?v=[A-Za-z0-9._-]+',f'contractor-demo.css?v={version}',text)
+              for pattern,replacement in replacements.items():
+                  text=re.sub(pattern,replacement,text)
               path.write_text(text)
           PY
           printf '%s\n' "$sha" > _site/deployed-main-sha.txt
-          test -f _site/index.html
-          test -f _site/sample-library-now.html
-          test -f _site/pricing.html
+
+          primary_pages=(index.html sample-library-now.html solutions.html pricing.html about.html contact.html start-request.html)
+          for page in "${primary_pages[@]}"; do
+            test -f "_site/${page}"
+            grep -Fq "assets/js/h38-site-v2.js?v=${short_sha}" "_site/${page}"
+            ! grep -Eq 'commercial\.js|commercial-public\.js|public-expansion\.js|brand-global\.js|project-intelligence\.js' "_site/${page}"
+          done
+          grep -Fq "assets/js/h38-request-options.js?v=${short_sha}" _site/start-request.html
+          grep -Fq "request-flow.js?v=${short_sha}" _site/start-request.html
+          grep -Fq 'data-intake-endpoint="https://script.google.com/macros/s/' _site/start-request.html
+
           test -f _site/products.html
           test -f _site/free-tools.html
           grep -Fq 'Eight complete project demonstrations' _site/sample-library-now.html
@@ -135,11 +155,22 @@ jobs:
           for attempt in $(seq 1 24); do
             echo "Verification attempt ${attempt}/24"
             live_sha="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/deployed-main-sha.txt?flush=${marker}-${attempt}" || true)"
+            home="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/index.html?flush=${marker}-${attempt}" || true)"
             examples="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/sample-library-now.html?flush=${marker}-${attempt}" || true)"
+            solutions="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/solutions.html?flush=${marker}-${attempt}" || true)"
+            pricing="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/pricing.html?flush=${marker}-${attempt}" || true)"
+            about="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/about.html?flush=${marker}-${attempt}" || true)"
+            contact="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/contact.html?flush=${marker}-${attempt}" || true)"
+            request="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/start-request.html?flush=${marker}-${attempt}" || true)"
             demo_css="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/contractor-demo.css?v=${short_sha}&flush=${marker}-${attempt}" || true)"
             products="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/products.html?flush=${marker}-${attempt}" || true)"
             tools="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/free-tools.html?flush=${marker}-${attempt}" || true)"
+            primary="$home$examples$solutions$pricing$about$contact$request"
             if [[ "$live_sha" == "$expected" ]] \
+              && [[ "$(grep -Fo "assets/js/h38-site-v2.js?v=${short_sha}" <<<"$primary" | wc -l)" -eq 7 ]] \
+              && ! grep -Eq 'commercial\.js|commercial-public\.js|public-expansion\.js|brand-global\.js|project-intelligence\.js' <<<"$primary" \
+              && grep -Fq "assets/js/h38-request-options.js?v=${short_sha}" <<<"$request" \
+              && grep -Fq "request-flow.js?v=${short_sha}" <<<"$request" \
               && grep -Fq 'Eight complete project demonstrations' <<<"$examples" \
               && grep -Fq 'Uncleared Lot to 3-Bedroom Cabin' <<<"$examples" \
               && grep -Fq "contractor-demo.css?v=${short_sha}" <<<"$examples" \
@@ -156,20 +187,31 @@ jobs:
             fi
             sleep 10
           done
-          echo 'The GitHub Pages CDN did not serve the verified direct-image artifact before timeout.'
+          echo 'The GitHub Pages CDN did not serve the verified canonical-site artifact before timeout.'
           exit 1
+
+      - name: Upload website architecture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-website-${{ github.run_id }}
+          path: |
+            artifacts/public-website-architecture/
+            artifacts/public-image-placements/
+          if-no-files-found: warn
+          retention-days: 90
 
       - name: Record PASS
         if: success()
         shell: bash
         run: |
-          body="PASS — GitHub Pages is serving commit ${GITHUB_SHA}. Eight projects and Cabin Example 08 are live. Deck, irrigation, and kitchen use their six direct approved image files with no sprite or remote fallback. Products, Free Tools, Downloads, Tools, and ForgeIQ are retired. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — PASS' --body "$body"
+          body="PASS — GitHub Pages is serving commit ${GITHUB_SHA}. The seven primary customer pages use one canonical shell; the request page uses one focused options controller and one secure submit flow. Exact approved images and logo are unchanged. Deck, irrigation, and kitchen use their six direct approved files with no sprite or remote fallback. Retired catalog/tool routes remain redirects. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages architecture and live verification — PASS' --body "$body"
           gh issue close 284 --repo "$GITHUB_REPOSITORY" --reason completed
 
       - name: Record HOLD
         if: failure()
         shell: bash
         run: |
-          body="HOLD — Pages deployment or live direct-image verification failed for commit ${GITHUB_SHA}. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — HOLD' --body "$body"
+          body="HOLD — Public website architecture, performance, image, deployment, or live verification failed for commit ${GITHUB_SHA}. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages architecture and live verification — HOLD' --body "$body"
