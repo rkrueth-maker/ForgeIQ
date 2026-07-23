@@ -2,6 +2,8 @@
 
 These rules govern every change or addition to the Highway 38 Business Office, Today workspace, Quote Builder integration, module navigation, H38 AI, shared portal shell, and module API.
 
+They operate under `docs/architecture/WEBSITE_AND_WEB_APP_CHANGE_GOVERNANCE.md`. Complete the combined change intake and run `node scripts/verify-change-governance.js` before applying these application-specific rules.
+
 The approved Highway 38 logo is locked. It may not be redrawn, regenerated, recolored, cropped, replaced, approximated, or moved to a substitute asset without Rick’s explicit approval.
 
 ## 1. Product architecture
@@ -137,6 +139,7 @@ A module is not complete when only its navigation button, schema, empty screen, 
 Before production deployment, the change must pass:
 
 ```bash
+node scripts/verify-change-governance.js
 node scripts/verify-unified-app-architecture.js
 node scripts/verify-product-pack-architecture.js
 node scripts/verify-owner-portal-routing.js
@@ -161,6 +164,7 @@ Production is not complete until **Deploy Unified Owner Portal** reports PASS fo
 
 A change is done only when:
 
+- the combined governance intake is complete;
 - the canonical contract, action contract, packs, permissions, route, schema, and implementation agree;
 - the module is usable from the unified shell;
 - startup remains one RPC and secondary modules remain on demand;
