@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const failures = [];
 const passes = [];
@@ -16,6 +17,7 @@ const portal = read('portal.html');
 const brand = read('brand-global.js');
 const portalIndex = read('apps-script/core-engine/owner-portal-next/Portal_Index.html');
 const portalRawIncludes = read('apps-script/core-engine/owner-portal-next/Portal_RawIncludes.js');
+const moduleRegistrySource = read('apps-script/core-engine/owner-portal-next/Portal_Module_Registry.js');
 const unifiedServer = read('apps-script/core-engine/owner-portal-next/Portal_Unified.js');
 const unifiedShell = read('apps-script/core-engine/owner-portal-next/Portal_UX_Client_Shell.html');
 const unifiedAppShell = read('apps-script/unified-shell/Unified_AppShell.gs');
@@ -34,20 +36,13 @@ const deploySource = read('scripts/deploy-unified-owner-portal-web.sh');
 const shellBuilder = read('scripts/build-unified-apps-script-shell.js');
 
 const ownerAppUrl = 'https://script.google.com/macros/s/AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/exec';
-const representativeBusinessRoutes = [
-  ['bo:requests', 'New Requests'],
-  ['bo:customers', 'Customers'],
-  ['bo:quotes', 'Quotes'],
-  ['bo:workOrders', 'Work Orders'],
-  ['bo:jobs', 'Jobs'],
-  ['bo:invoices', 'Invoices'],
-  ['bo:payments', 'Payments'],
-  ['bo:expenses', 'Expenses'],
-  ['bo:documents', 'Documents / OCR / Upload'],
-  ['bo:approvals', 'Approval Queue'],
-  ['bo:reports', 'Financial Reports'],
-  ['bo:setup', 'Product Controls']
-];
+const registryContext = {};
+vm.createContext(registryContext);
+new vm.Script(moduleRegistrySource, { filename:'Portal_Module_Registry.js' }).runInContext(registryContext);
+const moduleGroups = registryContext.h38PortalModuleRegistry_('quoteBuilder');
+const moduleItems = moduleGroups.flatMap(group => group.items.map(item => ({...item,groupId:group.id,groupLabel:group.label})));
+const routeKeys = moduleItems.map(item => item.key);
+const representativeBusinessRoutes = ['bo:requests','bo:customers','bo:quotes','bo:workOrders','bo:jobs','bo:invoices','bo:payments','bo:expenses','bo:documents','bo:reports'];
 const rawFragmentNames = [...portalIndex.matchAll(/h38PortalRawInclude_\('([^']+)'\)/g)].map(match => match[1]);
 const missingRawAllowlistEntries = rawFragmentNames.filter(name => !portalRawIncludes.includes(`'${name}'`));
 
@@ -62,10 +57,15 @@ assert('secure app contains no nested Business Office iframe', !/businessWorkspa
 assert('secure app includes native Business Office styles and client', /Portal_Business_Styles/.test(portalIndex) && /Portal_Business_Client/.test(portalIndex));
 assert('every secure app raw fragment is allowlisted', rawFragmentNames.length > 0 && missingRawAllowlistEntries.length === 0, missingRawAllowlistEntries.length ? missingRawAllowlistEntries.join(', ') : `${rawFragmentNames.length} fragments`);
 assert('native Business Office raw fragments are explicitly allowlisted', portalRawIncludes.includes("'Portal_Business_Styles'") && portalRawIncludes.includes("'Portal_Business_Client'"));
+assert('legacy portal control and product clients are absent', !/(Portal_ControlPlane|Portal_ProductApps|Portal_ProductCenter|Portal_Product_Unification)/.test(portalIndex + portalRawIncludes));
 assert('secure app uses one package-controlled manifest', /function h38PortalUnifiedBootstrap\(\)/.test(unifiedServer) && /packageName/.test(unifiedServer));
 assert('unified manifest declares native Business Office rendering', /nativeBusinessOffice:\s*true/.test(unifiedServer) && /businessDefinitions/.test(unifiedServer));
-assert('unified manifest covers command, sales, work, money, people, documents, growth, and control', ['command','sales','work','money','people','documents','growth','control'].every(id => unifiedServer.includes(`id: '${id}'`)));
-assert('representative enabled Business Office routes are present in the unified navigation', representativeBusinessRoutes.every(([key,label]) => unifiedServer.includes(`h38PortalUnifiedItem_('${key}', '${label}'`)), representativeBusinessRoutes.map(([key]) => key).join(', '));
+assert('central registry exposes Today Customers Work Money Documents Growth and Office', ['Today','Customers','Work','Money','Documents','Growth','Office'].every(label => moduleGroups.some(group => group.label === label)), moduleGroups.map(group => group.label).join(', '));
+assert('central registry has no Control group', !moduleGroups.some(group => group.id === 'control' || group.label === 'Control'));
+assert('representative enabled Business Office routes are present in current navigation', representativeBusinessRoutes.every(key => routeKeys.includes(key)), representativeBusinessRoutes.join(', '));
+assert('retired Product Controls route is absent', !routeKeys.includes('bo:setup'));
+assert('Office owns Apps & Modules', moduleItems.some(item => item.groupId === 'office' && item.key === 'moduleManager' && item.label === 'Apps & Modules'));
+assert('retired bookmarks redirect to current workspaces', /control:'today'/.test(unifiedShell) && /'bo:setup':'moduleManager'/.test(unifiedShell) && /route\.indexOf\('app:'\)===0/.test(unifiedShell));
 assert('unified shell renders package groups instead of separate applications', /H38_UNIFIED/.test(unifiedShell) && /uxShowBusinessModule/.test(unifiedShell));
 assert('unified shell routes Business Office links to guarded direct native rendering', /await\s+(?:uxInvokeBusinessModule|renderBusinessModule)\(module/.test(unifiedShell) && /typeof renderBusinessModule!==['"]function['"]/.test(unifiedShell) && !/frame\.src|postMessage\(\{type:'h38-open-business-module'/.test(unifiedShell));
 assert('unified shell sets active route hash and visible loading state before rendering', /history\.replaceState\(null,'','#module='\+encodeURIComponent\(hashModule\)\)/.test(unifiedShell) && /data-h38-workspace-state="loading"/.test(unifiedShell));
@@ -127,7 +127,7 @@ assert('public static pages contain no direct spreadsheet links', sheetLinks.len
 const result = {
   status: failures.length ? 'HOLD' : 'PASS',
   sourceCommit: process.env.GITHUB_SHA || '',
-  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(([key,label]) => ({key,label})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true, deploymentRemoteSourceVerification: true, deterministicUnifiedShell: true, controlledClientManifest: true },
+  inspected: { rootHtmlFiles: rootHtmlFiles.length, ownerLinks: ownerLinks.length, rawFragments: rawFragmentNames, representativeBusinessRoutes: representativeBusinessRoutes.map(key => ({key,label:(moduleItems.find(item => item.key === key)||{}).label||key})), publicPrivateFrames: (portal.match(/<iframe\b/g) || []).length, secureNestedFrames: (portalIndex.match(/<iframe\b/g) || []).length, unifiedApp: true, nativeBusinessOffice: true, deploymentRemoteSourceVerification: true, deterministicUnifiedShell: true, controlledClientManifest: true },
   passes,
   failures
 };
