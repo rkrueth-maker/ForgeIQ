@@ -25,7 +25,10 @@ const required={
   approvedAssets:'scripts/config/approved-public-assets.json',
   imagePlacements:'scripts/config/approved-public-image-placements.json',
   pagesWorkflow:'.github/workflows/pages.yml',
-  appWorkflow:'.github/workflows/deploy-owner-portal-hard-rule-production.yml'
+  appWorkflow:'.github/workflows/deploy-owner-portal-hard-rule-production.yml',
+  governanceWorkflow:'.github/workflows/change-governance.yml',
+  websiteVerifier:'scripts/verify-public-website-architecture.js',
+  appVerifier:'scripts/verify-unified-app-architecture.js'
 };
 Object.entries(required).forEach(([name,relative])=>check(`${name} exists`,exists(relative),relative));
 
@@ -36,6 +39,9 @@ if(failures.length===0){
   const websiteRules=read(required.websiteRules);
   const pagesWorkflow=read(required.pagesWorkflow);
   const appWorkflow=read(required.appWorkflow);
+  const governanceWorkflow=read(required.governanceWorkflow);
+  const websiteVerifier=read(required.websiteVerifier);
+  const appVerifier=read(required.appVerifier);
   const moduleContract=read(required.moduleContract);
   const actionContract=read(required.actionContract);
   const moduleRegistry=read(required.moduleRegistry);
@@ -70,9 +76,13 @@ if(failures.length===0){
   check('public route registry has primary routes',Array.isArray(routes.primary)&&routes.primary.length>=7,String(routes.primary&&routes.primary.length));
   check('image placement manifest locks runtime source changes',placements.runtimeRules&&placements.runtimeRules.mayChangeImageSource===false&&placements.runtimeRules.mayInsertRepresentativeImages===false&&placements.runtimeRules.mayUseFallbackImage===false);
 
-  check('Pages workflow runs governance verifier',pagesWorkflow.includes('node scripts/verify-change-governance.js'));
-  check('Business Office workflow runs governance verifier',appWorkflow.includes('node scripts/verify-change-governance.js'));
-  check('Business Office workflow watches governance sources',appWorkflow.includes("'AGENTS.md'")&&appWorkflow.includes("'docs/architecture/**'")&&appWorkflow.includes("'scripts/verify-change-governance.js'"));
+  check('governance workflow runs on pull requests',/pull_request:/.test(governanceWorkflow));
+  check('governance workflow watches canonical rule and contract files',['AGENTS.md','docs/architecture/**','BusinessOffice_ModuleContract.gs','BusinessOffice_ActionContract.gs','approved-public-image-placements.json','public-website-routes.json'].every(marker=>governanceWorkflow.includes(marker)));
+  check('governance workflow runs the verifier',governanceWorkflow.includes('node scripts/verify-change-governance.js'));
+  check('Pages production workflow runs the website architecture verifier',pagesWorkflow.includes('node scripts/verify-public-website-architecture.js'));
+  check('website architecture verifier runs governance first',websiteVerifier.includes("verify-change-governance.js"));
+  check('Business Office production workflow runs the app architecture verifier',appWorkflow.includes('node scripts/verify-unified-app-architecture.js'));
+  check('app architecture verifier runs governance first',appVerifier.includes("verify-change-governance.js"));
 }
 
 const evidence={status:failures.length?'HOLD':'PASS',generatedAt:new Date().toISOString(),policy:'website-and-web-app-governance-v1',passed:pass.length,failed:failures.length,pass,failures};
