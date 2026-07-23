@@ -19,5 +19,17 @@
   "production_url": "https://rkrueth-maker.github.io/highway-38-solutions/",
   "forbidden_logo_substitutes": [
     "assets/command-center/cc-42.webp"
-  ]
+  ],
+  "approved_content_assets": {
+    "manufacturing_automation": {
+      "description": "Exact owner-approved manufacturing and automation image",
+      "path": "assets/approved-website-images/manufacturing-automation.jpg",
+      "git_blob_sha": "460bf2eac1f2f63bce343c388dd85867e639e498",
+      "sha256": "e311000da5b001aab8c57716f709404f6685b4c433410babb30c3cbbc17f6d0c",
+      "width": 1600,
+      "height": 900,
+      "cache_key": "e311000d",
+      "public_reference": "assets/approved-website-images/manufacturing-automation.jpg?v=e311000d"
+    }
+  }
 }

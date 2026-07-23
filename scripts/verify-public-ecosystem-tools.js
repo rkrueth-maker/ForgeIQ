@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const ROOT = path.resolve(__dirname, '..');
-const pages = ['ecosystem-status.html', 'customer-portal.html', 'business-concept-builder.html', 'tool-center.html', 'proof-center.html', 'portal.html'];
+const pages = ['ecosystem-status.html', 'customer-portal.html', 'business-concept-builder.html', 'proof-center.html', 'portal.html'];
 const pass = [];
 const failures = [];
 
@@ -42,7 +42,10 @@ for (const rel of pages) {
     return fs.existsSync(target) && /@media\s*\(/.test(fs.readFileSync(target, 'utf8'));
   });
   check(`${rel} responsive CSS`, responsive, styles.join(', '));
-  const inlineScripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(match => match[1]).filter(Boolean);
+  const inlineScripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter(match => !/\bsrc=/.test(match[1]) && !/\btype=["']application\/(?:ld\+)?json["']/i.test(match[1]))
+    .map(match => match[2])
+    .filter(source => source.trim());
   inlineScripts.forEach((source, index) => {
     try { new vm.Script(source, { filename: `${rel}:inline-${index + 1}` }); pass.push({ name: `${rel} inline script ${index + 1} syntax`, detail: '' }); }
     catch (error) { failures.push({ name: `${rel} inline script ${index + 1} syntax`, detail: error.message }); }
@@ -110,8 +113,10 @@ const ownerUnified = read('apps-script/core-engine/owner-portal-next/Portal_Unif
 const ownerShell = read('apps-script/core-engine/owner-portal-next/Portal_UX_Client_Shell.html');
 const ownerBusinessServer = read('apps-script/core-engine/owner-portal-next/Portal_Business.js');
 const ownerBusinessClient = read('apps-script/core-engine/owner-portal-next/Portal_Business_Client.html');
+const moduleContract = read('apps-script/business-office/BusinessOffice_ModuleContract.gs');
+const moduleRegistry = read('apps-script/core-engine/owner-portal-next/Portal_Module_Registry.js');
 check('owner portal is noindex', /name="robots" content="noindex,nofollow"/.test(ownerPortal));
-check('owner portal is a single automatic secure gateway', /Opening Highway 38 Business System/.test(ownerPortal) && /location\.replace\(target\)/.test(ownerPortal));
+check('owner portal is a single automatic secure gateway', /Opening Highway 38 Business Office/.test(ownerPortal) && /location\.replace\(target\)/.test(ownerPortal));
 check('owner portal targets accepted private Owner application', /AKfycbzr0hoImRF4iQ1gR90Cr17juP8PODkEWRorXxW6qralEYTGLhOU33E1wYEPU_3duQKpQg/.test(ownerPortal));
 check('owner portal contains no obsolete public iframe', !/<iframe\b/i.test(ownerPortal));
 check('owner portal contains no obsolete six-button workspace row', !/owner-area-strip|Tasks &amp; Decisions|Quotes, Money &amp; Reports/.test(ownerPortal));
@@ -121,11 +126,17 @@ check('secure app contains no nested Business Office iframe', !/<iframe\b|busine
 check('secure app includes native Business Office client and styles', /Portal_Business_Client/.test(ownerIndex) && /Portal_Business_Styles/.test(ownerIndex));
 check('secure app uses package-controlled grouped navigation', /function h38PortalUnifiedBootstrap\(\)/.test(ownerUnified) && /groups:\s*groups/.test(ownerUnified) && /H38_UNIFIED/.test(ownerShell));
 check('secure app declares native Business Office rendering', /nativeBusinessOffice:\s*true/.test(ownerUnified));
-check('secure app includes command tasks messaging sales work money people documents growth and control', ['command','tasksWork','messaging','sales','work','money','people','documents','growth','control'].every(id => ownerUnified.includes(`id: '${id}'`)));
+const canonicalGroupIds = ['command','sales','work','money','documents','growth','office'];
+check('secure app derives seven workspace groups from canonical module contract',
+  canonicalGroupIds.every(id => moduleContract.includes(`{id:'${id}'`)) &&
+  /h38PortalModuleRegistry_/.test(ownerUnified) &&
+  /boGetUnifiedModuleContract_/.test(moduleRegistry) &&
+  /groups:groups/.test(ownerUnified)
+);
 check('Business Office modules render directly in the secure app', /renderBusinessModule/.test(ownerShell) && /function renderBusinessModule/.test(ownerBusinessClient));
 check('Business Office server adapter supports list save open and upload', ['h38PortalBusinessModule','h38PortalBusinessSave','h38PortalBusinessWorkspace','h38PortalBusinessUpload'].every(name => ownerBusinessServer.includes(`function ${name}`)));
 check('Documents and OCR exposes upload and camera path inside secure app', /Upload PDF \/ Take Picture/.test(ownerBusinessClient) && /capture="environment"/.test(ownerBusinessClient));
-check('owner portal preserves approval boundaries', /Customer sends, publishing, advertising spend, financial posting, payroll export, tax finalization, delivery/.test(ownerPortal));
+check('owner portal preserves approval boundaries', /External customer sends, publishing, financial posting, payroll export, tax finalization/.test(ownerPortal) && /owner-approval gated/.test(ownerPortal));
 const ecosystemJs = read('ecosystem.js');
 check('global Owner Login routes through portal webpage', /const ownerPortal='portal\.html'/.test(ecosystemJs));
 
@@ -140,9 +151,13 @@ check('concept builder task generation', /BCB-T001/.test(builderJs) && /BCB-T007
 check('concept builder browser-only operation', !/(fetch\(|XMLHttpRequest|sendBeacon)/.test(builderHtml + builderJs));
 
 const tools = read('tool-center.html');
-check('four calculators', ([...tools.matchAll(/data-tool=/g)]).length === 4, String(([...tools.matchAll(/data-tool=/g)]).length));
-check('calculator downloads', /new Blob/.test(tools) && /estimate\.txt/.test(tools));
-check('calculator coverage', ['area', 'labor', 'margin', 'project'].every(name => tools.includes(`data-tool="${name}"`)));
+check('retired tool center redirects to project examples',
+  /location\.replace\(['"]sample-library-now\.html\?from=retired-tool-center['"]\)/.test(tools) &&
+  /http-equiv=["']refresh["'][^>]+sample-library-now\.html\?from=retired-tool-center/i.test(tools)
+);
+check('retired tool center contains no calculator product runtime',
+  !/data-tool=|new Blob|estimate\.txt/.test(tools)
+);
 
 const proof = JSON.parse(read('launch-control/public-proof-manifest.json'));
 check('proof manifest items', Array.isArray(proof.items) && proof.items.length >= 4, String(proof.items?.length));

@@ -128,6 +128,7 @@ def main() -> int:
 
     required_assets = {
         "approved_logo",
+        "approved_content_assets",
         "shared_public_css",
         "shared_public_js",
         "business_office_config",
@@ -150,6 +151,21 @@ def main() -> int:
     )
     if bool(logo.get("allow_image_substitute")):
         errors.append("APPROVED LOGO POLICY ERROR: image substitution must remain disabled")
+
+    for asset_key, item in assets.get("approved_content_assets", {}).items():
+        relative_path = str(item.get("path", ""))
+        approved_path = ROOT / relative_path
+        if not image_file_is_valid(approved_path):
+            errors.append(f"INVALID APPROVED CONTENT IMAGE: {asset_key} -> {relative_path}")
+            continue
+        actual_blob = git_blob_sha(approved_path)
+        expected_blob = str(item.get("git_blob_sha", "")).lower()
+        if actual_blob != expected_blob:
+            errors.append(f"APPROVED CONTENT IMAGE BINARY MISMATCH: {asset_key} expected {expected_blob}, got {actual_blob}")
+        actual_sha256 = hashlib.sha256(approved_path.read_bytes()).hexdigest()
+        expected_sha256 = str(item.get("sha256", "")).lower()
+        if actual_sha256 != expected_sha256:
+            errors.append(f"APPROVED CONTENT IMAGE SHA-256 MISMATCH: {asset_key} expected {expected_sha256}, got {actual_sha256}")
 
     shared_js_path = ROOT / assets.get("shared_public_js", "")
     shared_css_path = ROOT / assets.get("shared_public_css", "")

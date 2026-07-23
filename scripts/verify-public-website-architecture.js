@@ -102,7 +102,7 @@ const requiredCapabilities=['Automation & Robotics','CNC Machining & Process Pla
 const capabilityKeys=['automation','cnc','fixturing','quote-builder','business-office'];
 const capabilityLinks=['robotics-automation.html','manufacturing-cnc.html','fixture-jig-concept-review.html','quote-builder.html','business-systems.html'];
 const capabilityImages=[
-  'assets/approved-website-images/manufacturing-automation.webp',
+  'assets/approved-website-images/manufacturing-automation.jpg',
   'assets/approved-website-images/12-cnc-machining-closeup.jpg',
   'assets/approved-website-images/10-project-planning-documents.jpg',
   'assets/approved-website-images/business-workflow-office.webp',

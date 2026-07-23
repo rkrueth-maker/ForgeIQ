@@ -22,6 +22,7 @@ Object.entries(manifest.pages||{}).forEach(([page,placements])=>{
   placements.forEach(item=>{
     expectedCounts[item.src]=(expectedCounts[item.src]||0)+1;
     check(`${page} ${item.role} exact source`,html.includes(item.src),item.src);
+    if(item.cacheKey)check(`${page} ${item.role} exact cache key`,html.includes(`${item.src}?v=${item.cacheKey}`),`${item.src}?v=${item.cacheKey}`);
     check(`${page} ${item.role} exact alt`,html.includes(`alt="${item.alt}"`)||html.includes(`alt='${item.alt}'`),item.alt);
     check(`${item.src} exists`,fs.existsSync(path.join(root,item.src)),item.src);
   });
