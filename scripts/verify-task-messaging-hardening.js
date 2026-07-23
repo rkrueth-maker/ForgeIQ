@@ -17,12 +17,23 @@ const webPath = 'apps-script/business-office/BusinessOffice_TaskMessaging_30_Web
 const web = read(webPath);
 const client = read('apps-script/core-engine/owner-portal-next/Portal_TaskMessaging_Client.html');
 const unified = read('apps-script/core-engine/owner-portal-next/Portal_Unified.js');
+const moduleRegistrySource = read('apps-script/core-engine/owner-portal-next/Portal_Module_Registry.js');
+const registryContext = {};
+let groups = [];
 
 try {
   new vm.Script(web, { filename: webPath });
   check('task messaging web syntax', true);
 } catch (error) {
   check('task messaging web syntax', false, error.message);
+}
+try {
+  vm.createContext(registryContext);
+  new vm.Script(moduleRegistrySource, { filename:'Portal_Module_Registry.js' }).runInContext(registryContext);
+  groups = registryContext.h38PortalModuleRegistry_('quoteBuilder');
+  check('task messaging registry syntax', true);
+} catch (error) {
+  check('task messaging registry syntax', false, error.message);
 }
 
 check(
@@ -83,14 +94,16 @@ check(
     /H38_UNIFIED\.defaultModule\|\|'bo:assignedTasks'/.test(client) &&
     /Task and message access is limited server-side/.test(client),
 );
+const today = groups.find(group => group.id === 'command');
+const customers = groups.find(group => group.id === 'sales');
+const taskItem = today && today.items.find(item => item.key === 'bo:assignedTasks');
+const messagingItem = customers && customers.items.find(item => item.key === 'bo:messaging');
 check(
-  'non-owner navigation keeps Tasks and Messaging separate',
-  /if \(!access\.ownerMode\)/.test(unified) &&
-    /id: 'tasksWork'[\s\S]*label: 'Tasks'/.test(unified) &&
-    /id: 'messaging'[\s\S]*label: 'Messaging'/.test(unified) &&
-    /\['tasksWork','messaging'\]\.indexOf\(group\.id\) >= 0/.test(unified) &&
-    !/label: 'Tasks & Messaging'/.test(unified) &&
-    /defaultModule: access\.ownerMode \? 'today' : 'bo:assignedTasks'/.test(unified),
+  'non-owner navigation keeps My Work and Communications separate',
+  Boolean(taskItem && messagingItem && taskItem.module === 'assignedTasks' && messagingItem.module === 'messaging' && taskItem.key !== messagingItem.key) &&
+    !moduleRegistrySource.includes("label:'Tasks & Messaging'") &&
+    /var defaultModule = access\.ownerMode \? 'today' : 'bo:assignedTasks'/.test(unified),
+  `${taskItem && taskItem.label || 'missing task'} | ${messagingItem && messagingItem.label || 'missing messaging'}`,
 );
 check(
   'client contains no direct provider request',
