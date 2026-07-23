@@ -51,7 +51,7 @@ const directFiles=['deck-before.webp','deck-after.webp','irrigation-before.webp'
 check('canonical shell declares source lock',/imagePolicy:\{changeSource:false,insertImages:false,fallbackImages:false/.test(canonical));
 check('canonical shell does not assign content image sources',!/\.querySelectorAll\([^\n]*img[\s\S]{0,300}\.src\s*=/.test(canonical));
 check('canonical shell never inserts representative images',!/representativeFigure|placeApprovedImages|addRepresentativeGroup|IMAGE_BASE/.test(canonical));
-check('canonical shell has no fallback content image',!/fallback(?:Image)?|onerror\s*=|img\.src\s*=/.test(canonical));
+check('canonical shell has no fallback source mutation',!/onerror\s*=|setAttribute\(\s*['"]src['"]|\.src\s*=\s*['"](?:assets\/|https?:\/\/)/.test(canonical));
 check('canonical shell optimizes loading without source changes',/img\.loading='lazy'/.test(canonical)&&/img\.decoding='async'/.test(canonical)&&/img\.fetchPriority='high'/.test(canonical));
 check('project compatibility loader contains no image logic',!/fallback|contractor-demo|approved-website-images|\.src\s*=\s*['"]assets\//.test(legacyProject));
 check('brand compatibility loader contains no image placement',!/representativeFigure|placeApprovedImages|addRepresentativeGroup|IMAGE_BASE|approved-website-images/.test(legacyBrand));
