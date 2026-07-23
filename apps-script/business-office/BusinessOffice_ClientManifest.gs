@@ -11,7 +11,6 @@ var H38_BO_CLIENT_MANIFEST = [
   'BusinessOffice_Equipment_Client',
   'BusinessOffice_Polish_Client',
   'BusinessOffice_AI_Assistant_Client',
-  'BusinessOffice_AI_Native_UX_Client',
   'BusinessOffice_Logo_Client'
 ];
 
