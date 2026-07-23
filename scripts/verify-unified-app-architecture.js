@@ -6,6 +6,11 @@ const path=require('path');
 const vm=require('vm');
 const childProcess=require('child_process');
 const ROOT=path.resolve(__dirname,'..');
+const governance=childProcess.spawnSync(process.execPath,[path.join(__dirname,'verify-change-governance.js')],{cwd:ROOT,encoding:'utf8'});
+if(governance.stdout)process.stdout.write(governance.stdout);
+if(governance.stderr)process.stderr.write(governance.stderr);
+if(governance.status!==0)process.exit(governance.status||1);
+
 const PORTAL=path.join(ROOT,'apps-script','core-engine','owner-portal-next');
 const BUSINESS=path.join(ROOT,'apps-script','business-office');
 const EVIDENCE=path.join(ROOT,'launch-control','evidence','unified-app-architecture-verification.json');
@@ -108,7 +113,7 @@ if(failures.length===0){
   check('deterministic unified source assembly',assembly.status===0,'exit '+assembly.status);
 }
 
-const evidence={status:failures.length?'FAIL':'PASS',generatedAt:new Date().toISOString(),architecture:'single-contract-office-registry-v4',logoLocked:true,performance:{startupRpcBudget:1,pageWideObserversAllowed:0,secondaryModules:'on-demand'},passed:pass.length,failed:failures.length,pass,failures};
+const evidence={status:failures.length?'FAIL':'PASS',generatedAt:new Date().toISOString(),architecture:'single-contract-office-registry-v4',governance:'website-and-web-app-governance-v1',logoLocked:true,performance:{startupRpcBudget:1,pageWideObserversAllowed:0,secondaryModules:'on-demand'},passed:pass.length,failed:failures.length,pass,failures};
 fs.mkdirSync(path.dirname(EVIDENCE),{recursive:true});
 fs.writeFileSync(EVIDENCE,JSON.stringify(evidence,null,2)+'\n');
 console.log(JSON.stringify(evidence,null,2));
