@@ -22,8 +22,13 @@ on:
       - 'scripts/verify-owner-portal-next.js'
       - 'scripts/verify-owner-portal-hard-rule.js'
       - 'scripts/verify-business-office.js'
+      - 'scripts/verify-product-pack-architecture.js'
+      - 'scripts/verify-unified-app-architecture.js'
+      - 'scripts/verify-unified-source-assembly.js'
+      - 'scripts/verify-one-shot-ux.js'
       - 'scripts/verify-photo-first-record-creation.js'
       - 'scripts/verify-task-messaging.js'
+      - 'scripts/verify-task-messaging-hardening.js'
       - 'scripts/verify-customer-portal-supabase.js'
       - 'scripts/verify-customer-portal-security.js'
       - 'scripts/verify-unified-app-ux-complete.js'
@@ -133,6 +138,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node scripts/verify-unified-app-architecture.js
           node scripts/verify-business-office.js
           node scripts/verify-business-office-runtime-helpers.js
           node scripts/verify-unified-client-routing-runtime.js
@@ -142,7 +148,7 @@ jobs:
           node scripts/verify-quote-camera-polish.js
           node scripts/verify-quote-builder-business-office-routing.js
 
-      - name: Audit legacy complete unified UX snapshot
+      - name: Audit complete unified UX snapshot
         id: unified_ux
         continue-on-error: true
         run: node scripts/verify-unified-app-ux-complete.js
@@ -203,6 +209,7 @@ jobs:
             artifacts/unified-app-ux/
             artifacts/photo-first-record-creation/
             artifacts/task-messaging/
+            launch-control/evidence/unified-app-architecture-verification.json
             launch-control/evidence/customer-portal-supabase-verification.json
             launch-control/evidence/customer-portal-security-verification.json
           if-no-files-found: warn
@@ -223,8 +230,8 @@ jobs:
           - Quote Builder camera and private quote attachment controls: PASS
           - Current task and messaging hardening: PASS
           - Customer Portal RLS, account mapping, private storage, signed downloads, and version-checked quote approval: PASS
-          - Seven workspaces: Today, Customers, Work, Money, Documents, Growth, Control
-          - Module Manager, setup wizard, Approval Center, customer/job workspaces, role dashboards, calendar, users, backups, mobile navigation, and command launcher: PASS
+          - Seven workspaces: Today, Customers, Work, Money, Documents, Growth, Office
+          - Apps & Modules, setup wizard, Approval Center, customer/job workspaces, role dashboards, calendar, users, backups, mobile navigation, and command launcher: PASS
           - Canonical Business Office authentication, Portal authentication bridge, and explicit auth resolver: REMOTE VERIFIED
           - Existing Apps Script project and deployments updated in place
           - New project or deployment: none
