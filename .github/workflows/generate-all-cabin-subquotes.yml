@@ -1,0 +1,79 @@
+name: Generate All Cabin Sub-Quotes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/generate-all-cabin-subquotes.yml'
+      - 'apps-script/business-office/BusinessOffice_CabinDemoSeeder.gs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highway-38-cabin-subquotes
+  cancel-in-progress: false
+
+jobs:
+  deploy-and-generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
+      CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
+      CLASP_CREDENTIALS_B64: ${{ secrets.CLASP_CREDENTIALS_B64 }}
+      GOOGLE_CLASPRC_JSON: ${{ secrets.GOOGLE_CLASPRC_JSON }}
+      GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install isolated clasp
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @google/clasp@3.3.0
+
+      - name: Load existing production credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME"
+          if [[ -n "${CLASPRC_JSON}" ]]; then printf '%s' "${CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASPRC_JSON_B64}" ]]; then printf '%s' "${CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS}" ]]; then printf '%s' "${CLASP_CREDENTIALS}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS_B64}" ]]; then printf '%s' "${CLASP_CREDENTIALS_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON_B64}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          else echo 'Missing existing production clasp credential.'; exit 78; fi
+          chmod 600 "$HOME/.clasprc.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8'))"
+
+      - name: Deploy through existing unified production authority
+        shell: bash
+        run: bash scripts/deploy-unified-owner-portal-web.sh
+
+      - name: Generate all 21 cabin sub-quotes
+        shell: bash
+        run: |
+          set -euo pipefail
+          SCRIPT_ID="$(node -e "const d=require('./business-packs/highway38/deployment.json'); process.stdout.write(d.appsScript.productionProjectId)")"
+          WORK="$RUNNER_TEMP/cabin-generator"
+          mkdir -p "$WORK"
+          printf '{"scriptId":"%s","rootDir":"."}\n' "$SCRIPT_ID" > "$WORK/.clasp.json"
+          cd "$WORK"
+          npx clasp run boGenerateAllCabinSubquotes --params '[]' | tee "$GITHUB_WORKSPACE/cabin-subquote-generation-result.txt"
+          grep -E '21|generated|PASS|Complete' "$GITHUB_WORKSPACE/cabin-subquote-generation-result.txt"
+
+      - name: Upload generation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cabin-subquote-generation-${{ github.run_id }}
+          path: |
+            cabin-subquote-generation-result.txt
+            artifacts/unified-owner-portal/
+          if-no-files-found: warn
+          retention-days: 90
