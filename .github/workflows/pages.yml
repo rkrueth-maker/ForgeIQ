@@ -41,6 +41,9 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Verify locked public image placements
+        run: node scripts/verify-public-image-placements.js
+
       - name: Stage verified public site
         shell: bash
         run: |
@@ -82,6 +85,16 @@ jobs:
             --exclude='*' \
             ./ _site/
           sha="$(git rev-parse HEAD)"
+          short_sha="${sha:0:12}"
+          SHA="$short_sha" python3 - <<'PY'
+          from pathlib import Path
+          import os,re
+          version=os.environ['SHA']
+          for path in Path('_site').glob('*.html'):
+              text=path.read_text()
+              text=re.sub(r'contractor-demo\.css\?v=[A-Za-z0-9._-]+',f'contractor-demo.css?v={version}',text)
+              path.write_text(text)
+          PY
           printf '%s\n' "$sha" > _site/deployed-main-sha.txt
           test -f _site/index.html
           test -f _site/sample-library-now.html
@@ -90,6 +103,15 @@ jobs:
           test -f _site/free-tools.html
           grep -Fq 'Eight complete project demonstrations' _site/sample-library-now.html
           grep -Fq 'Uncleared Lot to 3-Bedroom Cabin' _site/sample-library-now.html
+          grep -Fq "contractor-demo.css?v=${short_sha}" _site/sample-library-now.html
+          for image in deck-before.webp deck-after.webp irrigation-before.webp irrigation-after.webp kitchen-before.webp kitchen-after.webp; do
+            grep -Fq "assets/demo-workthroughs/${image}" _site/sample-library-now.html
+            test -f "_site/assets/demo-workthroughs/${image}"
+          done
+          ! grep -Eq 'project-pairs-(strip|sprite)' _site/contractor-demo.css _site/sample-library-now.html
+          ! grep -Eq 'opacity:[[:space:]]*0' _site/contractor-demo.css
+          grep -Fq 'background-image:none' _site/contractor-demo.css
+          grep -Fq 'opacity:1' _site/contractor-demo.css
           ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' _site/sample-library-now.html _site/products.html _site/pricing.html
           grep -Fq 'pricing.html' _site/products.html
           grep -Fq 'sample-library-now.html' _site/free-tools.html
@@ -108,16 +130,25 @@ jobs:
         run: |
           set -euo pipefail
           expected="$(git rev-parse HEAD)"
+          short_sha="${expected:0:12}"
           marker="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           for attempt in $(seq 1 24); do
             echo "Verification attempt ${attempt}/24"
             live_sha="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/deployed-main-sha.txt?flush=${marker}-${attempt}" || true)"
             examples="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/sample-library-now.html?flush=${marker}-${attempt}" || true)"
+            demo_css="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/contractor-demo.css?v=${short_sha}&flush=${marker}-${attempt}" || true)"
             products="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/products.html?flush=${marker}-${attempt}" || true)"
             tools="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/free-tools.html?flush=${marker}-${attempt}" || true)"
             if [[ "$live_sha" == "$expected" ]] \
               && grep -Fq 'Eight complete project demonstrations' <<<"$examples" \
               && grep -Fq 'Uncleared Lot to 3-Bedroom Cabin' <<<"$examples" \
+              && grep -Fq "contractor-demo.css?v=${short_sha}" <<<"$examples" \
+              && grep -Fq 'assets/demo-workthroughs/deck-before.webp' <<<"$examples" \
+              && grep -Fq 'assets/demo-workthroughs/irrigation-after.webp' <<<"$examples" \
+              && grep -Fq 'assets/demo-workthroughs/kitchen-after.webp' <<<"$examples" \
+              && grep -Fq 'background-image:none' <<<"$demo_css" \
+              && grep -Fq 'opacity:1' <<<"$demo_css" \
+              && ! grep -Eq 'project-pairs-(strip|sprite)|opacity:[[:space:]]*0' <<<"$demo_css" \
               && ! grep -Eqi 'Browse 15 samples|15 products|9 recommended bundles' <<<"$examples$products" \
               && grep -Fq 'pricing.html' <<<"$products" \
               && grep -Fq 'sample-library-now.html' <<<"$tools"; then
@@ -125,14 +156,14 @@ jobs:
             fi
             sleep 10
           done
-          echo 'The GitHub Pages CDN did not serve the deployed artifact before timeout.'
+          echo 'The GitHub Pages CDN did not serve the verified direct-image artifact before timeout.'
           exit 1
 
       - name: Record PASS
         if: success()
         shell: bash
         run: |
-          body="PASS — GitHub Pages is serving commit ${GITHUB_SHA}. Eight projects and Cabin Example 08 are live. Products, Free Tools, Downloads, Tools, and ForgeIQ are retired. Old 15-product and nine-bundle language is absent. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          body="PASS — GitHub Pages is serving commit ${GITHUB_SHA}. Eight projects and Cabin Example 08 are live. Deck, irrigation, and kitchen use their six direct approved image files with no sprite or remote fallback. Products, Free Tools, Downloads, Tools, and ForgeIQ are retired. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — PASS' --body "$body"
           gh issue close 284 --repo "$GITHUB_REPOSITORY" --reason completed
 
@@ -140,5 +171,5 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          body="HOLD — Pages deployment or live verification failed for commit ${GITHUB_SHA}. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          body="HOLD — Pages deployment or live direct-image verification failed for commit ${GITHUB_SHA}. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages flush and live verification — HOLD' --body "$body"
