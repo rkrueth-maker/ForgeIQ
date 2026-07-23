@@ -4,16 +4,19 @@ These rules govern every public Highway 38 website page, redirect, shared compon
 
 They apply to every chat, agent, branch, pull request, direct commit, and automation in this repository.
 
+They operate under `docs/architecture/WEBSITE_AND_WEB_APP_CHANGE_GOVERNANCE.md`. Complete the combined change intake and run `node scripts/verify-change-governance.js` before applying these website-specific rules.
+
 ## 1. Public website architecture
 
 1. The customer-facing website is project-first. Visitors begin with project examples, what Highway 38 does, pricing, or a request—not a retired product catalog.
 2. Shared navigation, footer, logo reference, accessibility behavior, owner-link routing, and image loading behavior are owned by:
    - `assets/js/h38-site-v2.js`
    - `assets/css/h38-site-v2.css`
-3. Public page routes and retired-route destinations are declared in the canonical site registry inside `assets/js/h38-site-v2.js` and verified by `scripts/verify-public-website-architecture.js`.
+3. Public page routes and retired-route destinations are declared in `scripts/config/public-website-routes.json` and verified by `scripts/verify-public-website-architecture.js`.
 4. `assets/js/project-intelligence.js` and `brand-global.js` are compatibility loaders only. They may not own navigation, footer markup, image placement, image fallbacks, or page-specific representative imagery.
 5. Page-specific content remains in the page that owns it. Shared elements may not be copied into individual pages after they are centralized.
 6. A retired page must redirect to a current customer-facing page. It may not keep a second navigation system, catalog, proof gallery, tool center, or product architecture.
+7. There is one image-placement manifest: `scripts/config/approved-public-image-placements.json`. Do not create an alternate or compatibility image manifest.
 
 ## 2. Exact image rules
 
@@ -51,7 +54,7 @@ A new public page must:
 8. lazy-load below-fold images and preserve stable image geometry;
 9. include mobile and keyboard behavior;
 10. keep private owner/customer applications separated from public content;
-11. pass architecture, link, image, accessibility, and deployment verification.
+11. pass governance, architecture, link, image, accessibility, performance, and deployment verification.
 
 ## 4. Changing a page
 
@@ -65,6 +68,7 @@ A new public page must:
 8. Preserve approved images exactly unless the approved placement policy permits correction.
 9. Preserve request security, no-charge language, owner review, customer isolation, and private portal routes.
 10. Keep cache keys versioned only when the underlying controlled file changes.
+11. Update source, registry/manifest, verifier, staging checks, and live checks together when the change creates a new customer-visible contract.
 
 ## 5. Deleting or retiring a page
 
@@ -109,6 +113,7 @@ Other active specialist pages may remain linked from Solutions, but they must us
 Before merge or direct-main acceptance:
 
 ```bash
+node scripts/verify-change-governance.js
 python3 scripts/verify-public-images.py
 node scripts/verify-public-image-placements.js
 node scripts/verify-public-website-architecture.js
@@ -128,9 +133,10 @@ Before claiming the website is live:
 
 A public website change is complete only when:
 
+- the combined governance intake is complete;
 - the shared shell remains singular;
 - the page registry and redirects are correct;
-- exact image paths and placements match the manifest;
+- exact image paths and placements match the single canonical manifest;
 - no image source is changed at runtime;
 - navigation and footer are controlled centrally;
 - below-fold imagery is lazy loaded;
