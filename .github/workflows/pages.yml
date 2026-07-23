@@ -91,22 +91,7 @@ jobs:
             ./ _site/
           sha="$(git rev-parse HEAD)"
           short_sha="${sha:0:12}"
-          SHA="$short_sha" python3 - <<'PY'
-          from pathlib import Path
-          import os,re
-          version=os.environ['SHA']
-          replacements={
-              r'contractor-demo\.css\?v=[A-Za-z0-9._-]+':f'contractor-demo.css?v={version}',
-              r'assets/js/h38-site-v2\.js\?v=[A-Za-z0-9._-]+':f'assets/js/h38-site-v2.js?v={version}',
-              r'assets/js/h38-request-options\.js\?v=[A-Za-z0-9._-]+':f'assets/js/h38-request-options.js?v={version}',
-              r'request-flow\.js\?v=[A-Za-z0-9._-]+':f'request-flow.js?v={version}',
-          }
-          for path in Path('_site').glob('*.html'):
-              text=path.read_text()
-              for pattern,replacement in replacements.items():
-                  text=re.sub(pattern,replacement,text)
-              path.write_text(text)
-          PY
+          SHA="$short_sha" python3 scripts/build-public-site.py _site
           printf '%s\n' "$sha" > _site/deployed-main-sha.txt
 
           primary_pages=(index.html sample-library-now.html solutions.html pricing.html about.html contact.html start-request.html)
@@ -115,6 +100,10 @@ jobs:
             grep -Fq "assets/js/h38-site-v2.js?v=${short_sha}" "_site/${page}"
             ! grep -Eq 'commercial\.js|commercial-public\.js|public-expansion\.js|brand-global\.js|project-intelligence\.js' "_site/${page}"
           done
+          grep -Fq "assets/css/h38-request-v2.css?v=${short_sha}" _site/start-request.html
+          test -f _site/assets/css/h38-request-v2.css
+          [[ "$(grep -Eo '<link[^>]+rel=["'"']stylesheet["'"'][^>]*>' _site/start-request.html | wc -l)" -eq 1 ]]
+          ! grep -Eq 'href=["'"'](?:commercial|commercial-public|brand-global|public-expansion|ux-unified-public|contact-options|platform-unified)\.css' _site/start-request.html
           grep -Fq "assets/js/h38-request-options.js?v=${short_sha}" _site/start-request.html
           grep -Fq "request-flow.js?v=${short_sha}" _site/start-request.html
           grep -Fq 'data-intake-endpoint="https://script.google.com/macros/s/' _site/start-request.html
@@ -162,6 +151,7 @@ jobs:
             about="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/about.html?flush=${marker}-${attempt}" || true)"
             contact="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/contact.html?flush=${marker}-${attempt}" || true)"
             request="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/start-request.html?flush=${marker}-${attempt}" || true)"
+            request_css="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/assets/css/h38-request-v2.css?v=${short_sha}&flush=${marker}-${attempt}" || true)"
             demo_css="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/contractor-demo.css?v=${short_sha}&flush=${marker}-${attempt}" || true)"
             products="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/products.html?flush=${marker}-${attempt}" || true)"
             tools="$(curl -fsSL --connect-timeout 15 "${LIVE_ROOT}/free-tools.html?flush=${marker}-${attempt}" || true)"
@@ -169,6 +159,10 @@ jobs:
             if [[ "$live_sha" == "$expected" ]] \
               && [[ "$(grep -Fo "assets/js/h38-site-v2.js?v=${short_sha}" <<<"$primary" | wc -l)" -eq 7 ]] \
               && ! grep -Eq 'commercial\.js|commercial-public\.js|public-expansion\.js|brand-global\.js|project-intelligence\.js' <<<"$primary" \
+              && grep -Fq "assets/css/h38-request-v2.css?v=${short_sha}" <<<"$request" \
+              && grep -Fq '/* commercial.css */' <<<"$request_css" \
+              && grep -Fq '/* platform-unified.css */' <<<"$request_css" \
+              && ! grep -Eq 'href=["'"'](?:commercial|commercial-public|brand-global|public-expansion|ux-unified-public|contact-options|platform-unified)\.css' <<<"$request" \
               && grep -Fq "assets/js/h38-request-options.js?v=${short_sha}" <<<"$request" \
               && grep -Fq "request-flow.js?v=${short_sha}" <<<"$request" \
               && grep -Fq 'Eight complete project demonstrations' <<<"$examples" \
@@ -205,7 +199,7 @@ jobs:
         if: success()
         shell: bash
         run: |
-          body="PASS — GitHub Pages is serving commit ${GITHUB_SHA}. The seven primary customer pages use one canonical shell; the request page uses one focused options controller and one secure submit flow. Exact approved images and logo are unchanged. Deck, irrigation, and kitchen use their six direct approved files with no sprite or remote fallback. Retired catalog/tool routes remain redirects. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          body="PASS — GitHub Pages is serving commit ${GITHUB_SHA}. The seven primary customer pages use one canonical shell; the live request page uses one bundled stylesheet, one focused options controller, and one secure submit flow. Exact approved images and logo are unchanged. Deck, irrigation, and kitchen use their six direct approved files with no sprite or remote fallback. Retired catalog/tool routes remain lightweight redirects. Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           gh issue edit 284 --repo "$GITHUB_REPOSITORY" --title 'GitHub Pages architecture and live verification — PASS' --body "$body"
           gh issue close 284 --repo "$GITHUB_REPOSITORY" --reason completed
 
