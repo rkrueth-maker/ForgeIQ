@@ -1,38 +1,9 @@
-/** Unified Highway 38 application manifest and package-controlled navigation. */
-
-/*
- * Accepted routing-manifest compatibility declarations. These are retained as
- * non-executable upgrade evidence while visible navigation is generated from
- * Portal_Module_Registry.js.
+/**
+ * Unified Highway 38 application bootstrap.
  *
- * id: 'command' · id: 'sales' · id: 'work' · id: 'money'
- * id: 'people' · id: 'documents' · id: 'growth' · id: 'control'
- * h38PortalUnifiedItem_('bo:requests', 'New Requests')
- * h38PortalUnifiedItem_('bo:customers', 'Customers')
- * h38PortalUnifiedItem_('bo:quotes', 'Quotes')
- * h38PortalUnifiedItem_('bo:workOrders', 'Work Orders')
- * h38PortalUnifiedItem_('bo:jobs', 'Jobs')
- * h38PortalUnifiedItem_('bo:invoices', 'Invoices')
- * h38PortalUnifiedItem_('bo:payments', 'Payments')
- * h38PortalUnifiedItem_('bo:expenses', 'Expenses')
- * h38PortalUnifiedItem_('bo:documents', 'Documents / OCR / Upload')
- * h38PortalUnifiedItem_('bo:approvals', 'Approval Queue')
- * h38PortalUnifiedItem_('bo:reports', 'Financial Reports')
- * h38PortalUnifiedItem_('bo:setup', 'Product Controls')
- */
-
-/*
- * Accepted task/messaging compatibility contract retained for verification and
- * upgrade traceability. The active UI places these role-safe surfaces in the
- * adaptive workspaces without combining their permissions.
- *
- * id: 'taskMessaging' · 'My Tasks'
- * if (!access.ownerMode) {
- *   { id: 'tasksWork', label: 'Tasks' }
- *   { id: 'messaging', label: 'Messaging' }
- *   ['tasksWork','messaging'].indexOf(group.id) >= 0
- * }
- * defaultModule: access.ownerMode ? 'today' : 'bo:assignedTasks'
+ * Visible navigation is generated exclusively from Portal_Module_Registry.js.
+ * This file owns access filtering, package capability ownership, and the browser
+ * module index. Do not add hard-coded navigation groups or retired route lists.
  */
 
 function h38PortalUnifiedPackModuleEnabled_(moduleKey) {
