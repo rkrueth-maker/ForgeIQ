@@ -17,6 +17,7 @@ const assert = (name, condition, evidence = '') => {
 };
 
 const shell = read('apps-script/unified-shell/Unified_AppShell.gs');
+const moduleRegistry = read('apps-script/core-engine/owner-portal-next/Portal_Module_Registry.js');
 const portalManifest = read('apps-script/core-engine/owner-portal-next/Portal_Unified.js');
 const builder = read('scripts/build-unified-apps-script-shell.js');
 const deploy = read('scripts/deploy-unified-owner-portal-web.sh');
@@ -27,8 +28,11 @@ assert('shell owns self-contained authentication', /var H38_PORTAL_AUTH_BRIDGE =
 assert('shell avoids cross-file auth helper dependencies', !/globalThis|boNormalizeText_|boAssert_|boReadTable_/.test(shell));
 assert('shell publishes module and capability registry', /function h38UnifiedShellRegistry/.test(shell) && /function h38UnifiedShellCapabilityOwner_/.test(shell));
 assert('Quote Builder owns quotes when installed', /modules\.quoteBuilder===true && modules\.quotes!==false \? 'quoteBuilder' : 'legacyQuotes'/.test(shell));
+assert('central module registry exists', /function h38PortalModuleRegistry_\(quoteCapabilityOwner\)/.test(moduleRegistry));
+assert('central module registry labels installed quote owner', /quoteCapabilityOwner === 'quoteBuilder' \? 'Quote Builder' : 'Quotes'/.test(moduleRegistry));
+assert('server manifest consumes central module registry', /h38PortalModuleRegistry_\(/.test(portalManifest) && /h38PortalUnifiedBuildGroups_/.test(portalManifest));
 assert('server manifest consumes shell capability ownership', /h38UnifiedShellRegistry/.test(portalManifest) && /h38UnifiedShellCapabilityOwner_/.test(portalManifest));
-assert('server manifest labels the installed quote owner before browser rendering', /owner === 'quoteBuilder' \? 'Quote Builder' : 'Quotes'/.test(portalManifest));
+assert('server manifest publishes module index', /moduleIndex:moduleIndex/.test(portalManifest));
 assert('server manifest publishes disabled legacy capability state', /disabledLegacyCapabilities/.test(portalManifest) && /capabilityOwners:\{quotes:quoteCapabilityOwner\}/.test(portalManifest));
 assert('external actions remain disabled', /EXTERNAL_ACTIONS_ENABLED:false/.test(shell) && /externalActionsEnabled:false/.test(shell));
 assert('builder renames both standalone entries', /h38PortalStandaloneDoGet_/.test(builder) && /boBusinessOfficeStandaloneDoGet_/.test(builder));
@@ -106,6 +110,7 @@ function makeRuntime(quoteBuilderEnabled) {
   };
   vm.createContext(context);
   vm.runInContext(shell, context, { filename:'Unified_AppShell.gs' });
+  vm.runInContext(moduleRegistry, context, { filename:'Portal_Module_Registry.js' });
   vm.runInContext(portalManifest, context, { filename:'Portal_Unified.js' });
   return context;
 }
@@ -127,6 +132,7 @@ try {
   assert('server navigation labels installed quote capability Quote Builder', quoteNavigationItem(enabledBootstrap).label === 'Quote Builder');
   assert('server bootstrap reports Quote Builder capability ownership', enabledBootstrap.capabilityOwners.quotes === 'quoteBuilder');
   assert('server bootstrap disables the legacy quote capability', enabledBootstrap.disabledLegacyCapabilities.quotes === true);
+  assert('server bootstrap publishes registry architecture', enabledBootstrap.architectureVersion === 'registry-v1' && enabledBootstrap.moduleIndex['bo:quotes'].groupId === 'work');
 
   const disabled = makeRuntime(false);
   assert('runtime restores legacy quote owner when add-on is disabled', disabled.h38UnifiedShellCapabilityOwner_('quotes') === 'legacyQuotes');
@@ -163,7 +169,8 @@ try {
   assert('temporary combined assembly contains one entry point', entries.length === 1 && entries[0] === 'Unified_AppShell.gs', entries.join(', ') || 'none');
   assert('temporary combined assembly removes legacy auth bridge', !fs.existsSync(path.join(project, 'Portal_00_BusinessAuth.js')));
   assert('temporary combined assembly retains standalone logic under neutral names', /function h38PortalStandaloneDoGet_/.test(fs.readFileSync(path.join(project, 'Portal_Services.js'), 'utf8')) && /function boBusinessOfficeStandaloneDoGet_/.test(fs.readFileSync(path.join(project, 'BusinessOffice_Web.gs'), 'utf8')));
-  assert('temporary combined assembly retains server capability ownership', /function h38PortalUnifiedQuoteItem_/.test(fs.readFileSync(path.join(project, 'Portal_Unified.js'), 'utf8')));
+  assert('temporary combined assembly retains central module registry', /function h38PortalModuleRegistry_/.test(fs.readFileSync(path.join(project, 'Portal_Module_Registry.js'), 'utf8')));
+  assert('temporary combined assembly retains registry-driven bootstrap', /h38PortalModuleRegistry_\(/.test(fs.readFileSync(path.join(project, 'Portal_Unified.js'), 'utf8')));
 } catch (error) {
   assert('temporary combined assembly completes', false, error.stack || error.message);
 } finally {
@@ -173,7 +180,7 @@ try {
 const result = {
   status: failures.length ? 'HOLD' : 'PASS',
   sourceCommit: process.env.GITHUB_SHA || '',
-  shellVersion:'3.1.0',
+  shellVersion:'registry-design-system-v1',
   passes,
   failures
 };
