@@ -1,9 +1,9 @@
 /**
  * Unified Highway 38 application bootstrap.
  *
- * Visible navigation is generated exclusively from Portal_Module_Registry.js.
- * This file owns access filtering, package capability ownership, and the browser
- * module index. Do not add hard-coded navigation groups or retired route lists.
+ * Visible navigation is generated exclusively from the canonical module
+ * contract through Portal_Module_Registry.js. This file owns access filtering,
+ * capability ownership, the browser module index, and the single startup RPC.
  */
 
 function h38PortalUnifiedPackModuleEnabled_(moduleKey) {
@@ -33,11 +33,6 @@ function h38PortalUnifiedItem_(key, label, type, moduleKey, gate, extras) {
   return item;
 }
 
-function h38PortalUnifiedQuoteItem_() {
-  var owner = h38PortalUnifiedCapabilityOwner_('quotes');
-  return h38PortalUnifiedItem_('bo:quotes',owner === 'quoteBuilder' ? 'Quote Builder' : 'Quotes','business','quotes','quotes',{capability:'quotes'});
-}
-
 function h38PortalUnifiedCanViewItem_(access, item) {
   if (!item.enabled) return false;
   if (typeof h38FieldRoleKnown_ === 'function' && h38FieldRoleKnown_(access.role)) return h38FieldRoleCanView_(access,item.gate || item.module);
@@ -58,7 +53,12 @@ function h38PortalUnifiedBuildGroups_(access, quoteCapabilityOwner) {
           icon:source.icon || '',
           keywords:source.keywords || '',
           secondary:source.secondary === true,
-          capability:source.capability || ''
+          capability:source.capability || '',
+          dependencies:(source.dependencies||[]).slice(),
+          loadStrategy:source.loadStrategy||'on-demand',
+          cacheTtlSeconds:Number(source.cacheTtlSeconds||0),
+          dataOwner:source.dataOwner||'',
+          disablePolicy:source.disablePolicy||'soft-disable-preserve-records'
         });
       }).filter(function(item){ return h38PortalUnifiedCanViewItem_(access,item); })
     };
@@ -91,7 +91,12 @@ function h38PortalUnifiedBootstrap() {
         groupLabel:group.label,
         keywords:item.keywords,
         secondary:item.secondary,
-        capability:item.capability
+        capability:item.capability,
+        dependencies:item.dependencies,
+        loadStrategy:item.loadStrategy,
+        cacheTtlSeconds:item.cacheTtlSeconds,
+        dataOwner:item.dataOwner,
+        disablePolicy:item.disablePolicy
       };
     });
   });
@@ -101,6 +106,7 @@ function h38PortalUnifiedBootstrap() {
     version:typeof H38_APP_UX_VERSION_ !== 'undefined' ? H38_APP_UX_VERSION_ : 'unified',
     shellVersion:shellRegistry ? shellRegistry.version : '',
     architectureVersion:typeof H38_PORTAL_ARCHITECTURE_VERSION !== 'undefined' ? H38_PORTAL_ARCHITECTURE_VERSION : 'registry-v1',
+    moduleContractVersion:typeof H38_UNIFIED_MODULE_CONTRACT_VERSION !== 'undefined' ? H38_UNIFIED_MODULE_CONTRACT_VERSION : '',
     singleApp:true,
     nativeBusinessOffice:true,
     adaptiveNavigation:true,
@@ -121,5 +127,20 @@ function h38PortalUnifiedBootstrap() {
     user:{id:access.user['User ID'],email:access.user.Email,displayName:access.user['Display Name'],role:access.role},
     defaultModule:defaultModule,
     spaces:groups.map(function(group){ return group.label; })
+  };
+}
+
+/** One browser round trip for the complete shell startup payload. */
+function h38PortalStartupBundle(){
+  var started=Date.now();
+  var unified=h38PortalUnifiedBootstrap();
+  return {
+    status:'PASS',
+    bootstrap:h38PortalBootstrap(),
+    schema:h38PortalClientSchema(),
+    experience:h38PortalUxControlCenter(),
+    savedViews:h38PortalSavedViews(),
+    unified:unified,
+    performance:{rpcCount:1,serverElapsedMs:Date.now()-started,secondaryModulesDeferred:true}
   };
 }
