@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "policyVersion": "2026-07-23-exact-placement-v1",
+  "policyVersion": "2026-07-23-exact-placement-v2",
   "logo": {
     "path": "assets/highway38-logo.png",
     "cacheKey": "20260720-exact-0cbc4514",
@@ -25,6 +25,17 @@
       "update-this-manifest-and-verifier-in-the-same-change"
     ]
   },
+  "placementChanges": [
+    {
+      "date": "2026-07-23",
+      "page": "solutions.html",
+      "section": "entire What We Do capability page",
+      "oldPlacement": "general contractors, manufacturing, automation, and digital workflow path cards",
+      "newPlacement": "Automation, CNC Machining, CNC Fixturing, Quote Builder, and Business Office capability sections",
+      "reason": "Owner-directed rebuild because the prior product-path catalog did not represent the core Highway 38 capabilities",
+      "binaryPolicy": "Only existing approved image binaries were reused; no image file or logo was changed"
+    }
+  ],
   "pages": {
     "index.html": [
       {"role":"hero","src":"assets/demo-workthroughs/cabin-exterior-render.png","alt":"Completed Northwoods cabin project concept"},
@@ -34,11 +45,12 @@
       {"role":"business-office-card","src":"assets/approved-website-images/business-workflow-office.webp","alt":"Connected Business Office workflow"}
     ],
     "solutions.html": [
-      {"role":"hero","src":"assets/approved-website-images/manufacturing-automation.webp","alt":"Connected manufacturing and automation work"},
-      {"role":"contractors-card","src":"assets/approved-website-images/06-garage-layout-zones.jpg","alt":"Contractor solutions"},
-      {"role":"manufacturing-card","src":"assets/approved-website-images/12-cnc-machining-closeup.jpg","alt":"Manufacturing and CNC"},
-      {"role":"automation-card","src":"assets/approved-website-images/manufacturing-automation.webp","alt":"Robotics and automation"},
-      {"role":"business-office-card","src":"assets/approved-website-images/business-workflow-office.webp","alt":"Digital workflow and business office"}
+      {"role":"hero","src":"assets/approved-website-images/manufacturing-automation.webp","alt":"Automation and manufacturing systems"},
+      {"role":"automation-card","src":"assets/approved-website-images/manufacturing-automation.webp","alt":"Industrial automation and robotics planning"},
+      {"role":"cnc-card","src":"assets/approved-website-images/12-cnc-machining-closeup.jpg","alt":"CNC machining and process planning"},
+      {"role":"fixturing-card","src":"assets/approved-website-images/10-project-planning-documents.jpg","alt":"CNC fixture and workholding concept planning"},
+      {"role":"quote-builder-card","src":"assets/approved-website-images/business-workflow-office.webp","alt":"AI-assisted Quote Builder workflow"},
+      {"role":"business-office-card","src":"assets/approved-website-images/13-digital-organization-file-system.jpg","alt":"Connected Business Office records and workflow"}
     ],
     "pricing.html": [
       {"role":"hero","src":"assets/demo-workthroughs/cabin-plan-sheet.png","alt":"Detailed project planning and quote example"}
