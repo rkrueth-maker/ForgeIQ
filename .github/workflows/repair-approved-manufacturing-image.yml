@@ -16,7 +16,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       FAILED_RUN_ID: 30049442232
     steps:
-      - name: Publish concise verifier failure
+      - name: Publish final exact-repair failure lines
         shell: bash
         run: |
           set -euo pipefail
@@ -28,14 +28,8 @@ jobs:
             echo
             echo "Failed run: \`$FAILED_RUN_ID\`"
             echo
-            echo '## Error summary'
             echo '```text'
-            grep -Ei '(^|[^a-z])(error|failed|failure|mismatch|missing|invalid|expected|assertion|process completed)([^a-z]|$)' "$RUNNER_TEMP/failed.log" | tail -n 180 || true
-            echo '```'
-            echo
-            echo '## Final 40 log lines'
-            echo '```text'
-            tail -n 40 "$RUNNER_TEMP/failed.log"
+            tail -n 90 "$RUNNER_TEMP/failed.log"
             echo '```'
           } > "$body_file"
           if [[ -n "$issue" ]]; then
