@@ -1,4 +1,8 @@
-/** Business Office focused app registry. Shared records, approvals, documents, and audit history power every app. */
+/**
+ * Reusable Business Office focused-app compatibility packaging metadata.
+ * Module schemas, permissions, dependencies, routes, lifecycle, and loading
+ * behavior belong only to the canonical module and action contracts.
+ */
 function boGetBusinessAppCatalog_(){
   const apps=[
     {key:'quote-builder',name:'Quote Builder',shortName:'Quick Quote',tagline:'Professional photo-supported quotes and proposals.',modules:['customers','quotes','documents'],tier:'Core',standaloneCapable:true,icon:'QB'},
@@ -20,7 +24,14 @@ function boGetBusinessAppCatalog_(){
     {key:'shop-flow-manager',name:'Shop Flow Manager',shortName:'Shop Flow',tagline:'Work centers, routing, bottlenecks, downtime, tooling, and improvement actions.',modules:['jobs','workOrders','assignedTasks','time','equipment','documents','reports'],tier:'Advanced',standaloneCapable:true,icon:'SF'},
     {key:'business-system',name:'Business System',shortName:'Business System',tagline:'All focused apps connected through one controlled platform.',modules:['requests','customers','vendors','quotes','assignedTasks','workOrders','jobs','equipment','purchaseOrders','vendorBills','receipts','expenses','invoices','payments','time','employees','payroll','contractors','tax','documents','social','accounting','approvals','reports','setup'],tier:'Suite',standaloneCapable:false,icon:'BO'}
   ];
-  return apps.filter(function(app){return boBusinessAppEnabled_(app.key);}).map(function(app){const availableModules=app.modules.filter(function(moduleKey){return boModuleEnabled_(moduleKey);});return Object.assign({},app,{modules:availableModules,installed:availableModules.length>0,sharedPlatform:true,approvalControlled:true,externalActionsAutomatic:false});});
+  return apps.filter(function(app){return boBusinessAppEnabled_(app.key);}).map(function(app){
+    const availableModules=app.modules.filter(function(moduleKey){
+      const contract=typeof boGetUnifiedModule_==='function'?boGetUnifiedModule_(moduleKey):null;
+      boAssert_(contract,'Compatibility app '+app.key+' references unknown canonical module '+moduleKey+'.');
+      return boModuleEnabled_(contract.module);
+    });
+    return Object.assign({},app,{modules:availableModules,installed:availableModules.length>0,sharedPlatform:true,approvalControlled:true,externalActionsAutomatic:false,compatibilityPackagingOnly:true});
+  });
 }
 function boBusinessAppEnabled_(appKey){const configured=PropertiesService.getScriptProperties().getProperty('BO_ENABLED_APPS');if(!configured)return true;const enabled=configured.split(',').map(function(value){return String(value||'').trim();}).filter(Boolean);return enabled.indexOf(appKey)!==-1||(appKey==='business-system'&&enabled.length>1);}
-function boGetBusinessApp_(appKey){const key=boNormalizeText_(appKey),app=boGetBusinessAppCatalog_().find(function(item){return item.key===key;});boAssert_(app,'Unsupported or disabled Business Office app: '+key);return app;}
+function boGetBusinessApp_(appKey){const key=boNormalizeText_(appKey),app=boGetBusinessAppCatalog_().find(function(item){return item.key===key;});boAssert_(app,'Unsupported or disabled Business Office compatibility app: '+key);return app;}
