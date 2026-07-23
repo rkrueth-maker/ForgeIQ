@@ -11,7 +11,7 @@ const passes=[];
 const check=(name,condition,detail='')=>(condition?passes:failures).push({name,detail});
 const need=(file,marker,label)=>check(label,read(file).includes(marker),`${file} must contain ${marker}`);
 
-const required=['assets/css/project-intelligence.css','assets/js/project-intelligence.js','platform-unified.css','platform-states.js','request-flow.js','customer-portal-ux.js','customer-portal-unification.js','index.html','solutions.html','products.html','start-request.html','customer-portal.html','supabase/migrations/20260717_customer_portal_quote_project_ux.sql','apps-script/unified-shell/Unified_PublicIntake.gs','apps-script/core-engine/owner-portal-next/Portal_OneShot_UX_Styles.html','apps-script/core-engine/owner-portal-next/Portal_OneShot_Client.html','apps-script/core-engine/owner-portal-next/Portal_Product_Unification_Styles.html','apps-script/core-engine/owner-portal-next/Portal_RawIncludes.js','apps-script/core-engine/owner-portal-next/Portal_Index.html'];
+const required=['assets/css/project-intelligence.css','assets/js/project-intelligence.js','platform-unified.css','platform-states.js','request-flow.js','customer-portal-ux.js','customer-portal-unification.js','index.html','solutions.html','products.html','start-request.html','customer-portal.html','supabase/migrations/20260717_customer_portal_quote_project_ux.sql','apps-script/unified-shell/Unified_PublicIntake.gs','apps-script/core-engine/owner-portal-next/Portal_OneShot_UX_Styles.html','apps-script/core-engine/owner-portal-next/Portal_OneShot_Client.html','apps-script/core-engine/owner-portal-next/Portal_Product_Styles.html','apps-script/core-engine/owner-portal-next/Portal_RawIncludes.js','apps-script/core-engine/owner-portal-next/Portal_Index.html'];
 required.forEach(file=>check(`required ${file}`,exists(file)));
 ['assets/js/project-intelligence.js','platform-states.js','request-flow.js','customer-portal-ux.js','customer-portal-unification.js','customer-portal-supabase.js','apps-script/core-engine/owner-portal-next/Portal_OneShot_Client.html'].forEach(file=>{try{new vm.Script(read(file),{filename:file});check(`syntax ${file}`,true);}catch(error){check(`syntax ${file}`,false,error.message);}});
 
@@ -60,8 +60,9 @@ check('messages attach selected project',customerClient.includes('job_id: state.
 const portalIndex=read('apps-script/core-engine/owner-portal-next/Portal_Index.html');
 const raw=read('apps-script/core-engine/owner-portal-next/Portal_RawIncludes.js');
 check('Owner one-shot styles included',portalIndex.includes('Portal_OneShot_UX_Styles')&&raw.includes('Portal_OneShot_UX_Styles'));
-check('Owner product-unification styles included',portalIndex.includes('Portal_Product_Unification_Styles')&&raw.includes('Portal_Product_Unification_Styles'));
+check('Owner canonical product styles included',portalIndex.includes('Portal_Product_Styles')&&raw.includes('Portal_Product_Styles'));
 check('Owner one-shot client included',portalIndex.includes('Portal_OneShot_Client')&&raw.includes('Portal_OneShot_Client'));
+check('legacy portal product and control layers absent',!/(Portal_Product_Unification|Portal_ProductCenter|Portal_ProductApps|Portal_ControlPlane)/.test(portalIndex+raw));
 const owner=read('apps-script/core-engine/owner-portal-next/Portal_OneShot_Client.html');
 ['Needs decision','Due today','Overdue','Money requiring attention','Next up','Recent activity'].forEach(marker=>check(`Owner Today marker ${marker}`,owner.includes(marker)));
 check('Owner external actions remain gated',owner.includes('remain approval gated'));
