@@ -1,0 +1,284 @@
+name: Repair Approved Manufacturing Image V2
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+
+concurrency:
+  group: repair-approved-manufacturing-image-v2
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      CLASPRC_JSON_B64: ${{ secrets.CLASPRC_JSON_B64 }}
+      CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
+      CLASP_CREDENTIALS_B64: ${{ secrets.CLASP_CREDENTIALS_B64 }}
+      GOOGLE_CLASPRC_JSON: ${{ secrets.GOOGLE_CLASPRC_JSON }}
+      GOOGLE_CLASPRC_JSON_B64: ${{ secrets.GOOGLE_CLASPRC_JSON_B64 }}
+      GH_TOKEN: ${{ github.token }}
+      BASELINE_SHA: 2d6328d92127294662204e38045b1844079de1ce
+      SOURCE_FILE_ID: 1NjgisuWkRUzrcxg0LJOitNlcYr6abNTS
+      SOURCE_SHA256: e311000da5b001aab8c57716f709404f6685b4c433410babb30c3cbbc17f6d0c
+      SOURCE_BLOB_SHA: 460bf2eac1f2f63bce343c388dd85867e639e498
+      CACHE_KEY: e311000d
+      LIVE_ROOT: https://rkrueth-maker.github.io/highway-38-solutions
+
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Guard accepted baseline and run governance first
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$BASELINE_SHA" HEAD
+          unexpected="$(git diff --name-only "$BASELINE_SHA"..HEAD | grep -Ev '^\.github/workflows/repair-approved-manufacturing-image(-v2)?\.yml$' || true)"
+          if [[ -n "$unexpected" ]]; then
+            echo "Unexpected changes after the accepted baseline:"
+            echo "$unexpected"
+            exit 1
+          fi
+          node scripts/verify-change-governance.js
+
+      - name: Load Google credential
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME"
+          if [[ -n "${CLASPRC_JSON}" ]]; then printf '%s' "${CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASPRC_JSON_B64}" ]]; then printf '%s' "${CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS}" ]]; then printf '%s' "${CLASP_CREDENTIALS}" > "$HOME/.clasprc.json"
+          elif [[ -n "${CLASP_CREDENTIALS_B64}" ]]; then printf '%s' "${CLASP_CREDENTIALS_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON}" > "$HOME/.clasprc.json"
+          elif [[ -n "${GOOGLE_CLASPRC_JSON_B64}" ]]; then printf '%s' "${GOOGLE_CLASPRC_JSON_B64}" | base64 --decode > "$HOME/.clasprc.json"
+          else echo 'No encrypted Google credential is configured.'; exit 78; fi
+          chmod 600 "$HOME/.clasprc.json"
+          node -e "JSON.parse(require('fs').readFileSync(process.env.HOME+'/.clasprc.json','utf8'));console.log('Google credential loaded.')"
+
+      - name: Download and validate exact approved source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check pillow
+          ACCESS_TOKEN="$(node <<'NODE'
+          const fs=require('fs'),https=require('https'),querystring=require('querystring');
+          const raw=JSON.parse(fs.readFileSync(process.env.HOME+'/.clasprc.json','utf8'));
+          function walk(o){if(!o||typeof o!=='object')return [];return [o,...Object.values(o).flatMap(walk)]}
+          const auth=walk(raw).find(o=>o&&typeof o==='object'&&(o.refresh_token||o.refreshToken)&&(o.client_id||o.clientId)&&(o.client_secret||o.clientSecret));
+          if(!auth)throw new Error('No refreshable OAuth credential found.');
+          const body=querystring.stringify({client_id:auth.client_id||auth.clientId,client_secret:auth.client_secret||auth.clientSecret,refresh_token:auth.refresh_token||auth.refreshToken,grant_type:'refresh_token'});
+          const req=https.request({method:'POST',hostname:'oauth2.googleapis.com',path:'/token',headers:{'Content-Type':'application/x-www-form-urlencoded','Content-Length':Buffer.byteLength(body)}},res=>{let data='';res.on('data',c=>data+=c);res.on('end',()=>{const parsed=JSON.parse(data);if(!parsed.access_token)throw new Error(data);process.stdout.write(parsed.access_token)})});
+          req.on('error',e=>{throw e});req.end(body);
+          NODE
+          )"
+          mkdir -p "$RUNNER_TEMP/h38-approved-source"
+          curl --fail --silent --show-error --location --max-time 180 \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "https://www.googleapis.com/drive/v3/files/${SOURCE_FILE_ID}?alt=media&supportsAllDrives=true" \
+            -o "$RUNNER_TEMP/h38-approved-source/H38_04_Manufacturing_Automation.jpg"
+          python3 <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageStat
+          import hashlib, os
+          source=Path(os.environ['RUNNER_TEMP'])/'h38-approved-source/H38_04_Manufacturing_Automation.jpg'
+          data=source.read_bytes()
+          sha256=hashlib.sha256(data).hexdigest()
+          blob=hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()
+          assert sha256==os.environ['SOURCE_SHA256'], (sha256, os.environ['SOURCE_SHA256'])
+          assert blob==os.environ['SOURCE_BLOB_SHA'], (blob, os.environ['SOURCE_BLOB_SHA'])
+          with Image.open(source) as image:
+              image.load()
+              assert image.format=='JPEG'
+              assert image.size==(1600,900)
+              assert max(ImageStat.Stat(image.convert('RGB')).stddev)>=20
+          print('Exact approved JPEG validated:', sha256, blob)
+          PY
+
+      - name: Apply canonical source repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import json, os, shutil
+          root=Path('.')
+          source=Path(os.environ['RUNNER_TEMP'])/'h38-approved-source/H38_04_Manufacturing_Automation.jpg'
+          target=root/'assets/approved-website-images/manufacturing-automation.jpg'
+          target.parent.mkdir(parents=True,exist_ok=True)
+          shutil.copyfile(source,target)
+          old_keyed='assets/approved-website-images/manufacturing-automation.webp?v=8d23576d'
+          old_plain='assets/approved-website-images/manufacturing-automation.webp'
+          new_plain='assets/approved-website-images/manufacturing-automation.jpg'
+          new_keyed=f'{new_plain}?v={os.environ["CACHE_KEY"]}'
+          expected={'solutions.html':2,'about.html':1,'robotics-automation.html':2}
+          for page_name,count in expected.items():
+              page=root/page_name
+              text=page.read_text(encoding='utf-8')
+              old_count=text.count(old_keyed)+text.replace(old_keyed,'').count(old_plain)
+              if old_count!=count:
+                  raise SystemExit(f'{page_name}: expected {count} old references, found {old_count}')
+              text=text.replace(old_keyed,new_keyed).replace(old_plain,new_keyed)
+              if text.count(new_keyed)!=count:
+                  raise SystemExit(f'{page_name}: repaired reference count failed')
+              page.write_text(text,encoding='utf-8')
+
+          architecture=root/'scripts/verify-public-website-architecture.js'
+          text=architecture.read_text(encoding='utf-8')
+          marker="'assets/approved-website-images/manufacturing-automation.webp',"
+          if text.count(marker)!=1:
+              raise SystemExit('Architecture verifier path marker changed.')
+          architecture.write_text(text.replace(marker,"'assets/approved-website-images/manufacturing-automation.jpg',",1),encoding='utf-8')
+
+          placement_path=root/'scripts/config/approved-public-image-placements.json'
+          placement=json.loads(placement_path.read_text(encoding='utf-8'))
+          placement['policyVersion']='2026-07-23-exact-placement-v3'
+          for page_name in ('solutions.html','about.html'):
+              for item in placement['pages'][page_name]:
+                  if item.get('src')==old_plain:
+                      item['src']=new_plain
+          placement['pages']['robotics-automation.html']=[
+              {'role':'hero','src':new_plain,'alt':'Industrial robot automation cell'},
+              {'role':'automation-planning','src':new_plain,'alt':'Automation planning and robot cell'}
+          ]
+          record={
+              'date':'2026-07-23',
+              'page':'solutions.html, about.html, robotics-automation.html',
+              'section':'manufacturing and automation imagery',
+              'oldPlacement':old_plain,
+              'newPlacement':new_plain,
+              'reason':'Verified ChromeOS live-render defect: the approved WebP displayed as blank. Restored the exact owner-approved 1600x900 JPEG source from Drive without visual alteration.',
+              'binaryPolicy':'Exact approved JPEG source bytes preserved; SHA-256 e311000da5b001aab8c57716f709404f6685b4c433410babb30c3cbbc17f6d0c; Git blob 460bf2eac1f2f63bce343c388dd85867e639e498; old WebP retained only for rollback history.'
+          }
+          changes=placement.setdefault('placementChanges',[])
+          if not any(item.get('newPlacement')==new_plain for item in changes):
+              changes.append(record)
+          placement_path.write_text(json.dumps(placement,indent=2)+'\n',encoding='utf-8')
+
+          assets_path=root/'scripts/config/approved-public-assets.json'
+          assets=json.loads(assets_path.read_text(encoding='utf-8'))
+          assets['approved_content_assets']={
+              'manufacturing_automation':{
+                  'description':'Exact owner-approved manufacturing and automation image restored from the approved Drive source',
+                  'path':new_plain,
+                  'git_blob_sha':os.environ['SOURCE_BLOB_SHA'],
+                  'sha256':os.environ['SOURCE_SHA256'],
+                  'width':1600,
+                  'height':900,
+                  'public_reference':new_keyed
+              }
+          }
+          assets_path.write_text(json.dumps(assets,indent=2)+'\n',encoding='utf-8')
+
+          for page_name,count in expected.items():
+              assert (root/page_name).read_text(encoding='utf-8').count(new_keyed)==count
+          for rel in ('solutions.html','about.html','robotics-automation.html','scripts/config/approved-public-image-placements.json','scripts/verify-public-website-architecture.js'):
+              assert old_plain not in (root/rel).read_text(encoding='utf-8')
+          PY
+
+      - name: Run complete required public verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify-change-governance.js
+          python3 scripts/verify-public-images.py
+          node scripts/verify-public-image-placements.js
+          node scripts/verify-public-website-architecture.js
+          node scripts/verify-public-ecosystem-tools.js
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageStat
+          import hashlib, os
+          path=Path('assets/approved-website-images/manufacturing-automation.jpg')
+          data=path.read_bytes()
+          assert hashlib.sha256(data).hexdigest()==os.environ['SOURCE_SHA256']
+          with Image.open(path) as image:
+              image.load()
+              assert image.format=='JPEG' and image.size==(1600,900)
+              assert max(ImageStat.Stat(image.convert('RGB')).stddev)>=20
+          print('Approved JPEG is exact, decodable, and visibly nonblank.')
+          PY
+          git diff --check
+
+      - name: Remove generated evidence and commit only the repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout -- artifacts launch-control/evidence 2>/dev/null || true
+          git clean -fd artifacts launch-control/evidence || true
+          rm -f .github/workflows/repair-approved-manufacturing-image.yml
+          rm -f .github/workflows/repair-approved-manufacturing-image-v2.yml
+          allowed='^(assets/approved-website-images/manufacturing-automation.jpg|solutions.html|about.html|robotics-automation.html|scripts/config/approved-public-assets.json|scripts/config/approved-public-image-placements.json|scripts/verify-public-website-architecture.js|\.github/workflows/repair-approved-manufacturing-image.yml|\.github/workflows/repair-approved-manufacturing-image-v2.yml)$'
+          unexpected="$(git status --short | sed 's/^...//' | grep -Ev "$allowed" || true)"
+          if [[ -n "$unexpected" ]]; then
+            echo "Unexpected changed files:"
+            echo "$unexpected"
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/approved-website-images/manufacturing-automation.jpg \
+            solutions.html about.html robotics-automation.html \
+            scripts/config/approved-public-assets.json \
+            scripts/config/approved-public-image-placements.json \
+            scripts/verify-public-website-architecture.js \
+            .github/workflows/repair-approved-manufacturing-image.yml \
+            .github/workflows/repair-approved-manufacturing-image-v2.yml
+          git commit -m 'Restore exact approved manufacturing image'
+          git push origin HEAD:main
+          git rev-parse HEAD > "$RUNNER_TEMP/repaired-main-sha.txt"
+
+      - name: Wait for exact repaired Pages deployment and verify live bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(cat "$RUNNER_TEMP/repaired-main-sha.txt")"
+          run_id=''
+          for attempt in $(seq 1 36); do
+            run_json="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow pages.yml --branch main --limit 20 --json databaseId,headSha,status,conclusion,url | jq -c --arg sha "$expected" '[.[] | select(.headSha==$sha)][0] // empty')"
+            if [[ -n "$run_json" ]]; then
+              run_id="$(jq -r '.databaseId' <<<"$run_json")"
+              status="$(jq -r '.status' <<<"$run_json")"
+              conclusion="$(jq -r '.conclusion // ""' <<<"$run_json")"
+              echo "Pages run ${run_id}: ${status} ${conclusion}"
+              if [[ "$status" == completed ]]; then
+                [[ "$conclusion" == success ]]
+                break
+              fi
+            fi
+            sleep 10
+          done
+          [[ -n "$run_id" ]]
+          marker="${run_id}-$(date +%s)"
+          live_sha="$(curl -fsSL "${LIVE_ROOT}/deployed-main-sha.txt?flush=${marker}")"
+          [[ "$live_sha" == "$expected" ]]
+          curl -fsSL "${LIVE_ROOT}/solutions.html?flush=${marker}" -o "$RUNNER_TEMP/solutions-live.html"
+          curl -fsSL "${LIVE_ROOT}/about.html?flush=${marker}" -o "$RUNNER_TEMP/about-live.html"
+          curl -fsSL "${LIVE_ROOT}/robotics-automation.html?flush=${marker}" -o "$RUNNER_TEMP/robotics-live.html"
+          grep -Fq 'assets/approved-website-images/manufacturing-automation.jpg?v=e311000d' "$RUNNER_TEMP/solutions-live.html"
+          grep -Fq 'assets/approved-website-images/manufacturing-automation.jpg?v=e311000d' "$RUNNER_TEMP/about-live.html"
+          grep -Fq 'assets/approved-website-images/manufacturing-automation.jpg?v=e311000d' "$RUNNER_TEMP/robotics-live.html"
+          curl -fsSL "${LIVE_ROOT}/assets/approved-website-images/manufacturing-automation.jpg?v=e311000d&flush=${marker}" -o "$RUNNER_TEMP/live-manufacturing.jpg"
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageStat
+          import hashlib, os
+          path=Path(os.environ['RUNNER_TEMP'])/'live-manufacturing.jpg'
+          data=path.read_bytes()
+          assert hashlib.sha256(data).hexdigest()==os.environ['SOURCE_SHA256']
+          with Image.open(path) as image:
+              image.load()
+              assert image.format=='JPEG' and image.size==(1600,900)
+              assert max(ImageStat.Stat(image.convert('RGB')).stddev)>=20
+          print('LIVE PASS: exact approved manufacturing JPEG is served and visibly nonblank.')
+          PY
