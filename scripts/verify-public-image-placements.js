@@ -34,6 +34,8 @@ Object.entries(manifest.dynamicPages||{}).forEach(([page,config])=>{
 const canonical=read('assets/js/h38-site-v2.js');
 const legacyProject=read('assets/js/project-intelligence.js');
 const legacyBrand=read('brand-global.js');
+const contractorCss=read('contractor-demo.css');
+const approvedProjectStrip='assets/demo-workthroughs/project-pairs-strip.svg?v=20260722-fixed-1';
 check('canonical shell declares source lock',/imagePolicy:\{changeSource:false,insertImages:false,fallbackImages:false/.test(canonical));
 check('canonical shell does not assign content image sources',!/\.querySelectorAll\([^\n]*img[\s\S]{0,300}\.src\s*=/.test(canonical));
 check('canonical shell never inserts representative images',!/representativeFigure|placeApprovedImages|addRepresentativeGroup|IMAGE_BASE/.test(canonical));
@@ -41,7 +43,18 @@ check('canonical shell has no fallback content image',!/fallback(?:Image)?|onerr
 check('canonical shell optimizes loading without source changes',/img\.loading='lazy'/.test(canonical)&&/img\.decoding='async'/.test(canonical)&&/img\.fetchPriority='high'/.test(canonical));
 check('project compatibility loader contains no image logic',!/fallback|contractor-demo|approved-website-images|\.src\s*=\s*['"]assets\//.test(legacyProject));
 check('brand compatibility loader contains no image placement',!/representativeFigure|placeApprovedImages|addRepresentativeGroup|IMAGE_BASE|approved-website-images/.test(legacyBrand));
+check('approved deck irrigation kitchen strip exists',fs.existsSync(path.join(root,'assets/demo-workthroughs/project-pairs-strip.svg')));
+check('project example cards use the locked local strip',contractorCss.includes(approvedProjectStrip),approvedProjectStrip);
+check('project example cards contain no remote background image',!/background-image\s*:\s*url\(['"]?https?:\/\//i.test(contractorCss));
+check('project example crop map remains complete',[
+  'figure:first-child{background-position:left top}',
+  'figure:last-child{background-position:right top}',
+  'figure:first-child{background-position:left center}',
+  'figure:last-child{background-position:right center}',
+  'figure:first-child{background-position:left bottom}',
+  'figure:last-child{background-position:right bottom}'
+].every(marker=>contractorCss.includes(marker)));
 
-const result={status:failures.length?'HOLD':'PASS',generatedAt:new Date().toISOString(),policyVersion:manifest.policyVersion,approvedLogoLocked:true,contentImageSourcesLocked:true,runtimeImageSourceChangesAllowed:false,passed:passes.length,failed:failures.length,passes,failures};
+const result={status:failures.length?'HOLD':'PASS',generatedAt:new Date().toISOString(),policyVersion:manifest.policyVersion,approvedLogoLocked:true,contentImageSourcesLocked:true,runtimeImageSourceChangesAllowed:false,approvedProjectStripLocal:true,passed:passes.length,failed:failures.length,passes,failures};
 const outDir=path.join(root,'artifacts','public-image-placements');fs.mkdirSync(outDir,{recursive:true});fs.writeFileSync(path.join(outDir,'verification.json'),JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));process.exit(failures.length?1:0);
