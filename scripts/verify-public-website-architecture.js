@@ -111,12 +111,13 @@ const capabilityImages=[
 const capabilityStart=solutions.indexOf('data-capability-section="primary"');
 const capabilityEnd=solutions.indexOf('<section class="pi-section dark">',capabilityStart);
 const capabilitySection=capabilityStart>=0&&capabilityEnd>capabilityStart?solutions.slice(capabilityStart,capabilityEnd):'';
+const capabilityImageSources=[...capabilitySection.matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(match=>match[1].split('?')[0]);
 check('What We Do page names all five core capabilities',requiredCapabilities.every(label=>solutions.includes(label)),requiredCapabilities.join(', '));
 check('What We Do page links to dedicated capability pages',capabilityLinks.every(route=>solutions.includes(`href="${route}"`)),capabilityLinks.join(', '));
 check('What We Do page uses one primary capability section',capabilitySection.length>0&&count(solutions,/data-capability-section="primary"/g)===1);
 check('What We Do page puts all five capabilities in one dedicated grid',/class="pi-capability-grid"/.test(capabilitySection)&&count(capabilitySection,/data-capability="/g)===5,`${count(capabilitySection,/data-capability="/g)} cards`);
 check('What We Do capability identities are complete',capabilityKeys.every(key=>capabilitySection.includes(`data-capability="${key}"`)),capabilityKeys.join(', '));
-check('What We Do uses locked local capability images',capabilityImages.every(src=>capabilitySection.includes(`src="${src}"`)),capabilityImages.join(', '));
+check('What We Do uses locked local capability images',capabilityImages.every(src=>capabilityImageSources.includes(src)),capabilityImages.join(', '));
 check('What We Do contains no remote capability images',!/<img\s+[^>]*src="https?:\/\//i.test(capabilitySection));
 check('What We Do keeps exactly one action per capability',count(capabilitySection,/class="pi-link"/g)===5,`${count(capabilitySection,/class="pi-link"/g)} links`);
 check('What We Do keeps three outcomes per capability',count(capabilitySection,/class="pi-list"/g)===5&&count(capabilitySection,/<div>[^<]+<\/div>/g)>=15);
