@@ -24,8 +24,12 @@ const files={
   index:path.join(PORTAL,'Portal_Index.html'),
   raw:path.join(PORTAL,'Portal_RawIncludes.js'),
   shell:path.join(PORTAL,'Portal_UX_Client_Shell.html'),
+  experienceCore:path.join(PORTAL,'Portal_Experience_Client_Core.html'),
+  workspace:path.join(PORTAL,'Portal_Experience_Client_Workspace.html'),
+  boot:path.join(PORTAL,'Portal_UX_Client_Boot.html'),
   styles:path.join(PORTAL,'Portal_Product_Styles.html'),
   client:path.join(PORTAL,'Portal_Product_Client.html'),
+  publicPortal:path.join(ROOT,'portal.html'),
   manifest:path.join(BUSINESS,'BusinessOffice_ClientManifest.gs'),
   obsoletePolish:path.join(BUSINESS,'BusinessOffice_AI_Native_UX_Client.html'),
   obsoleteControl:path.join(BUSINESS,'BusinessOffice_ControlPlane_Client.html'),
@@ -52,8 +56,12 @@ if(failures.length===0){
   const indexSource=read(files.index);
   const rawSource=read(files.raw);
   const shellSource=read(files.shell);
+  const experienceCoreSource=read(files.experienceCore);
+  const workspaceSource=read(files.workspace);
+  const bootSource=read(files.boot);
   const styleSource=read(files.styles);
   const clientSource=read(files.client);
+  const publicPortalSource=read(files.publicPortal);
   const manifestSource=read(files.manifest);
   const rulesSource=read(files.rules);
   const agentsSource=read(files.agents);
@@ -61,6 +69,7 @@ if(failures.length===0){
   try{new vm.Script(registrySource,{filename:'Portal_Module_Registry.js'});check('module registry syntax',true);}catch(error){check('module registry syntax',false,error.message);}
   try{new vm.Script(unifiedSource,{filename:'Portal_Unified.js'});check('unified bootstrap syntax',true);}catch(error){check('unified bootstrap syntax',false,error.message);}
   try{new vm.Script(shellSource,{filename:'Portal_UX_Client_Shell.html'});check('unified shell client syntax',true);}catch(error){check('unified shell client syntax',false,error.message);}
+  try{new vm.Script(experienceCoreSource+'\n'+workspaceSource+'\n'+bootSource,{filename:'Portal_Client_Foundation.html'});check('portal client foundation syntax',true);}catch(error){check('portal client foundation syntax',false,error.message);}
   try{new vm.Script(clientSource,{filename:'Portal_Product_Client.html'});check('product client syntax',true);}catch(error){check('product client syntax',false,error.message);}
 
   const context={};
@@ -99,12 +108,18 @@ if(failures.length===0){
   check('bootstrap does not hard-code group array',!/var\s+groups\s*=\s*\[/.test(unifiedSource));
   check('portal loads product styles',indexSource.includes("h38PortalRawInclude_('Portal_Product_Styles')"));
   check('portal loads product client',indexSource.includes("h38PortalRawInclude_('Portal_Product_Client')"));
-  check('portal has one top bar',(indexSource.match(/id=\"ownerTopbar\"/g)||[]).length===1);
-  check('portal has one navigation host',(indexSource.match(/id=\"nav\"/g)||[]).length===1);
-  check('portal keeps approved logo host',(indexSource.match(/id=\"h38PortalLogo\"/g)||[]).length===1);
+  check('portal has one top bar',(indexSource.match(/id="ownerTopbar"/g)||[]).length===1);
+  check('portal has one navigation host',(indexSource.match(/id="nav"/g)||[]).length===1);
+  check('portal keeps approved logo host',(indexSource.match(/id="h38PortalLogo"/g)||[]).length===1);
   check('legacy portal UI files are deleted',legacyPortalUi.every(file=>!exists(file)),legacyPortalUi.filter(exists).map(file=>path.basename(file)).join(','));
   check('legacy portal UI is not included',!/(Portal_ControlPlane|Portal_ProductApps|Portal_ProductCenter|Portal_Product_Unification)/.test(indexSource+rawSource));
   check('retired routes redirect into unified workspaces',/control:'today'/.test(shellSource)&&/'bo:setup':'moduleManager'/.test(shellSource)&&/route\.indexOf\('app:'\)===0/.test(shellSource));
+  check('legacy experience core no longer owns navigation or routing',!/(function\s+renderNav\s*\(|function\s+refresh\s*\(|function\s+show\s*\(|Command Center)/.test(experienceCoreSource));
+  check('settings no longer renders retired catalog panel',/function\s+renderSettings\s*\(/.test(workspaceSource)&&!/BOOT(?:&&BOOT)?\.catalog|<h2>Catalog<\/h2>|System Settings & Safety/.test(workspaceSource));
+  check('workspace no longer starts a competing refresh',!/\nrefresh\(\);?\s*$/.test(workspaceSource));
+  check('hash changes synchronize the visible workspace',/addEventListener\('hashchange'/.test(bootSource)&&/h38SyncWorkspaceFromHash/.test(bootSource)&&/await show\(requested\)/.test(bootSource));
+  check('public portal is one automatic unified gateway',/location\.replace\(target\)/.test(publicPortalSource)&&/Opening Highway 38 Business Office/.test(publicPortalSource)&&!/Choose where to open|Enter Command Center|Enter Business Office|class="choices"/.test(publicPortalSource));
+  check('public portal preserves deep-link compatibility',/upload:'documents'/.test(publicPortalSource)&&/'business-office':'requests'/.test(publicPortalSource)&&/encodeURIComponent\(requested\)/.test(publicPortalSource));
   check('obsolete polish include removed',!indexSource.includes('BusinessOffice_AI_Native_UX_Client')&&!manifestSource.includes('BusinessOffice_AI_Native_UX_Client'));
   check('legacy Business Office override clients inactive',!manifestSource.includes('BusinessOffice_ControlPlane_Client')&&!manifestSource.includes('BusinessOffice_ControlPlane_Live_Client')&&!manifestSource.includes('BusinessOffice_Modular_Suite'));
   check('obsolete Business Office UI files deleted',!exists(files.obsoletePolish)&&!exists(files.obsoleteControl)&&!exists(files.obsoleteControlLive)&&!exists(files.obsoleteApps));
@@ -127,7 +142,7 @@ if(failures.length===0){
 const evidence={
   status:failures.length?'FAIL':'PASS',
   generatedAt:new Date().toISOString(),
-  architecture:'single-shell-office-registry-v3',
+  architecture:'single-shell-office-registry-v3.2',
   logoLocked:true,
   passed:pass.length,
   failed:failures.length,
