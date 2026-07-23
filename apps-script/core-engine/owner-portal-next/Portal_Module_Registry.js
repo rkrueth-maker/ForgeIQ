@@ -81,8 +81,7 @@ function h38PortalModuleRegistry_(quoteCapabilityOwner) {
         {key:'errors',label:'Error Log',icon:'!',type:'native',module:'errors',gate:'errors',keywords:'failures diagnostics',secondary:true},
         {key:'systemHealth',label:'System Health',icon:'◉',type:'native',module:'systemHealth',gate:'commandCenter',keywords:'status integrations checks',secondary:true},
         {key:'settings',label:'Settings',icon:'⚙',type:'native',module:'settings',gate:'settings',keywords:'preferences configuration',secondary:true},
-        {key:'help',label:'Help & SOPs',icon:'?',type:'native',module:'help',gate:'commandCenter',keywords:'instructions support',secondary:true},
-        {key:'bo:setup',label:'Product Controls',icon:'⚙',type:'business',module:'setup',gate:'setup',keywords:'catalog products configuration',secondary:true}
+        {key:'help',label:'Help & SOPs',icon:'?',type:'native',module:'help',gate:'commandCenter',keywords:'instructions support',secondary:true}
       ]
     }
   ];
