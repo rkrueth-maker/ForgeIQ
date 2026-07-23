@@ -90,9 +90,15 @@ customerPages.forEach(route=>{
 
 const solutions=read('solutions.html');
 const requiredCapabilities=['Automation & Robotics','CNC Machining & Process Planning','CNC Fixturing & Workholding','AI-Assisted Quote Builder','Highway 38 Business Office'];
+const capabilityStart=solutions.indexOf('data-capability-section="primary"');
+const capabilityEnd=solutions.indexOf('<section class="pi-section dark">',capabilityStart);
+const capabilitySection=capabilityStart>=0&&capabilityEnd>capabilityStart?solutions.slice(capabilityStart,capabilityEnd):'';
 check('What We Do page names all five core capabilities',requiredCapabilities.every(label=>solutions.includes(label)),requiredCapabilities.join(', '));
 check('What We Do page links to dedicated capability pages',['robotics-automation.html','manufacturing-cnc.html','fixture-jig-concept-review.html','quote-builder.html','business-systems.html'].every(route=>solutions.includes(`href="${route}"`)));
-check('What We Do page separates industrial work from operating software',/Industrial and manufacturing/.test(solutions)&&/Software that runs the work/.test(solutions));
+check('What We Do page uses one primary capability section',capabilitySection.length>0&&count(solutions,/data-capability-section="primary"/g)===1);
+check('What We Do page puts all five capabilities in one grid',requiredCapabilities.every(label=>capabilitySection.includes(label))&&count(capabilitySection,/data-capability="/g)===5,`${count(capabilitySection,/data-capability="/g)} cards`);
+check('Quote Builder and Business Office are in the main capability grid',capabilitySection.includes('data-capability="quote-builder"')&&capabilitySection.includes('data-capability="business-office"'));
+check('automation image uses approved binary cache key',count(solutions,/manufacturing-automation\.webp\?v=8d23576d/g)===2,`${count(solutions,/manufacturing-automation\.webp\?v=8d23576d/g)} references`);
 check('What We Do page contains no retired product-path catalog',!/Choose your path|Problem Snapshot|Basic Layout Snapshot|Business Workflow Starter|Workflow Opportunity Snapshot|Digital Workflow Build/.test(solutions));
 check('What We Do page contains no fixed-price product cards',!/\$\d[\d,]*(?:\.\d{2})?/.test(solutions));
 check('What We Do page uses direct static capability content',!/<script[^>]+(?:catalog-data|business-systems-data|public-expansion|commercial\.js)/i.test(solutions));
@@ -129,7 +135,7 @@ if(privateGateway){
 const evidence={
   status:failures.length?'HOLD':'PASS',
   generatedAt:new Date().toISOString(),
-  architecture:'project-first-public-site-v2.1',
+  architecture:'project-first-public-site-v2.2',
   logoLocked:true,
   imagePlacementsLocked:true,
   whatWeDoCapabilities:requiredCapabilities,
