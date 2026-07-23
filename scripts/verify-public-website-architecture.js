@@ -3,7 +3,13 @@
 
 const fs=require('fs');
 const path=require('path');
+const childProcess=require('child_process');
 const root=path.resolve(__dirname,'..');
+const governance=childProcess.spawnSync(process.execPath,[path.join(__dirname,'verify-change-governance.js')],{cwd:root,encoding:'utf8'});
+if(governance.stdout)process.stdout.write(governance.stdout);
+if(governance.stderr)process.stderr.write(governance.stderr);
+if(governance.status!==0)process.exit(governance.status||1);
+
 const routes=JSON.parse(fs.readFileSync(path.join(root,'scripts/config/public-website-routes.json'),'utf8'));
 const failures=[];
 const passes=[];
@@ -155,6 +161,7 @@ const evidence={
   status:failures.length?'HOLD':'PASS',
   generatedAt:new Date().toISOString(),
   architecture:'project-first-public-site-v2.3',
+  governance:'website-and-web-app-governance-v1',
   logoLocked:true,
   imagePlacementsLocked:true,
   whatWeDoCapabilities:requiredCapabilities,
