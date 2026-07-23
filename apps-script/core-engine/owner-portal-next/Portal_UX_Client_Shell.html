@@ -30,10 +30,23 @@ function uxUnifiedKeys(){
   uxRows(H38_UNIFIED&&H38_UNIFIED.groups).forEach(function(group){uxRows(group.items).forEach(function(item){keys.push(item.key);});});
   return keys;
 }
+function uxLegacyRoute(route){
+  route=uxText(route);
+  var redirects={
+    control:'today',commandCenter:'today','control-center':'today',
+    products:'moduleManager',productCenter:'moduleManager','product-center':'moduleManager',
+    apps:'moduleManager',businessApps:'moduleManager','business-apps':'moduleManager',
+    setup:'moduleManager','bo:setup':'moduleManager'
+  };
+  if(redirects[route])return redirects[route];
+  if(route.indexOf('control:')===0)return 'today';
+  if(route.indexOf('app:')===0)return 'moduleManager';
+  return route;
+}
 function uxRequestedModule(){
   var raw=location.hash.replace(/^#/,'');
   var params=new URLSearchParams(raw);
-  var requested=params.get('module')||raw;
+  var requested=uxLegacyRoute(params.get('module')||raw);
   var keys=uxUnifiedKeys();
   if(keys.indexOf(requested)>=0)return requested;
   if(keys.indexOf('bo:'+requested)>=0)return 'bo:'+requested;
@@ -45,7 +58,7 @@ function renderNav(){
     groups=[
       {id:'work',label:'Work',items:['today','tasks','decisions','active'].map(function(key){return{key:key,label:TITLES[key]||key};})},
       {id:'growth',label:'Growth',items:['growth','websiteCenter','social','advertising'].map(function(key){return{key:key,label:TITLES[key]||key};})},
-      {id:'control',label:'Control',items:['proof','errors','systemHealth','settings','help'].map(function(key){return{key:key,label:TITLES[key]||key};})}
+      {id:'office',label:'Office',items:['proof','errors','systemHealth','settings','help'].map(function(key){return{key:key,label:TITLES[key]||key};})}
     ];
   }
   document.getElementById('nav').innerHTML=groups.map(function(group){
@@ -98,6 +111,7 @@ async function uxShowBusinessModule(module){
   return result;
 }
 function uxNormalizeModule(module){
+  module=uxLegacyRoute(module);
   var redirects={money:'bo:invoices',quotes:'bo:quotes',invoices:'bo:invoices',payments:'bo:payments',expenses:'bo:expenses',customers:'bo:customers',jobs:'bo:jobs',reports:'bo:reports',documents:'bo:documents',upload:'bo:documents','business-office':'bo:requests'};
   if(H38_UNIFIED&&redirects[module]&&uxUnifiedKeys().indexOf(redirects[module])>=0)return redirects[module];
   return module;
@@ -160,7 +174,7 @@ function renderDashboard(){
   var due=uxRows(ux.dueToday).concat(uxRows(ux.overdue)).slice(0,12);
   var activity=uxRows(ux.recentActivity).slice(0,12);
   document.getElementById('view').innerHTML=
-    '<div class="ux-page-head"><div><div class="ux-eyebrow">Owner decision and control center</div><h1>What needs attention now?</h1><div class="muted">Reviews, deadlines, money, blocked work, proof, and errors—without hunting through every table.</div></div><button class="btn primary" onclick="show(\'decisions\')">Review '+esc(m.needsReview||0)+' decisions</button></div>'+ 
+    '<div class="ux-page-head"><div><div class="ux-eyebrow">Daily business overview</div><h1>What needs attention now?</h1><div class="muted">Reviews, deadlines, money, blocked work, proof, and errors—without hunting through every table.</div></div><button class="btn primary" onclick="show(\'decisions\')">Review '+esc(m.needsReview||0)+' decisions</button></div>'+ 
     '<div class="ux-metrics">'+
       uxMetric('Needs review',m.needsReview||0,'Owner decisions waiting',"show('decisions')")+
       uxMetric('Due today',m.dueToday||0,'Open work due today',"openUxPreset('due-today')")+
