@@ -1,16 +1,39 @@
 /*
  * Highway 38 unified product shell client.
  *
- * Owns shared chrome, module context, navigation metadata, loading states, and
- * contextual AI entry. Individual modules should not recreate these features.
+ * Owns shared chrome, module context, navigation metadata, loading states,
+ * contextual AI entry, and the one-request startup lifecycle. Individual
+ * modules must not recreate these features or observe the entire document.
  */
-var H38_PRODUCT_OBSERVER=null,H38_PRODUCT_LAST_ROUTE='',H38_PRODUCT_BASE_AFTER_RENDER=null;
+var H38_PRODUCT_LAST_ROUTE='',H38_PRODUCT_BASE_AFTER_RENDER=null,H38_PRODUCT_BOOTED=false;
 
 function h38ProductModuleMeta(route){
   route=String(route||CURRENT||'today');
   return H38_UNIFIED&&H38_UNIFIED.moduleIndex&&H38_UNIFIED.moduleIndex[route]||{
-    key:route,label:typeof TITLES!=='undefined'&&TITLES[route]||humanize(route),icon:'•',type:String(route).indexOf('bo:')===0?'business':'native',module:String(route).replace(/^bo:/,''),groupLabel:'Workspace',keywords:''
+    key:route,label:typeof TITLES!=='undefined'&&TITLES[route]||humanize(route),icon:'•',type:String(route).indexOf('bo:')===0?'business':'native',module:String(route).replace(/^bo:/,''),groupLabel:'Workspace',keywords:'',loadStrategy:'on-demand',cacheTtlSeconds:0
   };
+}
+
+async function h38ProductRefresh(){
+  try{
+    var payload=await call('h38PortalStartupBundle');
+    BOOT=payload.bootstrap||{};
+    SCHEMA=payload.schema||{};
+    EXPERIENCE=payload.experience||{};
+    SAVED_VIEWS=uxRows(payload.savedViews);
+    H38_UNIFIED=payload.unified||{};
+    H38_UX=EXPERIENCE.ux||{};
+    var release=document.getElementById('release');
+    if(release)release.textContent=(BOOT.release||'Business Office')+' · Unified App';
+    var packageName=document.getElementById('packageName');
+    if(packageName)packageName.textContent=H38_UNIFIED.packageName||'Installed Business Package';
+    var requested=uxRequestedModule();
+    if(requested)CURRENT=requested;
+    renderNav();renderQuickCreate();renderSavedViews();
+    h38ProductConfigureChrome();h38ProductDecorateNavigation();
+    notice('<b>Owner verified.</b> One secure app is active. Package modules are enforced and external actions remain <b>LOCKED</b>.','ok');
+    await show(CURRENT);
+  }catch(error){ownerSafeFailure(error,'The unified Highway 38 application could not load the daily workspace.');}
 }
 
 function h38ProductConfigureChrome(){
@@ -121,8 +144,10 @@ function h38ProductApplyWorkspace(route){
   route=String(route||CURRENT||'today');
   var view=document.getElementById('view');
   if(!view)return;
+  var meta=h38ProductModuleMeta(route);
   document.body.setAttribute('data-h38-route',route);
-  document.body.setAttribute('data-h38-module-type',h38ProductModuleMeta(route).type||'native');
+  document.body.setAttribute('data-h38-module-type',meta.type||'native');
+  document.body.setAttribute('data-h38-load-strategy',meta.loadStrategy||'on-demand');
   h38ProductConfigureChrome();
   h38ProductDecorateNavigation();
   h38ProductRemoveDuplicates();
@@ -139,21 +164,8 @@ function h38ProductConnectRenderLifecycle(){
   H38_PRODUCT_BASE_AFTER_RENDER=typeof window.h38AfterSurfaceRender==='function'?window.h38AfterSurfaceRender:function(){};
   window.h38AfterSurfaceRender=function(module){
     H38_PRODUCT_BASE_AFTER_RENDER(module);
-    setTimeout(function(){h38ProductApplyWorkspace(module);},0);
+    requestAnimationFrame(function(){h38ProductApplyWorkspace(module);});
   };
-}
-
-function h38ProductObserve(){
-  if(H38_PRODUCT_OBSERVER)return;
-  H38_PRODUCT_OBSERVER=new MutationObserver(function(){
-    clearTimeout(window.__h38ProductTimer);
-    window.__h38ProductTimer=setTimeout(function(){
-      h38ProductConfigureChrome();
-      h38ProductDecorateNavigation();
-      h38ProductNormalizeLoading();
-    },35);
-  });
-  H38_PRODUCT_OBSERVER.observe(document.body,{childList:true,subtree:true});
 }
 
 function h38ProductHandleClick(event){
@@ -164,11 +176,13 @@ function h38ProductHandleClick(event){
 }
 
 function h38ProductBoot(){
+  if(H38_PRODUCT_BOOTED)return;
+  H38_PRODUCT_BOOTED=true;
+  window.refresh=h38ProductRefresh;
   h38ProductConnectRenderLifecycle();
   h38ProductConfigureChrome();
-  h38ProductObserve();
   document.addEventListener('click',h38ProductHandleClick);
-  setTimeout(function(){h38ProductApplyWorkspace(CURRENT||'today');},120);
+  requestAnimationFrame(function(){h38ProductApplyWorkspace(CURRENT||'today');});
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',h38ProductBoot,{once:true});
