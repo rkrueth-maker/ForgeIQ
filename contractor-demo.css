@@ -1,1 +1,16 @@
-@import url('contractor-demo-base.css?v=20260723-local-raster-fix');
+@import url('contractor-demo-base.css?v=20260723-approved-photo-source');
+.project-card:nth-child(5) .project-visual figure,
+.project-card:nth-child(6) .project-visual figure,
+.project-card:nth-child(7) .project-visual figure{
+  background-image:url('https://at.adobe.com/Gxbnz8YlpFSVHQEF');
+  background-repeat:no-repeat;
+  background-size:200% 300%;
+  background-color:#e8ecea;
+}
+.project-card:nth-child(5) .project-visual figure:first-child{background-position:left top}
+.project-card:nth-child(5) .project-visual figure:last-child{background-position:right top}
+.project-card:nth-child(6) .project-visual figure:first-child{background-position:left center}
+.project-card:nth-child(6) .project-visual figure:last-child{background-position:right center}
+.project-card:nth-child(7) .project-visual figure:first-child{background-position:left bottom}
+.project-card:nth-child(7) .project-visual figure:last-child{background-position:right bottom}
+.project-card:nth-child(n+5):nth-child(-n+7) .project-visual img{opacity:0}
