@@ -14,31 +14,22 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      FAILED_RUN_ID: 30048177434
+      FAILED_RUN_ID: 30048297901
     steps:
-      - name: Capture prior failed repair log
+      - name: Publish concise failed repair log
         shell: bash
         run: |
           set -euo pipefail
           gh run view "$FAILED_RUN_ID" --repo "$GITHUB_REPOSITORY" --log-failed > "$RUNNER_TEMP/failed.log" || true
-          sleep 20
-          runs="$(gh run list --repo "$GITHUB_REPOSITORY" --commit "$GITHUB_SHA" --limit 100 --json databaseId,name,workflowName,status,conclusion,headSha,event,url,createdAt,updatedAt)"
           issue="$(gh issue list --repo "$GITHUB_REPOSITORY" --search 'Manufacturing image repair diagnostics in:title' --state all --limit 1 --json number --jq '.[0].number // empty')"
           body_file="$RUNNER_TEMP/manufacturing-repair-runs.md"
           {
             echo '# Manufacturing image repair diagnostics'
             echo
-            echo "Commit: \`$GITHUB_SHA\`"
+            echo "Failed run: \`$FAILED_RUN_ID\`"
             echo
-            echo '## Current commit runs'
-            echo '```json'
-            echo "$runs" | jq .
-            echo '```'
-            echo
-            echo "## Failed log from run $FAILED_RUN_ID"
             echo '```text'
-            tail -c 50000 "$RUNNER_TEMP/failed.log"
-            echo
+            tail -n 120 "$RUNNER_TEMP/failed.log"
             echo '```'
           } > "$body_file"
           if [[ -n "$issue" ]]; then
