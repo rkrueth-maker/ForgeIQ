@@ -22,6 +22,8 @@ const files={
   registry:path.join(PORTAL,'Portal_Module_Registry.js'),
   unified:path.join(PORTAL,'Portal_Unified.js'),
   index:path.join(PORTAL,'Portal_Index.html'),
+  raw:path.join(PORTAL,'Portal_RawIncludes.js'),
+  shell:path.join(PORTAL,'Portal_UX_Client_Shell.html'),
   styles:path.join(PORTAL,'Portal_Product_Styles.html'),
   client:path.join(PORTAL,'Portal_Product_Client.html'),
   manifest:path.join(BUSINESS,'BusinessOffice_ClientManifest.gs'),
@@ -34,6 +36,10 @@ const files={
   assetManifest:path.join(ROOT,'scripts','config','approved-public-assets.json'),
   assemblyVerifier:path.join(ROOT,'scripts','verify-unified-source-assembly.js')
 };
+const legacyPortalUi=[
+  'Portal_ControlPlane_Client.html','Portal_ControlPlane_Live_Client.html','Portal_ControlPlane_Styles.html',
+  'Portal_ProductApps_Client.html','Portal_ProductCenter_Client.html','Portal_ProductCenter_Styles.html','Portal_Product_Unification_Styles.html'
+].map(name=>path.join(PORTAL,name));
 
 Object.entries(files).forEach(([name,file])=>{
   if(name.startsWith('obsolete'))return;
@@ -44,6 +50,8 @@ if(failures.length===0){
   const registrySource=read(files.registry);
   const unifiedSource=read(files.unified);
   const indexSource=read(files.index);
+  const rawSource=read(files.raw);
+  const shellSource=read(files.shell);
   const styleSource=read(files.styles);
   const clientSource=read(files.client);
   const manifestSource=read(files.manifest);
@@ -52,6 +60,7 @@ if(failures.length===0){
 
   try{new vm.Script(registrySource,{filename:'Portal_Module_Registry.js'});check('module registry syntax',true);}catch(error){check('module registry syntax',false,error.message);}
   try{new vm.Script(unifiedSource,{filename:'Portal_Unified.js'});check('unified bootstrap syntax',true);}catch(error){check('unified bootstrap syntax',false,error.message);}
+  try{new vm.Script(shellSource,{filename:'Portal_UX_Client_Shell.html'});check('unified shell client syntax',true);}catch(error){check('unified shell client syntax',false,error.message);}
   try{new vm.Script(clientSource,{filename:'Portal_Product_Client.html'});check('product client syntax',true);}catch(error){check('product client syntax',false,error.message);}
 
   const context={};
@@ -80,6 +89,7 @@ if(failures.length===0){
     check('enabled apps are direct workspaces',['bo:requests','bo:customers','bo:quotes','bo:workOrders','bo:jobs','bo:invoices','bo:payments','bo:expenses','bo:documents','bo:reports'].every(key=>routeKeys.includes(key)),routeKeys.join(','));
     check('Office exposes app management',routeKeys.includes('moduleManager')&&groups.find(group=>group.id==='office').items.some(item=>item.key==='moduleManager'&&item.label==='Apps & Modules'));
     check('core routes exist',['today','bo:assignedTasks','proof','errors'].every(key=>routeKeys.includes(key)),routeKeys.join(','));
+    check('legacy product controls route is absent',!routeKeys.includes('bo:setup'),routeKeys.join(','));
   }catch(error){
     check('registry evaluates',false,error.stack||error.message);
   }
@@ -92,10 +102,12 @@ if(failures.length===0){
   check('portal has one top bar',(indexSource.match(/id=\"ownerTopbar\"/g)||[]).length===1);
   check('portal has one navigation host',(indexSource.match(/id=\"nav\"/g)||[]).length===1);
   check('portal keeps approved logo host',(indexSource.match(/id=\"h38PortalLogo\"/g)||[]).length===1);
+  check('legacy portal UI files are deleted',legacyPortalUi.every(file=>!exists(file)),legacyPortalUi.filter(exists).map(file=>path.basename(file)).join(','));
+  check('legacy portal UI is not included',!/(Portal_ControlPlane|Portal_ProductApps|Portal_ProductCenter|Portal_Product_Unification)/.test(indexSource+rawSource));
+  check('retired routes redirect into unified workspaces',/control:'today'/.test(shellSource)&&/'bo:setup':'moduleManager'/.test(shellSource)&&/route\.indexOf\('app:'\)===0/.test(shellSource));
   check('obsolete polish include removed',!indexSource.includes('BusinessOffice_AI_Native_UX_Client')&&!manifestSource.includes('BusinessOffice_AI_Native_UX_Client'));
-  check('legacy Control Center client inactive',!manifestSource.includes('BusinessOffice_ControlPlane_Client')&&!manifestSource.includes('BusinessOffice_ControlPlane_Live_Client'));
-  check('legacy Business Apps hub inactive',!manifestSource.includes('BusinessOffice_Modular_Suite'));
-  check('obsolete UI files deleted',!exists(files.obsoletePolish)&&!exists(files.obsoleteControl)&&!exists(files.obsoleteControlLive)&&!exists(files.obsoleteApps));
+  check('legacy Business Office override clients inactive',!manifestSource.includes('BusinessOffice_ControlPlane_Client')&&!manifestSource.includes('BusinessOffice_ControlPlane_Live_Client')&&!manifestSource.includes('BusinessOffice_Modular_Suite'));
+  check('obsolete Business Office UI files deleted',!exists(files.obsoletePolish)&&!exists(files.obsoleteControl)&&!exists(files.obsoleteControlLive)&&!exists(files.obsoleteApps));
   check('design system owns all major components',['#ownerTopbar','.nav-group-items','#view','.tablewrap','.drawer-panel','#h38-ai-panel','@media(max-width:800px)'].every(marker=>styleSource.includes(marker)),styleSource.length+' bytes');
   check('product client connects render lifecycle',/h38ProductConnectRenderLifecycle/.test(clientSource)&&/h38AfterSurfaceRender/.test(clientSource));
   check('product client provides contextual AI',/h38ProductPrompts/.test(clientSource)&&/data-h38-ai-prompt/.test(clientSource));
@@ -115,7 +127,7 @@ if(failures.length===0){
 const evidence={
   status:failures.length?'FAIL':'PASS',
   generatedAt:new Date().toISOString(),
-  architecture:'single-shell-office-registry-v2',
+  architecture:'single-shell-office-registry-v3',
   logoLocked:true,
   passed:pass.length,
   failed:failures.length,
