@@ -9,7 +9,13 @@ function boGetSheet_(sheetName) {
 function boReadTable_(sheetName, options) {
   const opts = options || {};
   const sheet = boGetSheet_(sheetName);
-  const values = sheet.getDataRange().getDisplayValues();
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+  if (lastRow < 1 || lastColumn < 1) return [];
+  const availableDataRows = Math.max(0, lastRow - 1);
+  const requestedReadLimit = Math.max(0, Number(opts.readLimit || 0));
+  const dataRows = requestedReadLimit ? Math.min(availableDataRows, requestedReadLimit) : availableDataRows;
+  const values = sheet.getRange(1, 1, dataRows + 1, lastColumn).getDisplayValues();
   if (!values.length) return [];
   const headers = values[0].map(boNormalizeText_);
   return values.slice(1).filter(function (row) {
@@ -114,8 +120,14 @@ function boListRecords(moduleKey, options) {
   const sheetName = H38_BO_MODULES[moduleKey] || moduleKey;
   boRequirePermission_(sheetName, 'View');
   const opts = options || {};
-  let rows = boReadTable_(sheetName, { includeVoided: opts.includeVoided === true });
   const query = boNormalizeText_(opts.query).toLowerCase();
+  const filters = opts.filters || {};
+  const limit = Math.min(Math.max(Number(opts.limit || 50), 1), 1000);
+  const boundedRead = !query && Object.keys(filters).length === 0;
+  let rows = boReadTable_(sheetName, {
+    includeVoided: opts.includeVoided === true,
+    readLimit: boundedRead ? Math.min(Math.max(limit * 2, limit), 1000) : 0
+  });
   if (query) {
     rows = rows.filter(function (row) {
       return Object.keys(row).some(function (key) {
@@ -123,7 +135,6 @@ function boListRecords(moduleKey, options) {
       });
     });
   }
-  const filters = opts.filters || {};
   Object.keys(filters).forEach(function (field) {
     const expected = filters[field];
     rows = rows.filter(function (row) {
@@ -132,7 +143,6 @@ function boListRecords(moduleKey, options) {
       return boNormalizeText_(row[field]) === boNormalizeText_(expected);
     });
   });
-  const limit = Math.min(Number(opts.limit || 200), 1000);
   return rows.slice(0, limit);
 }
 
