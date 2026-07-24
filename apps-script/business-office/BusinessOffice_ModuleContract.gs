@@ -1,5 +1,5 @@
 /**
- * Canonical Highway 38 application module contract.
+ * Canonical unified Business Office application module contract.
  *
  * Every app/module must be declared here exactly once. Navigation, Business
  * Office schemas, permissions, dependencies, lifecycle, and load behavior are

@@ -67,7 +67,6 @@ function h38PortalUnifiedBuildGroups_(access, quoteCapabilityOwner) {
 
 function h38PortalUnifiedBootstrap() {
   var access = h38PortalRequireUnifiedUser_();
-  if (access.ownerMode && typeof h38TmEnsureSchema_ === 'function') h38TmEnsureSchema_();
   var serviceUrl = ScriptApp.getService().getUrl();
   var definitions = typeof h38PortalBusinessDefinitions_ === 'function' ? h38PortalBusinessDefinitions_() : (typeof boGetModuleDefinitions_ === 'function' ? boGetModuleDefinitions_() : {});
   var shellRegistry = typeof h38UnifiedShellRegistry === 'function' ? h38UnifiedShellRegistry() : null;
@@ -130,17 +129,27 @@ function h38PortalUnifiedBootstrap() {
   };
 }
 
+function h38PortalStartupPhase_(phases,name,callback){
+  var started=Date.now();
+  var value=callback();
+  phases[name]=Date.now()-started;
+  return value;
+}
+
 /** One browser round trip for the complete shell startup payload. */
 function h38PortalStartupBundle(){
   var started=Date.now();
-  var unified=h38PortalUnifiedBootstrap();
-  return {
+  var phases={};
+  var payload={
     status:'PASS',
-    bootstrap:h38PortalBootstrap(),
-    schema:h38PortalClientSchema(),
-    experience:h38PortalUxControlCenter(),
-    savedViews:h38PortalSavedViews(),
-    unified:unified,
-    performance:{rpcCount:1,serverElapsedMs:Date.now()-started,secondaryModulesDeferred:true}
+    bootstrap:h38PortalStartupPhase_(phases,'bootstrap',function(){return h38PortalBootstrap();}),
+    schema:h38PortalStartupPhase_(phases,'schema',function(){return h38PortalClientSchema();}),
+    experience:h38PortalStartupPhase_(phases,'experience',function(){return h38PortalUxControlCenter();}),
+    savedViews:h38PortalStartupPhase_(phases,'savedViews',function(){return h38PortalSavedViews();}),
+    unified:h38PortalStartupPhase_(phases,'unified',function(){return h38PortalUnifiedBootstrap();}),
+    performance:{rpcCount:1,serverElapsedMs:0,phaseMs:phases,payloadCharacters:0,secondaryModulesDeferred:true,schemaChecksDeferred:true,requestScopedReadCache:true}
   };
+  payload.performance.serverElapsedMs=Date.now()-started;
+  payload.performance.payloadCharacters=JSON.stringify(payload).length;
+  return payload;
 }

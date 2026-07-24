@@ -19,6 +19,7 @@ const contact = read('contact.html');
 const css = read('contact-options.css');
 const packageJson = read('package.json');
 const catalog = read('catalog-data.js');
+const publicShell = read('assets/js/h38-site-v2.js');
 
 assert('contact page exists with two low-friction paths', /Email a quick message/.test(contact) && /Request a conversation/.test(contact));
 assert('quick email opens the approved public business inbox', /mailto:highway38solutions@gmail\.com\?subject=Quick%20Highway%2038%20question/.test(contact));
@@ -29,7 +30,7 @@ assert('contact page states that no message is sent automatically', /Nothing is 
 assert('guided request remains available from the contact page', /href="start-request\.html"/.test(contact));
 assert('request page exposes skip-form choices before the form', request.indexOf('h38-contact-shortcuts') < request.indexOf('id="intake-form"'));
 assert('request page includes quick email and contact-us links', /Email a quick message/.test(request) && /href="contact\.html"/.test(request));
-assert('homepage retains a public contact route', /href="contact\.html"/.test(home));
+assert('canonical public shell retains a public contact route', /\['Contact','contact\.html'\]/.test(publicShell));
 assert('contact choices support responsive layout', /h38-contact-grid/.test(contact) && (/grid-template-columns:1fr/.test(css) || /pi-grid three/.test(contact)));
 assert('contact options preserve prominent action controls', /class="pi-btn primary"/.test(contact) && /class="btn btn-secondary"/.test(request));
 assert('contact verifier is part of the commercial test chain', /verify-contact-options\.js/.test(packageJson));
@@ -39,4 +40,4 @@ if (failed.length) {
   console.error(JSON.stringify({ status: 'FAIL', failed: failed.map(check => check.name) }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ status: 'PASS', checks: checks.length, scope: 'quick email + request conversation + guided request preservation' }, null, 2));
+console.log(JSON.stringify({ status: 'PASS', checks: checks.length, scope: 'quick email + request conversation + guided request preservation through canonical shell' }, null, 2));

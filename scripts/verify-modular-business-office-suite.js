@@ -7,39 +7,46 @@ const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const exists=file=>fs.existsSync(path.join(root,file));
 const failures=[];
 const check=(name,condition,detail='')=>{if(!condition)failures.push({name,detail});else console.log(`PASS: ${name}`);};
-const required=['apps-script/business-office/BusinessOffice_ModuleRegistry.gs','apps/business-office/BusinessOffice_ModuleRegistry.gs','apps-script/business-office/BusinessOffice_Modular_Suite.html','packages/shared-ui/BusinessOffice_Modular_Suite.html','apps-script/business-office/BusinessOffice_Web.gs','apps-script/business-office/BusinessOffice_ClientManifest.gs','apps/business-office/BusinessOffice_Web.gs'];
+const required=[
+ 'apps-script/business-office/BusinessOffice_ModuleRegistry.gs',
+ 'apps/business-office/BusinessOffice_ModuleRegistry.gs',
+ 'packages/shared-ui/BusinessOffice_Modular_Suite.html',
+ 'apps-script/business-office/BusinessOffice_Web.gs',
+ 'apps-script/business-office/BusinessOffice_ClientManifest.gs',
+ 'apps/business-office/BusinessOffice_Web.gs',
+ 'apps-script/business-office/BusinessOffice_ModuleContract.gs',
+ 'apps-script/core-engine/owner-portal-next/Portal_Module_Registry.js',
+ 'apps-script/core-engine/owner-portal-next/Portal_Product_Client.html'
+];
 required.forEach(file=>check(`required ${file}`,exists(file)));
-const productionRegistry=read(required[0]),reusableRegistry=read(required[1]),productionClient=read(required[2]),reusableClient=read(required[3]),productionWeb=read(required[4]),productionClientManifest=read(required[5]),reusableWeb=read(required[6]);
+const productionRegistry=read(required[0]);
+const reusableRegistry=read(required[1]);
+const reusableClient=read(required[2]);
+const productionWeb=read(required[3]);
+const productionManifest=read(required[4]);
+const reusableWeb=read(required[5]);
+const contract=read(required[6]);
+const portalRegistry=read(required[7]);
+const productClient=read(required[8]);
+const retiredProductionClient='apps-script/business-office/BusinessOffice_Modular_Suite.html';
 const keys=text=>[...text.matchAll(/key:'([^']+)'/g)].map(match=>match[1]);
 const expected=['quote-builder','customer-manager','work-manager','field-operations','equipment-asset-manager','document-center','invoice-payment-tracker','expense-receipt-manager','field-proof','social-control','customer-portal','request-intake-manager','price-book-template-manager','approval-center','vendor-purchase-manager','maintenance-manager','shop-flow-manager','business-system'];
 const productPackKeys=['h38-core','sales-customer','operations','finance-office','growth','equipment-maintenance','shop-flow-manufacturing','customer-portal-advanced','advanced-purchasing','advanced-financial-controls'];
 const productionAllKeys=keys(productionRegistry),reusableAllKeys=keys(reusableRegistry);
 const appKeys=productionAllKeys.filter(key=>expected.includes(key)),reusableKeys=reusableAllKeys.filter(key=>expected.includes(key));
-const sharedMenu=['Business Apps','Today','Customers','Work','Documents','Money','Approvals','Reports','Setup'];
-check('all eighteen focused products are registered',expected.every(key=>appKeys.includes(key))&&appKeys.length===18,JSON.stringify(appKeys));
-check('branded and reusable registries expose identical legacy app keys',JSON.stringify(appKeys)===JSON.stringify(reusableKeys));
-check('new H38 pack catalog is additive to legacy products',productPackKeys.every(key=>productionAllKeys.includes(key))&&productionRegistry.includes('function boGetProductPackCatalog_()')&&productionRegistry.includes('function boGetLegacyProductPackAliasMap_()'));
+check('all eighteen compatibility app aliases remain registered',expected.every(key=>appKeys.includes(key))&&appKeys.length===18,JSON.stringify(appKeys));
+check('production and reusable registries expose identical compatibility aliases',JSON.stringify(appKeys)===JSON.stringify(reusableKeys));
+check('product-pack catalog remains metadata only',productPackKeys.every(key=>productionAllKeys.includes(key))&&productionRegistry.includes('function boGetProductPackCatalog_()')&&productionRegistry.includes('function boGetLegacyProductPackAliasMap_()'));
 check('reusable registry remains white-label',!/Highway\s*38|H38_|rkrueth|highway-38-solutions/i.test(reusableRegistry));
-check('production registry carries Highway 38 product branding',/Highway 38 Quote Builder/.test(productionRegistry)&&/Highway 38 Business System/.test(productionRegistry));
-check('production and reusable clients expose the same focused launcher contract',['Your Business Apps','openBusinessApp','bo-app-workspace','Standalone view'].every(marker=>productionClient.includes(marker)&&reusableClient.includes(marker)));
-check('shared Business Office menu has exactly the approved nine destinations',sharedMenu.every(label=>productionClient.includes(`label:'${label}'`))&&(productionClient.match(/label:'/g)||[]).length===9);
-check('reusable UI has the same approved shared menu',sharedMenu.every(label=>reusableClient.includes(`label:'${label}'`))&&(reusableClient.match(/label:'/g)||[]).length===9);
-check('focused apps render their own internal navigation',productionClient.includes('bo-app-tabs')&&productionClient.includes('renderFocusedNav')&&productionClient.includes('app.modules.map'));
-check('standalone view hides shared Office navigation',productionClient.includes('.bo-standalone .bo-nav-shared')&&productionClient.includes('currentStandalone()&&app'));
-check('raw module list is not restored by the modular navigation layer',!productionClient.includes('originalRenderNav'));
-check('Today workspace is explicit and approval-aware',productionClient.includes('renderTodayWorkspace')&&productionClient.includes('Review approvals'));
-check('one shared platform statement is visible',productionClient.includes('One Core, one customer database, one document system, and one approval system'));
-check('standalone installations use configuration instead of copied data',productionRegistry.includes('BO_ENABLED_APPS')&&productionClient.includes("standalone')==='1"));
-check('production bootstrap publishes installed apps',productionWeb.includes('apps:boGetBusinessAppCatalog_()'));
-check('reusable bootstrap publishes installed apps',/apps:\s*boGetBusinessAppCatalog_\(\)/.test(reusableWeb));
-check('production app launcher is included through controlled manifest',productionWeb.includes('boRenderClientIncludes_()')&&productionClientManifest.includes("'BusinessOffice_Modular_Suite'"));
-check('production app launcher is included exactly once',(productionClientManifest.match(/BusinessOffice_Modular_Suite/g)||[]).length===1);
-check('reusable app launcher is included',reusableWeb.includes("boInclude_('BusinessOffice_Modular_Suite')"));
-check('app catalog is read-only metadata',productionWeb.includes('appCatalog:function(){return boGetBusinessAppCatalog_();}')&&!productionRegistry.includes('sendEmail')&&!productionRegistry.includes('UrlFetchApp'));
-check('controlled automation language remains visible',productionClient.includes('Controlled automation remains active.')&&productionRegistry.includes('externalActionsAutomatic:false'));
-check('shared modules include core customer document and approval records',['customers','documents','approvals'].every(marker=>productionRegistry.includes(`'${marker}'`)));
-check('Field Operations is reusable and standalone-capable',productionRegistry.includes("key:'field-operations'")&&reusableRegistry.includes("key:'field-operations'")&&productionRegistry.includes("name:'Highway 38 Field Operations'")&&reusableRegistry.includes("name:'Field Operations'"));
-check('Equipment Asset Manager is reusable and standalone-capable',productionRegistry.includes("key:'equipment-asset-manager'")&&reusableRegistry.includes("key:'equipment-asset-manager'")&&productionRegistry.includes("name:'Highway 38 Equipment & Asset Manager'")&&reusableRegistry.includes("name:'Equipment & Asset Manager'")&&productionRegistry.includes("modules:['equipment','jobs','assignedTasks','employees','documents','expenses','vendors']"));
-check('Social Control is reusable and owner-approval controlled',productionRegistry.includes("key:'social-control'")&&reusableRegistry.includes("key:'social-control'")&&productionRegistry.includes("modules:['social','documents','approvals','reports']"));
+check('production duplicate modular launcher is retired',!exists(retiredProductionClient)&&!productionManifest.includes('BusinessOffice_Modular_Suite'));
+check('production Business Office renders through controlled client manifest',productionWeb.includes('boRenderClientIncludes_()'));
+check('canonical module contract owns seven current workspace groups',['Today','Customers','Work','Money','Documents','Growth','Office'].every(label=>contract.includes(`label:'${label}'`))&&!contract.includes("label:'Control'"));
+check('visible navigation derives from canonical module contract',portalRegistry.includes('boGetUnifiedModuleContract_()')&&productClient.includes('H38_UNIFIED=payload.unified')&&productClient.includes('renderNav();'));
+check('Today remains the default workspace',contract.includes("'native','today'")&&productClient.includes("CURRENT||'today'"));
+check('reusable standalone modular UI remains available',reusableClient.includes('Your Business Apps')&&reusableClient.includes('openBusinessApp')&&reusableWeb.includes("boInclude_('BusinessOffice_Modular_Suite')"));
+check('reusable standalone configuration remains data-neutral',reusableRegistry.includes('BO_ENABLED_APPS')&&reusableClient.includes("standalone')==='1"));
+check('compatibility app metadata is read-only',productionWeb.includes('appCatalog:function(){return boGetBusinessAppCatalog_();}')&&!productionRegistry.includes('sendEmail')&&!productionRegistry.includes('UrlFetchApp'));
+check('external actions remain owner-controlled',productionRegistry.includes('externalActionsAutomatic:false'));
+check('Field Operations Equipment and Social aliases remain reusable',reusableKeys.includes('field-operations')&&reusableKeys.includes('equipment-asset-manager')&&reusableKeys.includes('social-control'));
 if(failures.length){console.error(JSON.stringify({status:'FAIL',failures},null,2));process.exit(1);}
-console.log(JSON.stringify({status:'PASS',apps:appKeys.length,productPacks:productPackKeys.length,sharedMenuItems:sharedMenu.length,architecture:'app-first-shared-office-with-additive-pack-catalog',standaloneConfiguration:'BO_ENABLED_APPS',whiteLabelReusableSource:true,externalActionsAutomatic:false,controlledClientManifest:true},null,2));
+console.log(JSON.stringify({status:'PASS',compatibilityApps:appKeys.length,productPacks:productPackKeys.length,workspaceGroups:7,architecture:'contract-derived-unified-business-office',whiteLabelReusableSource:true,externalActionsAutomatic:false,controlledClientManifest:true},null,2));

@@ -27,70 +27,64 @@ count_class() {
 import re, sys
 name, file = sys.argv[1], sys.argv[2]
 text = open(file, encoding='utf-8').read()
-count = 0
-for value in re.findall(r'class="([^"]*)"', text):
-    if name in value.split():
-        count += 1
-print(count)
+print(sum(1 for value in re.findall(r'class="([^"]*)"', text) if name in value.split()))
 PY
 }
 
-active_pages=(index.html solutions.html products.html pricing.html sample-library-now.html how-it-works.html faq.html start-request.html ai-workflow.html shop-automation.html)
+active_pages=(index.html sample-library-now.html solutions.html pricing.html about.html contact.html start-request.html portal.html)
 for page in "${active_pages[@]}"; do
   curl -fsS "http://127.0.0.1:8000/$page" -o "$OUT/source-$page" || fail "$page did not return successfully"
-  grep -q '<h1' "$OUT/source-$page" || fail "$page is missing an h1"
-  if ! grep -Eq 'aria-label="(Main|Primary) navigation"' "$OUT/source-$page"; then
-    grep -Eq 'project-intelligence\.js|brand-global\.js|commercial-public\.js' "$OUT/source-$page" || fail "$page is missing navigation semantics or an approved shared navigation shell"
+  if [[ "$page" != "portal.html" ]]; then
+    grep -q '<h1' "$OUT/source-$page" || fail "$page is missing an h1"
+    grep -q 'class="skip-link"' "$OUT/source-$page" || fail "$page is missing a skip link"
+    grep -Eq 'class="pi-nav"|class="site-nav"' "$OUT/source-$page" || fail "$page is missing a canonical navigation host"
+    grep -Eq 'class="pi-footer"|class="site-footer"' "$OUT/source-$page" || fail "$page is missing a canonical footer host"
+    grep -q 'assets/js/h38-site-v2.js' "$OUT/source-$page" || fail "$page is missing the canonical public shell"
   fi
-  if ! grep -q 'class="skip-link"' "$OUT/source-$page"; then
-    grep -Eq 'project-intelligence\.js|brand-global\.js|commercial-public\.js' "$OUT/source-$page" || fail "$page is missing a skip link or an approved shared accessibility shell"
-  fi
-  pass "$page source and basic accessibility structure load"
+  pass "$page source and current shell contract load"
 done
 
 chrome_dump() {
   local page="$1"
   local output="$2"
   "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
-    --virtual-time-budget=4000 --dump-dom "http://127.0.0.1:8000/$page" > "$output" 2> "$OUT/chrome-$page.log"
+    --virtual-time-budget=5000 --dump-dom "http://127.0.0.1:8000/$page" > "$output" 2> "$OUT/chrome-$page.log"
 }
 
-chrome_dump products.html "$OUT/rendered-products.html"
+chrome_dump index.html "$OUT/rendered-home.html"
+chrome_dump solutions.html "$OUT/rendered-solutions.html"
+chrome_dump pricing.html "$OUT/rendered-pricing.html"
 chrome_dump sample-library-now.html "$OUT/rendered-samples.html"
 chrome_dump start-request.html "$OUT/rendered-start-request.html"
-chrome_dump shop-automation.html "$OUT/rendered-manufacturing.html"
 
-product_count="$(count_class detail-product "$OUT/rendered-products.html")"
-bundle_count="$(count_class bundle-card "$OUT/rendered-products.html")"
-sample_count="$(count_class sample-card "$OUT/rendered-samples.html")"
-sample_bundle_count="$(count_class bundle-card "$OUT/rendered-samples.html")"
-manufacturing_count="$(count_class product-card "$OUT/rendered-manufacturing.html")"
+capability_count="$(grep -o 'data-capability="' "$OUT/rendered-solutions.html" | wc -l | tr -d ' ')"
+project_count="$(count_class project-card "$OUT/rendered-samples.html")"
+figure_count="$(count_class project-visual "$OUT/rendered-samples.html")"
 
-[[ "$product_count" == "15" ]] || fail "rendered Products page expected 15 product details and found $product_count"
-pass "rendered Products page contains 15 product details"
-[[ "$bundle_count" == "9" ]] || fail "rendered Products page expected 9 bundles and found $bundle_count"
-pass "rendered Products page contains 9 bundles"
-[[ "$sample_count" == "15" ]] || fail "rendered Samples hub expected 15 samples and found $sample_count"
-pass "rendered Samples hub contains 15 product samples"
-[[ "$sample_bundle_count" == "9" ]] || fail "rendered Samples hub expected 9 bundle cards and found $sample_bundle_count"
-pass "rendered Samples hub contains 9 bundle cards"
-[[ "$manufacturing_count" == "6" ]] || fail "rendered manufacturing page expected 6 product cards and found $manufacturing_count"
-pass "rendered manufacturing page contains 6 specialized products"
+[[ "$capability_count" == "5" ]] || fail "rendered What We Do page expected 5 capabilities and found $capability_count"
+pass "rendered What We Do page contains five capabilities"
+[[ "$project_count" == "8" ]] || fail "rendered Project Examples expected 8 project cards and found $project_count"
+pass "rendered Project Examples contains eight complete projects"
+[[ "$figure_count" == "8" ]] || fail "rendered Project Examples expected 8 paired visual groups and found $figure_count"
+pass "rendered Project Examples contains eight paired visual groups"
 
-grep -q 'Owner Portal' "$OUT/rendered-samples.html" || fail "rendered Samples hub is missing the approved Owner Portal link"
-pass "rendered Samples hub preserves Owner Portal link"
-grep -q 'What would you like to have when this is finished?' "$OUT/rendered-start-request.html" || fail "rendered request page is missing outcome-first question"
-pass "rendered request page contains outcome-first question"
-grep -q 'H38-B009' "$OUT/rendered-start-request.html" || fail "rendered request page did not load controlled bundle options"
-pass "rendered request page loads bundle preselection data"
-grep -q 'Every deliverable is personally reviewed before it is sent.' "$OUT/rendered-products.html" || fail "public quality statement is missing from rendered footer"
-pass "rendered pages include the public quality statement"
+grep -q 'Bring us the problem.' "$OUT/rendered-home.html" || fail "rendered homepage is missing the project-first promise"
+grep -q 'Project-first pricing' "$OUT/rendered-pricing.html" || fail "rendered pricing page is missing project-first pricing"
+grep -q 'What result do you need?' "$OUT/rendered-start-request.html" || fail "rendered request page is missing the current outcome question"
+grep -q 'data-request-step="3"' "$OUT/rendered-start-request.html" || fail "rendered request page is missing the review step"
+for name in deck-before.webp deck-after.webp irrigation-before.webp irrigation-after.webp kitchen-before.webp kitchen-after.webp; do
+  grep -q "assets/demo-workthroughs/$name" "$OUT/rendered-samples.html" || fail "rendered Project Examples is missing $name"
+done
+pass "rendered Project Examples uses the six controlled deck irrigation and kitchen images"
 
-"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=4000 --window-size=1440,1200 --screenshot="$OUT/home-desktop.png" "http://127.0.0.1:8000/index.html" > /dev/null 2>&1
-"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=4000 --window-size=390,844 --screenshot="$OUT/home-mobile.png" "http://127.0.0.1:8000/index.html" > /dev/null 2>&1
-"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=4000 --window-size=1440,1200 --screenshot="$OUT/products-desktop.png" "http://127.0.0.1:8000/products.html" > /dev/null 2>&1
-"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=4000 --window-size=1440,1200 --screenshot="$OUT/samples-desktop.png" "http://127.0.0.1:8000/sample-library-now.html" > /dev/null 2>&1
-"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=4000 --window-size=390,844 --screenshot="$OUT/request-mobile.png" "http://127.0.0.1:8000/start-request.html" > /dev/null 2>&1
+grep -q 'aria-label="Main navigation"' "$OUT/rendered-home.html" || fail "rendered canonical navigation lacks semantics"
+grep -q 'href="portal.html"' "$OUT/rendered-home.html" || fail "rendered canonical navigation is missing Owner Access"
+pass "rendered canonical navigation and Owner gateway are present"
+
+"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=5000 --window-size=1440,1200 --screenshot="$OUT/home-desktop.png" "http://127.0.0.1:8000/index.html" > /dev/null 2>&1
+"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=5000 --window-size=390,844 --screenshot="$OUT/home-mobile.png" "http://127.0.0.1:8000/index.html" > /dev/null 2>&1
+"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=5000 --window-size=1440,1200 --screenshot="$OUT/examples-desktop.png" "http://127.0.0.1:8000/sample-library-now.html" > /dev/null 2>&1
+"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=5000 --window-size=390,844 --screenshot="$OUT/request-mobile.png" "http://127.0.0.1:8000/start-request.html" > /dev/null 2>&1
 
 for image in "$OUT"/*.png; do
   [[ -s "$image" ]] || fail "screenshot $(basename "$image") is empty"
@@ -100,12 +94,10 @@ pass "desktop and mobile screenshots were generated"
 cat >> "$REPORT" <<EOF
 
 Rendered counts:
-- Product details: $product_count
-- Product-page bundles: $bundle_count
-- Samples: $sample_count
-- Sample-page bundles: $sample_bundle_count
-- Manufacturing products: $manufacturing_count
+- What We Do capabilities: $capability_count
+- Project examples: $project_count
+- Paired visual groups: $figure_count
 - Chrome binary: $CHROME
 EOF
 
-echo "Browser commercial smoke verification passed." | tee -a "$REPORT"
+echo "Project-first browser smoke verification passed." | tee -a "$REPORT"

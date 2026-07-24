@@ -1,4 +1,5 @@
 /** Dashboard, unified tasks, full workspaces, reporting, search, and internal business workflows. */
+var H38_PORTAL_TASK_PROJECTION_CACHE_ = null;
 function doGet(e) {
   h38PortalRequireUnifiedUser_();
   return HtmlService.createTemplateFromFile('Portal_Index').evaluate().setTitle(H38_PORTAL_NEXT.APP_NAME).setSandboxMode(HtmlService.SandboxMode.IFRAME);
@@ -56,30 +57,34 @@ function h38PortalTasks(filters) {
 }
 
 function h38PortalTaskProjection_(filters) {
-  var installed = h38PortalInstalledStatus_();
-  var tasks = [];
-  if (installed.installed) tasks = h38PortalList('tasks',{}).map(function(r){ return h38PortalNormalizeTask_(r,'Portal Tasks'); });
-  tasks = tasks.concat(h38PortalLegacyTaskProjection_({}));
-  var seen = {};
-  tasks = tasks.filter(function(t){
-    var key = t.taskId + '|' + t.sourceSystem + '|' + t.sourceSheet + '|' + t.sourceRow;
-    if (seen[key]) return false;
-    seen[key] = true;
-    return true;
-  });
+  var tasks = H38_PORTAL_TASK_PROJECTION_CACHE_ ? h38PortalCloneRows_(H38_PORTAL_TASK_PROJECTION_CACHE_) : null;
+  if (!tasks) {
+    var installed = h38PortalInstalledStatus_();
+    tasks = [];
+    if (installed.installed) tasks = h38PortalList('tasks',{}).map(function(r){ return h38PortalNormalizeTask_(r,'Portal Tasks'); });
+    tasks = tasks.concat(h38PortalLegacyTaskProjection_({}));
+    var seen = {};
+    tasks = tasks.filter(function(t){
+      var key = t.taskId + '|' + t.sourceSystem + '|' + t.sourceSheet + '|' + t.sourceRow;
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+    tasks.sort(function(a,b){
+      var terminalA = h38PortalTaskTerminal_(a.status) ? 1 : 0;
+      var terminalB = h38PortalTaskTerminal_(b.status) ? 1 : 0;
+      if (terminalA !== terminalB) return terminalA - terminalB;
+      var pa={Urgent:0,High:1,Normal:2,Low:3};
+      var ap=pa[a.priority]===undefined?2:pa[a.priority], bp=pa[b.priority]===undefined?2:pa[b.priority];
+      if(ap!==bp) return ap-bp;
+      return String(a.dueDate||'9999').localeCompare(String(b.dueDate||'9999')) || String(b.lastUpdate||'').localeCompare(String(a.lastUpdate||''));
+    });
+    H38_PORTAL_TASK_PROJECTION_CACHE_ = h38PortalCloneRows_(tasks);
+  }
   Object.keys(filters || {}).forEach(function(k){
     var wanted = String(filters[k] || '').toLowerCase();
     if (!wanted) return;
     tasks = tasks.filter(function(t){ return String(t[k] || '').toLowerCase().indexOf(wanted) >= 0; });
-  });
-  tasks.sort(function(a,b){
-    var terminalA = h38PortalTaskTerminal_(a.status) ? 1 : 0;
-    var terminalB = h38PortalTaskTerminal_(b.status) ? 1 : 0;
-    if (terminalA !== terminalB) return terminalA - terminalB;
-    var pa={Urgent:0,High:1,Normal:2,Low:3};
-    var ap=pa[a.priority]===undefined?2:pa[a.priority], bp=pa[b.priority]===undefined?2:pa[b.priority];
-    if(ap!==bp) return ap-bp;
-    return String(a.dueDate||'9999').localeCompare(String(b.dueDate||'9999')) || String(b.lastUpdate||'').localeCompare(String(a.lastUpdate||''));
   });
   return tasks.slice(0,H38_PORTAL_NEXT.MAX_ROWS);
 }

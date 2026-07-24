@@ -3,17 +3,15 @@ const fs=require('fs');
 const http=require('http');
 const path=require('path');
 const {chromium}=require('playwright');
-
 const root=path.resolve(__dirname,'..');
 const assetManifest=JSON.parse(fs.readFileSync(path.join(root,'scripts/config/approved-public-assets.json'),'utf8'));
 const approvedLogo=assetManifest.approved_logo;
 const pages=fs.readdirSync(root).filter(file=>file.endsWith('.html')).sort();
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.csv':'text/csv; charset=utf-8','.md':'text/plain; charset=utf-8'};
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'application/javascript; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.csv':'text/csv; charset=utf-8','.md':'text/plain; charset=utf-8'};
 const failures=[];
 const pass=name=>process.stdout.write(`PASS: ${name}\n`);
 const fail=(name,detail='')=>{failures.push({name,detail});process.stderr.write(`FAIL: ${name}${detail?` — ${detail}`:''}\n`);};
 function server(){return http.createServer((req,res)=>{let pathname=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);if(pathname==='/')pathname='/index.html';const file=path.resolve(root,`.${pathname}`);if(!file.startsWith(root)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){res.writeHead(404,{'content-type':'text/plain'});res.end('Not found');return;}res.writeHead(200,{'content-type':mime[path.extname(file).toLowerCase()]||'application/octet-stream'});fs.createReadStream(file).pipe(res);});}
-
 (async()=>{
  const local=server();await new Promise(resolve=>local.listen(0,'127.0.0.1',resolve));
  const base=`http://127.0.0.1:${local.address().port}`;const browser=await chromium.launch({headless:true});
@@ -37,9 +35,10 @@ function server(){return http.createServer((req,res)=>{let pathname=decodeURICom
   const page=await browser.newPage({viewport:{width:390,height:844}});
   await page.goto(`${base}/index.html`,{waitUntil:'networkidle'});const logo=page.locator('.pi-brand img,.site-header .brand img,.site-header .site-brand img,.site-nav img.brand-logo').first();if(!await logo.count())fail('approved logo visible in primary navigation');else{const src=await logo.getAttribute('src'),alt=await logo.getAttribute('alt');if(src!==approvedLogo.public_reference||alt!==approvedLogo.alt_text)fail('approved logo contract',`${src} | ${alt}`);else pass('manifest-controlled approved logo, cache key, and alt text are visible');}
   const menu=page.locator('.pi-menu,.menu,.menu-button,.eco-menu,.nav-toggle').first();if(await menu.count()){await menu.click();if(await menu.getAttribute('aria-expanded')!=='true')fail('mobile menu opens');else pass('mobile menu opens');}
-  await page.goto(`${base}/products.html`,{waitUntil:'networkidle'});if(await page.locator('.product-card').count()!==15)fail('15 approved product cards render');else pass('15 approved product cards render');if(await page.locator('.bundle-card').count()!==9)fail('9 approved bundle cards render');else pass('9 approved bundle cards render');if(await page.locator('.bundle-value').count()!==9)fail('bundle value and truthful savings render');else pass('bundle value and truthful savings render');
-  await page.goto(`${base}/sample-library-now.html`,{waitUntil:'networkidle'});if(await page.locator('.project-card').count()!==4)fail('four customer project examples render');else pass('four customer project examples render');if(await page.locator('a[href="pricing.html"]').count()<5)fail('direct pricing links render');else pass('direct pricing links render');if(await page.locator('a[href*="contractor-demo"]').count())fail('public examples expose private contractor routes');else pass('public examples keep contractor demo private');
+  await page.goto(`${base}/solutions.html`,{waitUntil:'networkidle'});if(await page.locator('[data-capability]').count()!==5)fail('five accepted capability cards render');else pass('five accepted capability cards render');
+  await page.goto(`${base}/pricing.html`,{waitUntil:'networkidle'});if(await page.locator('a[href="start-request.html"]').count()<2)fail('project pricing routes to secure request');else pass('project pricing routes to secure request');if(await page.locator('a[href="sample-library-now.html"]').count()<2)fail('project pricing routes to complete examples');else pass('project pricing routes to complete examples');
+  await page.goto(`${base}/sample-library-now.html`,{waitUntil:'networkidle'});if(await page.locator('.project-card').count()!==8)fail('eight complete project examples render');else pass('eight complete project examples render');const exact=['deck-before.webp','deck-after.webp','irrigation-before.webp','irrigation-after.webp','kitchen-before.webp','kitchen-after.webp'];const sources=await page.locator('img').evaluateAll(images=>images.map(img=>img.getAttribute('src')||''));if(!exact.every(name=>sources.some(src=>src.includes(name))))fail('six controlled deck irrigation and kitchen images render');else pass('six controlled deck irrigation and kitchen images render');if(await page.locator('a[href*="contractor-demo"]').count())fail('public examples expose private contractor routes');else pass('public examples keep contractor demo private');
   await page.close();
  }finally{await browser.close();await new Promise(resolve=>local.close(resolve));}
- if(failures.length){console.error(JSON.stringify({status:'FAIL',pages:pages.length,failures},null,2));process.exit(1);}console.log(JSON.stringify({status:'PASS',pages:pages.length,viewports:['desktop','mobile'],checks:'load + runtime + images + overflow + navigation + catalog + bundles + project examples'},null,2));
+ if(failures.length){console.error(JSON.stringify({status:'FAIL',pages:pages.length,failures},null,2));process.exit(1);}console.log(JSON.stringify({status:'PASS',pages:pages.length,viewports:['desktop','mobile'],checks:'load + runtime + images + overflow + navigation + five capabilities + project pricing + eight examples'},null,2));
 })().catch(error=>{console.error(error);process.exit(1);});

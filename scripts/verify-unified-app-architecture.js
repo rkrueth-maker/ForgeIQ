@@ -27,6 +27,8 @@ const files={
   web:path.join(BUSINESS,'BusinessOffice_Web.gs'),
   registry:path.join(PORTAL,'Portal_Module_Registry.js'),
   unified:path.join(PORTAL,'Portal_Unified.js'),
+  repository:path.join(PORTAL,'Portal_Repository.js'),
+  services:path.join(PORTAL,'Portal_Services.js'),
   index:path.join(PORTAL,'Portal_Index.html'),
   raw:path.join(PORTAL,'Portal_RawIncludes.js'),
   shell:path.join(PORTAL,'Portal_UX_Client_Shell.html'),
@@ -35,6 +37,8 @@ const files={
   boot:path.join(PORTAL,'Portal_UX_Client_Boot.html'),
   styles:path.join(PORTAL,'Portal_Product_Styles.html'),
   client:path.join(PORTAL,'Portal_Product_Client.html'),
+  businessConfig:path.join(BUSINESS,'BusinessOffice_Config.gs'),
+  taskMessaging:path.join(BUSINESS,'BusinessOffice_TaskMessaging_10_Core.gs'),
   publicPortal:path.join(ROOT,'portal.html'),
   manifest:path.join(BUSINESS,'BusinessOffice_ClientManifest.gs'),
   obsoletePolish:path.join(BUSINESS,'BusinessOffice_AI_Native_UX_Client.html'),
@@ -50,9 +54,9 @@ const legacyPortalUi=['Portal_ControlPlane_Client.html','Portal_ControlPlane_Liv
 Object.entries(files).forEach(([name,file])=>{if(name.startsWith('obsolete'))return;check(name+' exists',exists(file),path.relative(ROOT,file));});
 
 if(failures.length===0){
-  const contractSource=read(files.contract),actionsSource=read(files.actions),accessSource=read(files.access),webSource=read(files.web),registrySource=read(files.registry),unifiedSource=read(files.unified),indexSource=read(files.index),rawSource=read(files.raw),shellSource=read(files.shell),experienceCoreSource=read(files.experienceCore),workspaceSource=read(files.workspace),bootSource=read(files.boot),styleSource=read(files.styles),clientSource=read(files.client),publicPortalSource=read(files.publicPortal),manifestSource=read(files.manifest),rulesSource=read(files.rules),agentsSource=read(files.agents);
+  const contractSource=read(files.contract),actionsSource=read(files.actions),accessSource=read(files.access),webSource=read(files.web),registrySource=read(files.registry),unifiedSource=read(files.unified),repositorySource=read(files.repository),servicesSource=read(files.services),indexSource=read(files.index),rawSource=read(files.raw),shellSource=read(files.shell),experienceCoreSource=read(files.experienceCore),workspaceSource=read(files.workspace),bootSource=read(files.boot),styleSource=read(files.styles),clientSource=read(files.client),businessConfigSource=read(files.businessConfig),taskMessagingSource=read(files.taskMessaging),publicPortalSource=read(files.publicPortal),manifestSource=read(files.manifest),rulesSource=read(files.rules),agentsSource=read(files.agents);
   [
-    ['module contract',contractSource],['action contract',actionsSource],['module access',accessSource],['Business Office web',webSource],['module registry',registrySource],['unified bootstrap',unifiedSource],['unified shell client',shellSource],['product client',clientSource]
+    ['module contract',contractSource],['action contract',actionsSource],['module access',accessSource],['Business Office web',webSource],['module registry',registrySource],['unified bootstrap',unifiedSource],['portal repository',repositorySource],['portal services',servicesSource],['Business Office config',businessConfigSource],['task messaging core',taskMessagingSource],['unified shell client',shellSource],['product client',clientSource]
   ].forEach(([name,source])=>{try{new vm.Script(source,{filename:name});check(name+' syntax',true);}catch(error){check(name+' syntax',false,error.message);}});
   try{new vm.Script(experienceCoreSource+'\n'+workspaceSource+'\n'+bootSource,{filename:'Portal_Client_Foundation.html'});check('portal client foundation syntax',true);}catch(error){check('portal client foundation syntax',false,error.message);}
 
@@ -85,6 +89,14 @@ if(failures.length===0){
   check('bootstrap reads central registry',/h38PortalModuleRegistry_\(/.test(unifiedSource));
   check('bootstrap exposes lifecycle metadata',['dependencies:item.dependencies','loadStrategy:item.loadStrategy','cacheTtlSeconds:item.cacheTtlSeconds','dataOwner:item.dataOwner','disablePolicy:item.disablePolicy'].every(marker=>unifiedSource.includes(marker)));
   check('startup uses one browser RPC',/function h38PortalStartupBundle\(/.test(unifiedSource)&&/rpcCount:1/.test(unifiedSource)&&/call\('h38PortalStartupBundle'\)/.test(clientSource));
+  check('startup defers task messaging schema verification',!/h38TmEnsureSchema_\(\)/.test(unifiedSource)&&/schemaChecksDeferred:true/.test(unifiedSource));
+  check('startup reports phase timing and payload size',/phaseMs:phases/.test(unifiedSource)&&/payloadCharacters/.test(unifiedSource));
+  check('portal repository caches spreadsheet, install status, and list reads',/H38_PORTAL_SPREADSHEET_CACHE_/.test(repositorySource)&&/H38_PORTAL_INSTALLED_STATUS_CACHE_/.test(repositorySource)&&/H38_PORTAL_LIST_CACHE_/.test(repositorySource));
+  check('task projection is request cached',/H38_PORTAL_TASK_PROJECTION_CACHE_/.test(servicesSource)&&/h38PortalCloneRows_\(H38_PORTAL_TASK_PROJECTION_CACHE_\)/.test(servicesSource));
+  check('Business Office spreadsheet is request cached',/H38_BO_SPREADSHEET_CACHE_/.test(businessConfigSource));
+  check('task messaging schema is version gated and locked',/H38_TM_SCHEMA_VERSION/.test(taskMessagingSource)&&/H38_TM_SCHEMA_PROPERTY/.test(taskMessagingSource)&&/LockService\.getScriptLock\(\)/.test(taskMessagingSource));
+  check('startup begins without artificial delay',/requestAnimationFrame\(launch\)/.test(bootSource)&&!/setTimeout\(launch,100\)/.test(bootSource));
+  check('product client renders immediate loading skeleton',/data-h38-workspace-state=\"loading\"/.test(clientSource)&&/h38ProductLoadingState\(\)/.test(clientSource));
   check('product client owns refresh',/window\.refresh=h38ProductRefresh/.test(clientSource));
   check('page-wide MutationObserver removed',!/MutationObserver/.test(clientSource));
   check('secondary modules remain on demand',/secondaryModulesDeferred:true/.test(unifiedSource)&&/loadStrategy:'on-demand'/.test(contractSource));

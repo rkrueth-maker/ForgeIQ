@@ -16,6 +16,7 @@ const client = path.join(portalDir, 'Portal_TaskMessaging_Client.html');
 const business = path.join(portalDir, 'Portal_Business.js');
 const unified = path.join(portalDir, 'Portal_Unified.js');
 const services = path.join(portalDir, 'Portal_Services.js');
+const moduleContract = path.join(root, 'apps-script', 'business-office', 'BusinessOffice_ModuleContract.gs');
 const rawIncludes = path.join(portalDir, 'Portal_RawIncludes.js');
 const index = path.join(portalDir, 'Portal_Index.html');
 const shell = path.join(root, 'apps-script', 'unified-shell', 'Unified_AppShell.gs');
@@ -24,7 +25,7 @@ const packJson = path.join(root, 'business-packs', 'highway38', 'business-pack.j
 const packGs = path.join(root, 'business-packs', 'highway38', 'apps-script', 'BusinessOffice_Pack.gs');
 const templateJson = path.join(root, 'business-packs', 'template-business', 'business-pack.json');
 const deploy = path.join(root, 'scripts', 'deploy-unified-owner-portal-web.sh');
-const files = boFiles.concat([client,business,unified,services,rawIncludes,index,shell,shellBuilder,packJson,packGs,templateJson,deploy]);
+const files = boFiles.concat([client,business,unified,services,moduleContract,rawIncludes,index,shell,shellBuilder,packJson,packGs,templateJson,deploy]);
 
 const failures = [];
 const passes = [];
@@ -35,7 +36,7 @@ function check(name, condition, detail = '') {
 function read(file) { return fs.readFileSync(file, 'utf8'); }
 
 files.forEach(file => check('file ' + path.relative(root,file), fs.existsSync(file)));
-for (const file of boFiles.concat([business,unified,services,rawIncludes,packGs,shell])) {
+for (const file of boFiles.concat([business,unified,services,moduleContract,rawIncludes,packGs,shell])) {
   if (!fs.existsSync(file)) continue;
   try {
     new vm.Script(read(file), {filename:path.basename(file)});
@@ -48,6 +49,7 @@ for (const file of boFiles.concat([business,unified,services,rawIncludes,packGs,
 const source = boFiles.filter(fs.existsSync).map(read).join('\n');
 const ui = fs.existsSync(client) ? read(client) : '';
 const portal = [business,unified,services,rawIncludes,index].filter(fs.existsSync).map(read).join('\n');
+const contractSource = fs.existsSync(moduleContract) ? read(moduleContract) : '';
 const shellSource = fs.existsSync(shell) ? read(shell) : '';
 const builderSource = fs.existsSync(shellBuilder) ? read(shellBuilder) : '';
 const deploySource = fs.existsSync(deploy) ? read(deploy) : '';
@@ -87,11 +89,11 @@ check('linked record validation', ['Customer','Request','Quote','Work Order','Jo
 check('role and business isolation', source.includes('h38TmTaskVisible_') && source.includes('h38TmMessageVisible_') && /row\[["']Business ID["']\]\s*===\s*boGetBusinessId_\(\)/.test(source));
 check('workspace access repeats module policy', /function h38TmWorkspace_\([^)]*\)[\s\S]*?h38TmRequireModule_\(moduleKey,\s*["']View["']\)/.test(source));
 check('Proof Error and history records', source.includes('boProof_') && source.includes('boError_') && source.includes('TASK_HISTORY') && source.includes('MESSAGE_EVENTS'));
-check('My Tasks view', ui.includes('assignedTasks') && portal.includes("'My Tasks'"));
+check('My Work task view', ui.includes('assignedTasks') && contractSource.includes("boUnifiedModule_('assignedTasks','My Work'"));
 check('owner all-task management', source.includes('h38TmManageAll_') && /Owner["'],\s*["']Administrator/.test(source));
 check('mobile-friendly reuse', read(index).includes('name="viewport"') && ui.includes('bo-native-toolbar'));
-check('unified package navigation', portal.includes("id: 'taskMessaging'") && portal.includes("'bo:assignedTasks'") && portal.includes("'bo:messaging'"));
-check('non-owner default route', portal.includes("defaultModule: access.ownerMode ? 'today' : 'bo:assignedTasks'"));
+check('unified package navigation', contractSource.includes("'bo:assignedTasks'") && contractSource.includes("'bo:messaging'") && portal.includes('h38PortalModuleRegistry_('));
+check('non-owner default route', /var defaultModule\s*=\s*access\.ownerMode\s*\?\s*'today'\s*:\s*'bo:assignedTasks'/.test(portal));
 check('owner native surfaces stay owner-gated', read(business).includes('if (h38PortalTaskMessagingModule_(moduleKey))') && read(business).includes('h38PortalAssertOwner_();'));
 check('client fragment allowlisted and loaded', read(rawIncludes).includes("'Portal_TaskMessaging_Client'") && read(index).includes("h38PortalRawInclude_('Portal_TaskMessaging_Client')"));
 

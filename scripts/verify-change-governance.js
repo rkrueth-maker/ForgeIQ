@@ -63,6 +63,12 @@ if(failures.length===0){
   check('governance blocks duplicate architecture',/another authenticated application shell/.test(governance)&&/another public-site shell/.test(governance)&&/duplicate schemas/.test(governance));
   check('governance requires one app startup RPC',/one browser-to-server startup RPC/.test(governance));
   check('governance names both deployment authorities',governance.includes('.github/workflows/pages.yml')&&governance.includes('.github/workflows/deploy-owner-portal-hard-rule-production.yml'));
+  check('performance and reliability rule changes are explicitly governed',governance.includes('Performance and reliability rule changes')&&/measurably improves speed or reliability/.test(governance)&&/does not destroy how the system works together/.test(governance));
+  check('protected invariants cannot be weakened',/preserve authentication, authorization, customer isolation, records, IDs, approval gates, Proof Log, Error Log, backups, audit history, deployment IDs, and external-action controls/.test(governance));
+  check('stale checks must be corrected not bypassed',/remove stale, duplicate, unrelated, or contradictory checks rather than bypassing a real defect/.test(governance)&&/A stale verifier may be corrected/.test(governance));
+  check('verification is scope aware',governance.includes('Verification is scope-aware')&&governance.includes('Public-only checks should not gate an authenticated-only change')&&governance.includes('Customer Portal checks must remain focused on the Customer Portal security boundary'));
+  check('security and destructive controls remain fail closed',/security, destructive-action, data-integrity, and deployment checks fail-closed/.test(governance));
+  check('fast checks run before expensive checks',/Fast structural and syntax checks run before expensive browser, image, deployment, or clean-install checks/.test(governance));
 
   check('app rules reference governance verifier',appRules.includes('node scripts/verify-change-governance.js'));
   check('website rules reference governance verifier',websiteRules.includes('node scripts/verify-change-governance.js'));
@@ -80,12 +86,12 @@ if(failures.length===0){
   check('governance workflow watches canonical rule and contract files',['AGENTS.md','docs/architecture/**','BusinessOffice_ModuleContract.gs','BusinessOffice_ActionContract.gs','approved-public-image-placements.json','public-website-routes.json'].every(marker=>governanceWorkflow.includes(marker)));
   check('governance workflow runs the verifier',governanceWorkflow.includes('node scripts/verify-change-governance.js'));
   check('Pages production workflow runs the website architecture verifier',pagesWorkflow.includes('node scripts/verify-public-website-architecture.js'));
-  check('website architecture verifier runs governance first',websiteVerifier.includes("verify-change-governance.js"));
+  check('website architecture verifier runs governance first',websiteVerifier.includes('verify-change-governance.js'));
   check('Business Office production workflow runs the app architecture verifier',appWorkflow.includes('node scripts/verify-unified-app-architecture.js'));
-  check('app architecture verifier runs governance first',appVerifier.includes("verify-change-governance.js"));
+  check('app architecture verifier runs governance first',appVerifier.includes('verify-change-governance.js'));
 }
 
-const evidence={status:failures.length?'HOLD':'PASS',generatedAt:new Date().toISOString(),policy:'website-and-web-app-governance-v1',passed:pass.length,failed:failures.length,pass,failures};
+const evidence={status:failures.length?'HOLD':'PASS',generatedAt:new Date().toISOString(),policy:'website-and-web-app-governance-v2-performance-reliability',passed:pass.length,failed:failures.length,pass,failures};
 const out=file('artifacts/change-governance');
 fs.mkdirSync(out,{recursive:true});
 fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify(evidence,null,2)+'\n');

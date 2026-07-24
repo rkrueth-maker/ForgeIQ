@@ -174,6 +174,10 @@ var H38_TM_HEADERS = Object.freeze({
   ],
 });
 
+var H38_TM_SCHEMA_VERSION = '2026-07-23-task-messaging-v1';
+var H38_TM_SCHEMA_PROPERTY = 'H38_TM_SCHEMA_VERSION';
+var H38_TM_SCHEMA_READY_ = false;
+
 function h38TmNow_() {
   return Utilities.formatDate(
     new Date(),
@@ -253,52 +257,70 @@ function h38TmRequireModule_(moduleKey, action) {
   return user;
 }
 function h38TmEnsureSchema_() {
-  var user = boGetCurrentUser_(),
-    ss = boGetSpreadsheet_(),
-    created = [];
-  Object.keys(H38_TM_SHEETS).forEach(function (key) {
-    var sheet = ss.getSheetByName(H38_TM_SHEETS[key]),
-      headers = h38TmSheetHeaders_(key);
-    if (!sheet) {
-      boAssert_(
-        h38TmManageAll_(user),
-        "An Owner or Administrator must initialize task and messaging storage first.",
-      );
-      sheet = ss.insertSheet(H38_TM_SHEETS[key]);
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.setFrozenRows(1);
-      created.push(H38_TM_SHEETS[key]);
-    } else {
-      var existing = sheet.getLastColumn()
-        ? sheet
-            .getRange(1, 1, 1, sheet.getLastColumn())
-            .getDisplayValues()[0]
-            .map(boNormalizeText_)
-        : [];
-      var missing = headers.filter(function (header) {
-        return existing.indexOf(header) < 0;
-      });
-      if (missing.length) {
+  if (H38_TM_SCHEMA_READY_) return { status: "PASS", created: [], cached: true, version: H38_TM_SCHEMA_VERSION };
+  var properties = boGetProperties_();
+  if (properties.getProperty(H38_TM_SCHEMA_PROPERTY) === H38_TM_SCHEMA_VERSION) {
+    H38_TM_SCHEMA_READY_ = true;
+    return { status: "PASS", created: [], cached: true, version: H38_TM_SCHEMA_VERSION };
+  }
+  var lock = LockService.getScriptLock();
+  boAssert_(lock.tryLock(5000), "Task and messaging schema initialization is temporarily busy. Try again.");
+  try {
+    if (properties.getProperty(H38_TM_SCHEMA_PROPERTY) === H38_TM_SCHEMA_VERSION) {
+      H38_TM_SCHEMA_READY_ = true;
+      return { status: "PASS", created: [], cached: true, version: H38_TM_SCHEMA_VERSION };
+    }
+    var user = boGetCurrentUser_(),
+      ss = boGetSpreadsheet_(),
+      created = [];
+    Object.keys(H38_TM_SHEETS).forEach(function (key) {
+      var sheet = ss.getSheetByName(H38_TM_SHEETS[key]),
+        headers = h38TmSheetHeaders_(key);
+      if (!sheet) {
         boAssert_(
           h38TmManageAll_(user),
-          "Task and messaging schema update requires Owner or Administrator access.",
+          "An Owner or Administrator must initialize task and messaging storage first.",
         );
-        sheet
-          .getRange(1, existing.length + 1, 1, missing.length)
-          .setValues([missing]);
+        sheet = ss.insertSheet(H38_TM_SHEETS[key]);
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        sheet.setFrozenRows(1);
+        created.push(H38_TM_SHEETS[key]);
+      } else {
+        var existing = sheet.getLastColumn()
+          ? sheet
+              .getRange(1, 1, 1, sheet.getLastColumn())
+              .getDisplayValues()[0]
+              .map(boNormalizeText_)
+          : [];
+        var missing = headers.filter(function (header) {
+          return existing.indexOf(header) < 0;
+        });
+        if (missing.length) {
+          boAssert_(
+            h38TmManageAll_(user),
+            "Task and messaging schema update requires Owner or Administrator access.",
+          );
+          sheet
+            .getRange(1, existing.length + 1, 1, missing.length)
+            .setValues([missing]);
+        }
       }
-    }
-  });
-  if (created.length)
-    boProof_(
-      "INITIALIZE_TASK_MESSAGING",
-      "System",
-      boGetBusinessId_(),
-      "PASS",
-      "Created private sheets: " + created.join(", "),
-      user.Email,
-    );
-  return { status: "PASS", created: created };
+    });
+    properties.setProperty(H38_TM_SCHEMA_PROPERTY, H38_TM_SCHEMA_VERSION);
+    H38_TM_SCHEMA_READY_ = true;
+    if (created.length)
+      boProof_(
+        "INITIALIZE_TASK_MESSAGING",
+        "System",
+        boGetBusinessId_(),
+        "PASS",
+        "Created private sheets: " + created.join(", "),
+        user.Email,
+      );
+    return { status: "PASS", created: created, cached: false, version: H38_TM_SCHEMA_VERSION };
+  } finally {
+    lock.releaseLock();
+  }
 }
 function h38TmRead_(key, options) {
   h38TmEnsureSchema_();
