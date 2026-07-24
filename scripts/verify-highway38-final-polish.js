@@ -36,7 +36,7 @@ check('homepage uses current project-first promise',index.includes('Bring us the
 check('homepage has request and examples actions',index.includes('href="start-request.html"')&&index.includes('href="sample-library-now.html"'));
 check('homepage uses approved local imagery without mockup shell',index.includes('assets/approved-website-images/')&&!index.includes('approved-homepage-mockup.png')&&!/class="[^"]*hotspot/.test(index));
 check('homepage contains no prohibited CNC quantity claim or personal attribution',!/25,000\+\s*(?:CNC\s+)?programs?|Rick\s+Krueth/i.test(index));
-check('canonical public shell owns navigation footer mobile menu and Owner route',publicShell.includes('class="pi-menu"')&&publicShell.includes("['Owner Access','portal.html']")&&publicShell.includes('pi-footer-inner'));
+check('canonical public shell owns navigation footer mobile menu and Owner route',publicShell.includes('class="pi-menu"')&&publicShell.includes("['Owner Access','portal.html']")&&publicShell.includes('pi-footer-grid'));
 check('canonical public shell locks image replacement',/imagePolicy:\{changeSource:false,insertImages:false,fallbackImages:false/.test(publicShell));
 
 check('What We Do has five accepted capability cards',(solutions.match(/data-capability=/g)||[]).length===5&&['Automation & Robotics','CNC Machining & Process Planning','CNC Fixturing & Workholding','AI-Assisted Quote Builder','Highway 38 Business Office'].every(marker=>solutions.includes(marker)));
