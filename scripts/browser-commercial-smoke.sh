@@ -37,8 +37,8 @@ for page in "${active_pages[@]}"; do
   if [[ "$page" != "portal.html" ]]; then
     grep -q '<h1' "$OUT/source-$page" || fail "$page is missing an h1"
     grep -q 'class="skip-link"' "$OUT/source-$page" || fail "$page is missing a skip link"
-    grep -q 'class="pi-nav"' "$OUT/source-$page" || fail "$page is missing the canonical navigation host"
-    grep -q 'class="pi-footer"' "$OUT/source-$page" || fail "$page is missing the canonical footer host"
+    grep -Eq 'class="pi-nav"|class="site-nav"' "$OUT/source-$page" || fail "$page is missing a canonical navigation host"
+    grep -Eq 'class="pi-footer"|class="site-footer"' "$OUT/source-$page" || fail "$page is missing a canonical footer host"
     grep -q 'assets/js/h38-site-v2.js' "$OUT/source-$page" || fail "$page is missing the canonical public shell"
   fi
   pass "$page source and current shell contract load"
