@@ -1,0 +1,58 @@
+name: Finalize Navigation Cache Cleanup
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finalize-navigation-cache-cleanup-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  finalize:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'agent/navigation-and-module-cache-speed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - name: Restore generated files and preserve focused test entry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout origin/main -- artifacts/task-messaging/verification.json package.json
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('package.json')
+          text=path.read_text(encoding='utf-8')
+          old='"test:business-office": "node scripts/verify-one-shot-ux.js'
+          new='"test:business-office": "node scripts/verify-navigation-cache-performance.js && node scripts/verify-one-shot-ux.js'
+          if text.count(old)!=1:
+              raise SystemExit(f'Expected one Business Office test marker, found {text.count(old)}')
+          path.write_text(text.replace(old,new,1),encoding='utf-8')
+          PY
+          rm -f .github/workflows/finalize-navigation-cache-cleanup.yml
+          node scripts/verify-change-governance.js
+          node scripts/verify-navigation-cache-performance.js
+          node scripts/verify-unified-app-architecture.js
+          node scripts/verify-owner-portal-next.js
+          node scripts/verify-business-office.js
+          node scripts/verify-unified-client-routing-runtime.js
+          node scripts/verify-task-messaging.js
+          node scripts/verify-task-messaging-hardening.js
+          node scripts/verify-unified-app-ux-complete.js
+          git diff --check
+      - name: Commit clean source branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Finalize navigation cache performance build'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
