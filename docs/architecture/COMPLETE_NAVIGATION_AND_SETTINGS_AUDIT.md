@@ -1,8 +1,8 @@
-# Complete Navigation and Settings Audit
+# Complete Navigation, Settings, and Quote Boundary
 
 Source baseline: `f79d659bcf655216424f59463a7501a7e8b2a202`
 
-Purpose: review every visible Business Office navigation option, every heading, route ownership, and the complete Settings/System Health boundary before making another navigation change.
+Purpose: define and verify every visible Business Office heading and option, the Settings/System Health boundary, and the separation between reviewing quote records and building a quote.
 
 ## Canonical headings and visible options
 
@@ -65,36 +65,73 @@ Purpose: review every visible Business Office navigation option, every heading, 
 7. Proof Log
 8. Error Log
 9. System Health
-10. Settings
+10. Settings & Safety
 11. Help & SOPs
 
-## Settings page contents checked
+## Quotes versus Quote Builder
 
-The current Settings route renders a page titled **Settings & Safety** with:
+### Quotes
 
-- Application details
-- Installation details
-- Safety state
-- Non-destructive self-test
-- Accounting CSV export
-- Integration contracts
+**Quotes** is the visible customer-record workspace under **Customers**. It is used to:
 
-## Initial findings for the next pass
+- browse and search quote records;
+- review quote number, customer, project, status, totals, and approval state;
+- open a quote in a read/review workspace;
+- inspect related records and timeline history;
+- return to the quote list without entering an editing tool.
 
-1. The navigation label says **Settings**, while the page says **Settings & Safety**. The label and page purpose should match.
-2. **Accounting CSV** is a Money/Accounting function. It should be evaluated for relocation to Accounting Prep or Reports rather than remaining inside Settings.
-3. Settings & Safety and System Health both expose integration and safety information. The next implementation should define a clear boundary:
-   - System Health: live status, blockers, integration health, and operating failures.
-   - Settings & Safety: configuration, safety controls, diagnostics, and controlled preferences.
-4. Quotes and Reports are now in their corrected headings and must remain there.
-5. Hidden capabilities such as Quote Builder, Customer Portal, H38 AI, and approval-data services must remain out of the visible navigation unless they receive an approved route.
+Opening **Quotes** or selecting an existing quote does not launch Quote Builder.
 
-## Acceptance rules for this pass
+### Quote Builder
 
-- Check all seven headings and every visible option, not only changed items.
-- Check exact order, route uniqueness, renderer ownership, permissions, dependencies, loading strategy, cache policy, and external-action policy.
-- Check the actual Settings page contents, not just its navigation label.
-- Preserve one unified Business Office, one module contract, existing records, permissions, approvals, deployment IDs, Proof Log, Error Log, backups, and audit history.
-- Do not enable automatic sends, payments, posting, publishing, deployment, or destructive actions.
+**Quote Builder** remains a hidden capability rather than a second navigation destination. It is used only when the user explicitly chooses to:
+
+- create a new quote;
+- edit an existing quote;
+- open the focused Quote Builder dashboard;
+- start a quote from customer or job context;
+- use Quick Create or a create-quote command.
+
+Quote Builder shares the same quote records, IDs, customers, documents, approvals, Proof Log, Error Log, permissions, and external-action locks. Returning from the integrated Quote Builder goes back to **Customers → Quotes**.
+
+## Settings & Safety versus System Health
+
+### Settings & Safety
+
+Settings & Safety owns stable configuration and operating boundaries:
+
+- application/package and role context;
+- external-action and approval locks;
+- data-protection guarantees;
+- links to Apps & Modules, Business Setup, Users & Roles, Backups, and System Health.
+
+It does not duplicate installation diagnostics, integration status, or financial exports.
+
+### System Health
+
+System Health owns live operating evidence:
+
+- installation state;
+- catalog state;
+- integration health and blockers;
+- hard-rule safety state;
+- non-destructive self-test;
+- direct access to Error Log and Proof Log.
+
+### Accounting export
+
+Accounting CSV export belongs to **Money** and is available from **Accounting Prep** and **Reports**, not Settings.
+
+## Hidden capabilities
+
+Quote Builder, Customer Portal, H38 AI, message-template services, approval-data services, and other internal capabilities remain hidden unless an approved visible route is added to the canonical module contract.
+
+## Preserved controls
+
+- One unified Business Office and one navigation tree.
+- One canonical module contract and one action contract.
+- Existing records, IDs, permissions, approvals, Proof Log, Error Log, backups, and audit history.
+- Existing Apps Script project and deployment IDs.
+- No automatic customer sends, payments, posting, payroll funding, tax filing, publishing, ad spend, deployment, or destructive action.
 
 Automated audit: `node scripts/audit-complete-navigation-and-settings.js`
