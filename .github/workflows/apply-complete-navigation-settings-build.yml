@@ -4,18 +4,20 @@ on:
   push:
     branches:
       - agent/complete-navigation-settings-audit
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: complete-navigation-settings-build
+  group: complete-navigation-settings-build-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 jobs:
   build-and-verify:
-    if: github.ref_name == 'agent/complete-navigation-settings-audit'
+    if: github.ref_name == 'agent/complete-navigation-settings-audit' || github.event.pull_request.head.ref == 'agent/complete-navigation-settings-audit'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
