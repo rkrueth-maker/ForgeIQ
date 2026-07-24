@@ -1,6 +1,8 @@
 name: Apply Navigation Cache Speed Pass
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches:
       - agent/navigation-and-module-cache-speed
@@ -51,7 +53,6 @@ jobs:
                   raise SystemExit(f'{label}: expected one regex match, found {count}')
               return updated
 
-          # Correct the visible module grouping and ordering.
           path='apps-script/business-office/BusinessOffice_ModuleContract.gs'
           text=read(path)
           text=replace_once(text,"var H38_UNIFIED_MODULE_CONTRACT_VERSION = '2026-07-23-v1';","var H38_UNIFIED_MODULE_CONTRACT_VERSION = '2026-07-24-v2';",'contract version')
@@ -73,7 +74,6 @@ jobs:
           text=replace_once(text,"boUnifiedModule_('reports','Reports','documents','business'","boUnifiedModule_('reports','Reports','money','business'",'reports group')
           write(path,text)
 
-          # Bound ordinary list reads so a click does not read the entire sheet.
           path='apps-script/business-office/BusinessOffice_Core.gs'
           text=read(path)
           read_table="""function boReadTable_(sheetName, options) {
@@ -143,7 +143,6 @@ jobs:
           text=regex_once(text,r"function boListRecords\(moduleKey, options\) \{.*?\n\}\n\n(?=function boSaveRecord)",list_records,'bounded list records')
           write(path,text)
 
-          # Add a batch read endpoint so prefetch uses one Apps Script invocation.
           path='apps-script/core-engine/owner-portal-next/Portal_Business.js'
           text=read(path)
           module_block="""function h38PortalBusinessModulePayload_(access, definitions, moduleKey, options) {
@@ -186,81 +185,27 @@ function h38PortalBusinessModuleBatch(requests) {
           text=regex_once(text,r"function h38PortalBusinessModule\(moduleKey, options\) \{.*?\n\}\n\n(?=function h38PortalBusinessWorkspace)",module_block,'business batch endpoint')
           write(path,text)
 
-          # Add browser cache, in-flight reuse, low default limits, and grouped prefetch.
           path='apps-script/core-engine/owner-portal-next/Portal_Business_Client.html'
           text=read(path)
           text=replace_once(text,"var BO_NATIVE={module:'',data:null,query:'',editing:null,workspace:null};","var BO_NATIVE={module:'',data:null,query:'',editing:null,workspace:null},H38_BO_MODULE_CACHE={},H38_BO_MODULE_INFLIGHT={},H38_BO_PREFETCH_TIMER=null;",'business client cache globals')
           helper="""
-function boNativeCacheKey(module,options){
-  var opts=options||{};
-  return String(module||'')+'|'+boNativeText(opts.query||'')+'|'+JSON.stringify(opts.filters||{})+'|'+String(opts.limit||50);
-}
-function boNativeCacheTtl(module){
-  var meta=typeof h38ProductModuleMeta==='function'?h38ProductModuleMeta('bo:'+module):null;
-  return Math.max(15,Number(meta&&meta.cacheTtlSeconds||60));
-}
-function boNativeCacheRead(key,module){
-  var entry=H38_BO_MODULE_CACHE[key];
-  if(!entry)return null;
-  if(Date.now()-entry.savedAt>boNativeCacheTtl(module)*1000){delete H38_BO_MODULE_CACHE[key];return null;}
-  return entry.data;
-}
+function boNativeCacheKey(module,options){var opts=options||{};return String(module||'')+'|'+boNativeText(opts.query||'')+'|'+JSON.stringify(opts.filters||{})+'|'+String(opts.limit||50);}
+function boNativeCacheTtl(module){var meta=typeof h38ProductModuleMeta==='function'?h38ProductModuleMeta('bo:'+module):null;return Math.max(15,Number(meta&&meta.cacheTtlSeconds||60));}
+function boNativeCacheRead(key,module){var entry=H38_BO_MODULE_CACHE[key];if(!entry)return null;if(Date.now()-entry.savedAt>boNativeCacheTtl(module)*1000){delete H38_BO_MODULE_CACHE[key];return null;}return entry.data;}
 function boNativeCacheWrite(key,data){H38_BO_MODULE_CACHE[key]={savedAt:Date.now(),data:data};return data;}
-function boNativeInvalidate(module){
-  Object.keys(H38_BO_MODULE_CACHE).forEach(function(key){if(!module||key.indexOf(String(module)+'|')===0)delete H38_BO_MODULE_CACHE[key];});
-}
-function boNativeLoadModule(module,options,force){
-  var opts=Object.assign({query:'',filters:{},limit:50},options||{}),key=boNativeCacheKey(module,opts),cached=!force&&boNativeCacheRead(key,module);
-  if(cached)return Promise.resolve({data:cached,cacheHit:true});
-  if(H38_BO_MODULE_INFLIGHT[key])return H38_BO_MODULE_INFLIGHT[key];
-  var pending=call('h38PortalBusinessModule',[module,opts]).then(function(data){boNativeCacheWrite(key,data);delete H38_BO_MODULE_INFLIGHT[key];return{data:data,cacheHit:false};},function(error){delete H38_BO_MODULE_INFLIGHT[key];throw error;});
-  H38_BO_MODULE_INFLIGHT[key]=pending;
-  return pending;
-}
-function boNativeVisibleBusinessRoutes(){
-  var routes=[];
-  uxRows(H38_UNIFIED&&H38_UNIFIED.groups).forEach(function(group){uxRows(group.items).forEach(function(item){if(String(item.key||'').indexOf('bo:')===0)routes.push(item.key);});});
-  return routes;
-}
-function boNativeBatchPrefetch(modules){
-  var requests=boNativeUnique(modules||[]).slice(0,3).map(function(route){var module=String(route).replace(/^bo:/,''),options={query:'',filters:{},limit:50};return{module:module,options:options,key:boNativeCacheKey(module,options)};}).filter(function(request){return !boNativeCacheRead(request.key,request.module)&&!H38_BO_MODULE_INFLIGHT[request.key];});
-  if(!requests.length)return Promise.resolve(null);
-  var batch=call('h38PortalBusinessModuleBatch',[requests.map(function(request){return{module:request.module,options:request.options};})]);
-  requests.forEach(function(request){
-    H38_BO_MODULE_INFLIGHT[request.key]=batch.then(function(result){var data=boNativeRows(result&&result.items).filter(function(item){return item&&item.status==='PASS'&&item.module===request.module;})[0]||null;if(data)boNativeCacheWrite(request.key,data);delete H38_BO_MODULE_INFLIGHT[request.key];return{data:data,cacheHit:false};},function(error){delete H38_BO_MODULE_INFLIGHT[request.key];throw error;});
-  });
-  return batch.catch(function(){return null;});
-}
-function boNativePrefetchFromRoute(route){
-  clearTimeout(H38_BO_PREFETCH_TIMER);
-  H38_BO_PREFETCH_TIMER=setTimeout(function(){
-    var all=[];uxRows(H38_UNIFIED&&H38_UNIFIED.groups).forEach(function(group){uxRows(group.items).forEach(function(item){all.push(item.key);});});
-    var current=String(route||CURRENT||'today'),index=all.indexOf(current),ordered=(index>=0?all.slice(index+1).concat(all.slice(0,index+1)):all),business=ordered.filter(function(key){return String(key).indexOf('bo:')===0;});
-    boNativeBatchPrefetch(business.slice(0,3));
-  },350);
-}
+function boNativeInvalidate(module){Object.keys(H38_BO_MODULE_CACHE).forEach(function(key){if(!module||key.indexOf(String(module)+'|')===0)delete H38_BO_MODULE_CACHE[key];});}
+function boNativeLoadModule(module,options,force){var opts=Object.assign({query:'',filters:{},limit:50},options||{}),key=boNativeCacheKey(module,opts),cached=!force&&boNativeCacheRead(key,module);if(cached)return Promise.resolve({data:cached,cacheHit:true});if(H38_BO_MODULE_INFLIGHT[key])return H38_BO_MODULE_INFLIGHT[key];var pending=call('h38PortalBusinessModule',[module,opts]).then(function(data){boNativeCacheWrite(key,data);delete H38_BO_MODULE_INFLIGHT[key];return{data:data,cacheHit:false};},function(error){delete H38_BO_MODULE_INFLIGHT[key];throw error;});H38_BO_MODULE_INFLIGHT[key]=pending;return pending;}
+function boNativeVisibleBusinessRoutes(){var routes=[];uxRows(H38_UNIFIED&&H38_UNIFIED.groups).forEach(function(group){uxRows(group.items).forEach(function(item){if(String(item.key||'').indexOf('bo:')===0)routes.push(item.key);});});return routes;}
+function boNativeBatchPrefetch(modules){var requests=boNativeUnique(modules||[]).slice(0,3).map(function(route){var module=String(route).replace(/^bo:/,''),options={query:'',filters:{},limit:50};return{module:module,options:options,key:boNativeCacheKey(module,options)};}).filter(function(request){return !boNativeCacheRead(request.key,request.module)&&!H38_BO_MODULE_INFLIGHT[request.key];});if(!requests.length)return Promise.resolve(null);var batch=call('h38PortalBusinessModuleBatch',[requests.map(function(request){return{module:request.module,options:request.options};})]);requests.forEach(function(request){H38_BO_MODULE_INFLIGHT[request.key]=batch.then(function(result){var data=boNativeRows(result&&result.items).filter(function(item){return item&&item.status==='PASS'&&item.module===request.module;})[0]||null;if(data)boNativeCacheWrite(request.key,data);delete H38_BO_MODULE_INFLIGHT[request.key];return{data:data,cacheHit:false};},function(error){delete H38_BO_MODULE_INFLIGHT[request.key];throw error;});});return batch.catch(function(){return null;});}
+function boNativePrefetchFromRoute(route){clearTimeout(H38_BO_PREFETCH_TIMER);H38_BO_PREFETCH_TIMER=setTimeout(function(){var all=[];uxRows(H38_UNIFIED&&H38_UNIFIED.groups).forEach(function(group){uxRows(group.items).forEach(function(item){all.push(item.key);});});var current=String(route||CURRENT||'today'),index=all.indexOf(current),ordered=(index>=0?all.slice(index+1).concat(all.slice(0,index+1)):all),business=ordered.filter(function(key){return String(key).indexOf('bo:')===0;});boNativeBatchPrefetch(business.slice(0,3));},350);}
 """
           text=replace_once(text,"function boNativeUnique(values){return values.filter(function(value,index,list){return value&&list.indexOf(value)===index;});}\n","function boNativeUnique(values){return values.filter(function(value,index,list){return value&&list.indexOf(value)===index;});}\n"+helper,'business client cache helpers')
           render="""async function renderBusinessModule(module,query,options){
-  uxShowNativeWorkspace();
-  CURRENT='bo:'+module;renderNav();
-  BO_NATIVE.module=module;BO_NATIVE.query=boNativeText(query);
-  history.replaceState(null,'','#module='+encodeURIComponent(module));
+  uxShowNativeWorkspace();CURRENT='bo:'+module;renderNav();BO_NATIVE.module=module;BO_NATIVE.query=boNativeText(query);history.replaceState(null,'','#module='+encodeURIComponent(module));
   var request=Object.assign({query:BO_NATIVE.query,filters:{},limit:50},options||{}),key=boNativeCacheKey(module,request),cached=!request.force&&boNativeCacheRead(key,module),view=document.getElementById('view');
   if(cached){BO_NATIVE.data=cached;boNativeRenderModule(cached);boNativePrefetchFromRoute(CURRENT);return cached;}
   view.innerHTML='<div class="card" data-h38-workspace-state="loading">Loading '+esc(humanize(module))+'…</div>';
-  try{
-    var loaded=await boNativeLoadModule(module,request,request.force===true),data=loaded.data;
-    if(!data)throw new Error('Business Office module returned no data.');
-    BO_NATIVE.data=data;
-    boNativeRenderModule(data);
-    boNativePrefetchFromRoute(CURRENT);
-    return data;
-  }catch(error){
-    BO_NATIVE.data=null;
-    ownerSafeFailure(error,'The selected Business Office workspace could not load. No record was changed.');
-    return null;
-  }
+  try{var loaded=await boNativeLoadModule(module,request,request.force===true),data=loaded.data;if(!data)throw new Error('Business Office module returned no data.');BO_NATIVE.data=data;boNativeRenderModule(data);boNativePrefetchFromRoute(CURRENT);return data;}catch(error){BO_NATIVE.data=null;ownerSafeFailure(error,'The selected Business Office workspace could not load. No record was changed.');return null;}
 }
 """
           text=regex_once(text,r"async function renderBusinessModule\(module,query\)\{.*?\n\}\n(?=function businessSearchCurrent)",render,'cached module renderer')
@@ -268,7 +213,6 @@ function boNativePrefetchFromRoute(route){
           text=replace_once(text,"closeBusinessForm();notice('<b>Document uploaded.</b> Original preserved. OCR and posting remain review-only.','ok');await renderBusinessModule('documents','');","boNativeInvalidate('documents');closeBusinessForm();notice('<b>Document uploaded.</b> Original preserved. OCR and posting remain review-only.','ok');await renderBusinessModule('documents','',{force:true});",'upload invalidation')
           write(path,text)
 
-          # Cache and prefetch the slow native Approvals and Calendar surfaces.
           path='apps-script/core-engine/owner-portal-next/Portal_Application_Client_Core.html'
           text=read(path)
           text=replace_once(text,"var H38_APP_MODULE_MANAGER=null,H38_APP_SETUP=null,H38_APP_COMMANDS=null,H38_APP_STATUS=null,H38_APP_BUSINESS_DASHBOARD=null,H38_COMMAND_SEARCH_RESULTS=[],H38_COMMAND_INDEX=0,H38_COMMAND_TIMER=null;","var H38_APP_MODULE_MANAGER=null,H38_APP_SETUP=null,H38_APP_COMMANDS=null,H38_APP_STATUS=null,H38_APP_BUSINESS_DASHBOARD=null,H38_COMMAND_SEARCH_RESULTS=[],H38_COMMAND_INDEX=0,H38_COMMAND_TIMER=null,H38_APP_SURFACE_CACHE={},H38_APP_SURFACE_INFLIGHT={},H38_APP_SURFACE_PREFETCH_TIMER=null;",'surface cache globals')
@@ -286,73 +230,33 @@ function h38PrefetchOperatingSurfaces(route){if(String(route||'')!=='today')retu
 
           path='apps-script/core-engine/owner-portal-next/Portal_Application_Client_Views.html'
           text=read(path)
-          approval="""async function h38RenderApprovalCenter(force){var data=await h38SurfaceLoad('approvalsCenter',30,function(){return call('h38PortalApplicationApprovalCenter');},force===true),items=uxRows(data.items);document.getElementById('view').innerHTML='<div class="ux-page-head"><div><div class="ux-eyebrow">Selected-record decisions</div><h1>Approval Center</h1><div class="muted">See what happens, who is affected, whether it can be undone, and the exact selected record before deciding.</div></div><span class="pill amber">'+items.length+' waiting</span></div><div class="approval-center">'+(items.length?items.map(h38ApprovalCard).join(''):h38InstructionalEmpty('No approvals are waiting.','New approval requirements will appear here with supporting files and exact consequences.','',''))+'</div>';}
-"""
-          text=regex_once(text,r"async function h38RenderApprovalCenter\(\)\{.*?\n(?=function h38ApprovalCard)",approval,'approval cache')
+          text=regex_once(text,r"async function h38RenderApprovalCenter\(\)\{.*?\n(?=function h38ApprovalCard)","async function h38RenderApprovalCenter(force){var data=await h38SurfaceLoad('approvalsCenter',30,function(){return call('h38PortalApplicationApprovalCenter');},force===true),items=uxRows(data.items);document.getElementById('view').innerHTML='<div class=\"ux-page-head\"><div><div class=\"ux-eyebrow\">Selected-record decisions</div><h1>Approval Center</h1><div class=\"muted\">See what happens, who is affected, whether it can be undone, and the exact selected record before deciding.</div></div><span class=\"pill amber\">'+items.length+' waiting</span></div><div class=\"approval-center\">'+(items.length?items.map(h38ApprovalCard).join(''):h38InstructionalEmpty('No approvals are waiting.','New approval requirements will appear here with supporting files and exact consequences.','',''))+'</div>';}\n",'approval cache')
           text=replace_once(text,"await h38RenderApprovalCenter();","h38SurfaceInvalidate('approvalsCenter');await h38RenderApprovalCenter(true);",'approval cache invalidation')
-          calendar="""async function h38RenderCalendarCenter(force){var data=await h38SurfaceLoad('calendarCenter',120,function(){return call('h38PortalApplicationCalendar');},force===true),events=uxRows(data.events),groups={};events.forEach(function(event){(groups[event.date]||(groups[event.date]=[])).push(event);});var dates=Object.keys(groups).sort();document.getElementById('view').innerHTML='<div class="ux-page-head"><div><div class="ux-eyebrow">Due dates and commitments</div><h1>Calendar</h1><div class="muted">Tasks, jobs, work orders, invoices, bills, and filing deadlines in one operating view.</div></div><span class="pill blue">'+events.length+' dated items</span></div><div class="calendar-month">'+(dates.length?dates.map(function(date){return '<section class="calendar-cell '+(date===data.today?'today':'')+'"><strong>'+esc(date)+(date===data.today?' · Today':'')+'</strong>'+groups[date].map(function(event){return '<button class="calendar-event" onclick="h38OpenCalendarEvent('+JSON.stringify(event).replace(/</g,'\\u003c')+')"><b>'+esc(event.title)+'</b><br>'+esc(event.type+' · '+event.status)+'</button>';}).join('')+'</section>';}).join(''):h38InstructionalEmpty('No dated records yet.','Add due dates to tasks, jobs, invoices, bills, or tax periods to place them here.','',''))+'</div>';}
-"""
-          text=regex_once(text,r"async function h38RenderCalendarCenter\(\)\{.*?\n(?=function h38OpenCalendarEvent)",calendar,'calendar cache')
+          text=regex_once(text,r"async function h38RenderCalendarCenter\(\)\{.*?\n(?=function h38OpenCalendarEvent)","async function h38RenderCalendarCenter(force){var data=await h38SurfaceLoad('calendarCenter',120,function(){return call('h38PortalApplicationCalendar');},force===true),events=uxRows(data.events),groups={};events.forEach(function(event){(groups[event.date]||(groups[event.date]=[])).push(event);});var dates=Object.keys(groups).sort();document.getElementById('view').innerHTML='<div class=\"ux-page-head\"><div><div class=\"ux-eyebrow\">Due dates and commitments</div><h1>Calendar</h1><div class=\"muted\">Tasks, jobs, work orders, invoices, bills, and filing deadlines in one operating view.</div></div><span class=\"pill blue\">'+events.length+' dated items</span></div><div class=\"calendar-month\">'+(dates.length?dates.map(function(date){return '<section class=\"calendar-cell '+(date===data.today?'today':'')+'\"><strong>'+esc(date)+(date===data.today?' · Today':'')+'</strong>'+groups[date].map(function(event){return '<button class=\"calendar-event\" onclick=\"h38OpenCalendarEvent('+JSON.stringify(event).replace(/</g,'\\u003c')+')\"><b>'+esc(event.title)+'</b><br>'+esc(event.type+' · '+event.status)+'</button>';}).join('')+'</section>';}).join(''):h38InstructionalEmpty('No dated records yet.','Add due dates to tasks, jobs, invoices, bills, or tax periods to place them here.','',''))+'</div>';}\n",'calendar cache')
           write(path,text)
 
-          # Route task/messaging filters through the same cache and lower limit.
           path='apps-script/core-engine/owner-portal-next/Portal_TaskMessaging_Client.html'
           text=read(path)
-          filtered="""async function h38TmRenderWithFilters(module,filters){
-  uxShowNativeWorkspace();CURRENT='bo:'+module;renderNav();BO_NATIVE.module=module;var view=document.getElementById('view');view.innerHTML='<div class="card" data-h38-workspace-state="loading">Loading '+esc(humanize(module))+'…</div>';
-  try{var loaded=await boNativeLoadModule(module,{query:BO_NATIVE.query||'',filters:filters||{},limit:50},false),data=loaded.data;BO_NATIVE.data=data;boNativeRenderModule(data);return data;}catch(error){ownerSafeFailure(error,'The selected task or messaging view could not load. No record was changed.');return null;}
-}
-"""
-          text=regex_once(text,r"async function h38TmRenderWithFilters\(module,filters\)\{.*?\n\}",filtered,'task filter cache')
-          replacements={
-            "closeDrawer();await renderBusinessModule('assignedTasks','');":"closeDrawer();boNativeInvalidate('assignedTasks');await renderBusinessModule('assignedTasks','',{force:true});",
-            "closeDrawer();await renderBusinessModule('messaging','');":"closeDrawer();boNativeInvalidate('messaging');await renderBusinessModule('messaging','',{force:true});",
-            "await renderBusinessModule('messaging','');":"boNativeInvalidate('messaging');await renderBusinessModule('messaging','',{force:true});"
-          }
-          for old,new in replacements.items():
-              text=text.replace(old,new)
+          text=regex_once(text,r"async function h38TmRenderWithFilters\(module,filters\)\{.*?\n\}","async function h38TmRenderWithFilters(module,filters){\n  uxShowNativeWorkspace();CURRENT='bo:'+module;renderNav();BO_NATIVE.module=module;var view=document.getElementById('view');view.innerHTML='<div class=\"card\" data-h38-workspace-state=\"loading\">Loading '+esc(humanize(module))+'…</div>';\n  try{var loaded=await boNativeLoadModule(module,{query:BO_NATIVE.query||'',filters:filters||{},limit:50},false),data=loaded.data;BO_NATIVE.data=data;boNativeRenderModule(data);return data;}catch(error){ownerSafeFailure(error,'The selected task or messaging view could not load. No record was changed.');return null;}\n}\n",'task filter cache')
+          text=text.replace("closeDrawer();await renderBusinessModule('assignedTasks','');","closeDrawer();boNativeInvalidate('assignedTasks');await renderBusinessModule('assignedTasks','',{force:true});")
+          text=text.replace("closeDrawer();await renderBusinessModule('messaging','');","closeDrawer();boNativeInvalidate('messaging');await renderBusinessModule('messaging','',{force:true});")
+          text=text.replace("await renderBusinessModule('messaging','');","boNativeInvalidate('messaging');await renderBusinessModule('messaging','',{force:true});")
           write(path,text)
 
-          # Add a focused verifier and make it part of Business Office verification.
-          verifier=Path('scripts/verify-navigation-cache-performance.js')
-          verifier.write_text("""#!/usr/bin/env node
+          Path('scripts/verify-navigation-cache-performance.js').write_text("""#!/usr/bin/env node
 'use strict';
-const fs=require('fs');
-const path=require('path');
-const vm=require('vm');
-const root=path.resolve(__dirname,'..');
-const read=file=>fs.readFileSync(path.join(root,file),'utf8');
-const failures=[];const pass=(name,ok,detail='')=>{console[ok?'log':'error'](`${ok?'PASS':'FAIL'}: ${name}${detail?' — '+detail:''}`);if(!ok)failures.push({name,detail});};
-const contract=read('apps-script/business-office/BusinessOffice_ModuleContract.gs');
-const core=read('apps-script/business-office/BusinessOffice_Core.gs');
-const server=read('apps-script/core-engine/owner-portal-next/Portal_Business.js');
-const client=read('apps-script/core-engine/owner-portal-next/Portal_Business_Client.html');
-const appCore=read('apps-script/core-engine/owner-portal-next/Portal_Application_Client_Core.html');
-const views=read('apps-script/core-engine/owner-portal-next/Portal_Application_Client_Views.html');
-const tasks=read('apps-script/core-engine/owner-portal-next/Portal_TaskMessaging_Client.html');
-const sales=['requests','customers','quotes','messaging','smsConsent'];
-const salesPositions=sales.map(key=>contract.indexOf(`boUnifiedModule_('${key}'`));
-pass('Quotes are under Customers',contract.includes("boUnifiedModule_('quotes','Quotes','sales'"));
-pass('Customer options use the intended order',salesPositions.every((value,index)=>value>=0&&(index===0||value>salesPositions[index-1])),JSON.stringify(salesPositions));
-pass('Reports are under Money',contract.includes("boUnifiedModule_('reports','Reports','money'"));
-pass('ordinary module list defaults to fifty records',client.includes("limit:50")&&server.includes("opts.limit || 50")&&core.includes("opts.limit || 50"));
-pass('ordinary no-filter reads are bounded',core.includes('readLimit: boundedRead')&&core.includes('getRange(1, 1, dataRows + 1, lastColumn)'));
-pass('one batch endpoint owns route prefetch',server.includes('function h38PortalBusinessModuleBatch')&&client.includes("call('h38PortalBusinessModuleBatch'"));
-pass('module cache reuses in-flight and recent data',client.includes('H38_BO_MODULE_CACHE')&&client.includes('H38_BO_MODULE_INFLIGHT')&&client.includes('boNativeCacheRead'));
-pass('writes invalidate module cache',client.includes('boNativeInvalidate(module)')&&client.includes("boNativeInvalidate('documents')"));
-pass('Today prefetches Approvals Calendar and next business modules',appCore.includes("h38SurfaceLoad('approvalsCenter'")&&appCore.includes("h38SurfaceLoad('calendarCenter'")&&appCore.includes('boNativePrefetchFromRoute'));
-pass('Approval and Calendar clicks reuse prefetched data',views.includes("h38SurfaceLoad('approvalsCenter'")&&views.includes("h38SurfaceLoad('calendarCenter'"));
-pass('task filters use the shared cache and fifty-record limit',tasks.includes('boNativeLoadModule(module')&&tasks.includes('limit:50'));
-pass('external action boundaries remain locked',server.includes('externalActionsEnabled:false')&&!/UrlFetchApp|GmailApp|MailApp/.test(client+appCore+views));
+const fs=require('fs'),path=require('path'),vm=require('vm'),root=path.resolve(__dirname,'..'),read=file=>fs.readFileSync(path.join(root,file),'utf8'),failures=[];
+const pass=(name,ok,detail='')=>{console[ok?'log':'error'](`${ok?'PASS':'FAIL'}: ${name}${detail?' — '+detail:''}`);if(!ok)failures.push({name,detail});};
+const contract=read('apps-script/business-office/BusinessOffice_ModuleContract.gs'),core=read('apps-script/business-office/BusinessOffice_Core.gs'),server=read('apps-script/core-engine/owner-portal-next/Portal_Business.js'),client=read('apps-script/core-engine/owner-portal-next/Portal_Business_Client.html'),appCore=read('apps-script/core-engine/owner-portal-next/Portal_Application_Client_Core.html'),views=read('apps-script/core-engine/owner-portal-next/Portal_Application_Client_Views.html'),tasks=read('apps-script/core-engine/owner-portal-next/Portal_TaskMessaging_Client.html');
+const sales=['requests','customers','quotes','messaging','smsConsent'],positions=sales.map(key=>contract.indexOf(`boUnifiedModule_('${key}'`));
+pass('Quotes are under Customers',contract.includes("boUnifiedModule_('quotes','Quotes','sales'"));pass('Customer options use intended order',positions.every((value,index)=>value>=0&&(index===0||value>positions[index-1])),JSON.stringify(positions));pass('Reports are under Money',contract.includes("boUnifiedModule_('reports','Reports','money'"));
+pass('ordinary lists default to fifty records',client.includes('limit:50')&&server.includes('opts.limit || 50')&&core.includes('opts.limit || 50'));pass('ordinary no-filter reads are bounded',core.includes('readLimit: boundedRead')&&core.includes('getRange(1, 1, dataRows + 1, lastColumn)'));pass('one batch endpoint owns route prefetch',server.includes('function h38PortalBusinessModuleBatch')&&client.includes("call('h38PortalBusinessModuleBatch'"));pass('module cache reuses in-flight and recent data',client.includes('H38_BO_MODULE_CACHE')&&client.includes('H38_BO_MODULE_INFLIGHT')&&client.includes('boNativeCacheRead'));pass('writes invalidate module cache',client.includes('boNativeInvalidate(module)')&&client.includes("boNativeInvalidate('documents')"));pass('Today prefetches Approvals Calendar and business modules',appCore.includes("h38SurfaceLoad('approvalsCenter'")&&appCore.includes("h38SurfaceLoad('calendarCenter'")&&appCore.includes('boNativePrefetchFromRoute'));pass('Approval and Calendar reuse prefetched data',views.includes("h38SurfaceLoad('approvalsCenter'")&&views.includes("h38SurfaceLoad('calendarCenter'"));pass('task filters use cache and fifty-record limit',tasks.includes('boNativeLoadModule(module')&&tasks.includes('limit:50'));pass('external actions stay locked',server.includes('externalActionsEnabled:false')&&!/UrlFetchApp|GmailApp|MailApp/.test(client+appCore+views));
 for(const [name,source] of [['BusinessOffice_Core',core],['Portal_Business',server],['Portal_Business_Client',client],['Portal_Application_Client_Core',appCore],['Portal_Application_Client_Views',views],['Portal_TaskMessaging_Client',tasks]]){try{new vm.Script(source,{filename:name});pass(name+' parses',true);}catch(error){pass(name+' parses',false,error.message);}}
-const result={status:failures.length?'FAIL':'PASS',failed:failures.length,failures};console.log(JSON.stringify(result,null,2));process.exit(failures.length?1:0);
+console.log(JSON.stringify({status:failures.length?'FAIL':'PASS',failed:failures.length,failures},null,2));process.exit(failures.length?1:0);
 """,encoding='utf-8')
 
-          path='package.json'
-          package=json.loads(read(path))
-          marker='node scripts/verify-navigation-cache-performance.js'
-          if marker not in package['scripts']['test:business-office']:
-              package['scripts']['test:business-office']=marker+' && '+package['scripts']['test:business-office']
+          path='package.json';package=json.loads(read(path));marker='node scripts/verify-navigation-cache-performance.js';
+          if marker not in package['scripts']['test:business-office']:package['scripts']['test:business-office']=marker+' && '+package['scripts']['test:business-office']
           write(path,json.dumps(package,indent=2)+'\n')
           PY
 
@@ -373,15 +277,6 @@ const result={status:failures.length?'FAIL':'PASS',failed:failures.length,failur
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add apps-script/business-office/BusinessOffice_ModuleContract.gs \
-            apps-script/business-office/BusinessOffice_Core.gs \
-            apps-script/core-engine/owner-portal-next/Portal_Business.js \
-            apps-script/core-engine/owner-portal-next/Portal_Business_Client.html \
-            apps-script/core-engine/owner-portal-next/Portal_Application_Client_Core.html \
-            apps-script/core-engine/owner-portal-next/Portal_Application_Client_Views.html \
-            apps-script/core-engine/owner-portal-next/Portal_TaskMessaging_Client.html \
-            scripts/verify-navigation-cache-performance.js \
-            package.json \
-            .github/workflows/apply-navigation-cache-speed.yml
+          git add apps-script/business-office/BusinessOffice_ModuleContract.gs apps-script/business-office/BusinessOffice_Core.gs apps-script/core-engine/owner-portal-next/Portal_Business.js apps-script/core-engine/owner-portal-next/Portal_Business_Client.html apps-script/core-engine/owner-portal-next/Portal_Application_Client_Core.html apps-script/core-engine/owner-portal-next/Portal_Application_Client_Views.html apps-script/core-engine/owner-portal-next/Portal_TaskMessaging_Client.html scripts/verify-navigation-cache-performance.js package.json .github/workflows/apply-navigation-cache-speed.yml
           git commit -m 'Speed up navigation and correct workspace grouping'
           git push origin HEAD:agent/navigation-and-module-cache-speed
