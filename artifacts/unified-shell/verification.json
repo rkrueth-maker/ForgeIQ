@@ -1,0 +1,184 @@
+{
+  "status": "PASS",
+  "sourceCommit": "a1d189341ae785b7d51ab8acc62c3eee8fc98fa0",
+  "shellVersion": "single-contract-office-registry-v4",
+  "passes": [
+    {
+      "name": "checked-in shell owns combined doGet",
+      "evidence": ""
+    },
+    {
+      "name": "shell owns self-contained authentication",
+      "evidence": ""
+    },
+    {
+      "name": "shell avoids cross-file auth helper dependencies",
+      "evidence": ""
+    },
+    {
+      "name": "shell publishes module and capability registry",
+      "evidence": ""
+    },
+    {
+      "name": "Quote Builder owns quotes when installed",
+      "evidence": ""
+    },
+    {
+      "name": "canonical module contract exists",
+      "evidence": ""
+    },
+    {
+      "name": "visible registry derives from canonical contract",
+      "evidence": ""
+    },
+    {
+      "name": "server manifest consumes central module registry",
+      "evidence": ""
+    },
+    {
+      "name": "server manifest consumes shell capability ownership",
+      "evidence": ""
+    },
+    {
+      "name": "server manifest publishes module index and contract version",
+      "evidence": ""
+    },
+    {
+      "name": "server manifest publishes disabled legacy capability state",
+      "evidence": ""
+    },
+    {
+      "name": "server manifest exposes one-request startup bundle",
+      "evidence": ""
+    },
+    {
+      "name": "external actions remain disabled",
+      "evidence": ""
+    },
+    {
+      "name": "builder renames both standalone entries",
+      "evidence": ""
+    },
+    {
+      "name": "builder removes legacy Portal auth bridge",
+      "evidence": ""
+    },
+    {
+      "name": "builder requires one shell entry point",
+      "evidence": ""
+    },
+    {
+      "name": "deployment invokes deterministic shell builder",
+      "evidence": ""
+    },
+    {
+      "name": "deployment no longer contains inline routing patch",
+      "evidence": ""
+    },
+    {
+      "name": "deployment verifies one remote entry point",
+      "evidence": ""
+    },
+    {
+      "name": "deployment verifies live auth failures are absent",
+      "evidence": ""
+    },
+    {
+      "name": "Highway 38 pack enables Quote Builder",
+      "evidence": ""
+    },
+    {
+      "name": "registry exposes one Business Office route",
+      "evidence": ""
+    },
+    {
+      "name": "runtime routes default request to unified application",
+      "evidence": ""
+    },
+    {
+      "name": "runtime routes legacy Business Office request to unified application",
+      "evidence": ""
+    },
+    {
+      "name": "runtime routes quoteBuilder=1 to Quote Builder",
+      "evidence": ""
+    },
+    {
+      "name": "runtime registry disables legacy quote capability",
+      "evidence": ""
+    },
+    {
+      "name": "runtime reports Quote Builder as quote owner",
+      "evidence": ""
+    },
+    {
+      "name": "runtime preserves authenticated Owner role",
+      "evidence": ""
+    },
+    {
+      "name": "server navigation keeps Quotes label while Quote Builder owns editing",
+      "evidence": ""
+    },
+    {
+      "name": "server bootstrap reports Quote Builder ownership",
+      "evidence": ""
+    },
+    {
+      "name": "server bootstrap disables legacy quote capability",
+      "evidence": ""
+    },
+    {
+      "name": "server bootstrap publishes contract architecture",
+      "evidence": ""
+    },
+    {
+      "name": "server bootstrap publishes load metadata",
+      "evidence": ""
+    },
+    {
+      "name": "runtime restores legacy quote owner when add-on disabled",
+      "evidence": ""
+    },
+    {
+      "name": "disabled Quote Builder route falls back to unified application",
+      "evidence": ""
+    },
+    {
+      "name": "server navigation restores Quotes label when add-on disabled",
+      "evidence": ""
+    },
+    {
+      "name": "server bootstrap restores legacy quote ownership",
+      "evidence": ""
+    },
+    {
+      "name": "server bootstrap clears legacy quote disable flag",
+      "evidence": ""
+    },
+    {
+      "name": "temporary combined assembly contains one entry point",
+      "evidence": "Unified_AppShell.gs"
+    },
+    {
+      "name": "temporary combined assembly removes legacy auth bridge",
+      "evidence": ""
+    },
+    {
+      "name": "temporary combined assembly retains standalone logic under neutral names",
+      "evidence": ""
+    },
+    {
+      "name": "temporary combined assembly retains canonical module contract",
+      "evidence": ""
+    },
+    {
+      "name": "temporary combined assembly retains contract-driven registry",
+      "evidence": ""
+    },
+    {
+      "name": "temporary combined assembly retains registry-driven bootstrap",
+      "evidence": ""
+    }
+  ],
+  "failures": []
+}
