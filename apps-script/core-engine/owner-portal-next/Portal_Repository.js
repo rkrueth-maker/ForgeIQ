@@ -1,7 +1,28 @@
 /** Repository, installer-safe sheet access, client schema, audit logging, and generic CRUD. */
+var H38_PORTAL_SPREADSHEET_CACHE_ = null;
+var H38_PORTAL_INSTALLED_STATUS_CACHE_ = null;
+var H38_PORTAL_LIST_CACHE_ = {};
+
 function h38PortalSpreadsheet_() {
+  if (H38_PORTAL_SPREADSHEET_CACHE_) return H38_PORTAL_SPREADSHEET_CACHE_;
   if (!H38_PORTAL_NEXT.SPREADSHEET_ID) throw new Error('CONFIGURATION HOLD — H38_PORTAL_SPREADSHEET_ID is blank.');
-  return SpreadsheetApp.openById(H38_PORTAL_NEXT.SPREADSHEET_ID);
+  H38_PORTAL_SPREADSHEET_CACHE_ = SpreadsheetApp.openById(H38_PORTAL_NEXT.SPREADSHEET_ID);
+  return H38_PORTAL_SPREADSHEET_CACHE_;
+}
+
+function h38PortalCloneRows_(rows) {
+  return (rows || []).map(function(row){
+    var copy = {};
+    Object.keys(row || {}).forEach(function(key){ copy[key] = row[key]; });
+    return copy;
+  });
+}
+
+function h38PortalInvalidateReadCache_(entity) {
+  if (entity) delete H38_PORTAL_LIST_CACHE_[entity];
+  else H38_PORTAL_LIST_CACHE_ = {};
+  H38_PORTAL_INSTALLED_STATUS_CACHE_ = null;
+  if (entity === 'tasks' && typeof H38_PORTAL_TASK_PROJECTION_CACHE_ !== 'undefined') H38_PORTAL_TASK_PROJECTION_CACHE_ = null;
 }
 
 function h38PortalAccess_() {
@@ -44,13 +65,21 @@ function h38PortalObjectFromRow_(headers, row) {
 }
 
 function h38PortalInstalledStatus_() {
+  if (H38_PORTAL_INSTALLED_STATUS_CACHE_) {
+    return {
+      installed:H38_PORTAL_INSTALLED_STATUS_CACHE_.installed,
+      missingSheets:H38_PORTAL_INSTALLED_STATUS_CACHE_.missingSheets.slice(),
+      candidateRelease:H38_PORTAL_INSTALLED_STATUS_CACHE_.candidateRelease
+    };
+  }
   var ss = h38PortalSpreadsheet_();
   var missing = [];
   Object.keys(H38_PORTAL_TABLES).forEach(function(key) {
     var spec = H38_PORTAL_TABLES[key];
     if (!ss.getSheetByName(spec.sheet)) missing.push(spec.sheet);
   });
-  return {installed: missing.length === 0, missingSheets:missing, candidateRelease:H38_PORTAL_NEXT.RELEASE};
+  H38_PORTAL_INSTALLED_STATUS_CACHE_ = {installed: missing.length === 0, missingSheets:missing.slice(), candidateRelease:H38_PORTAL_NEXT.RELEASE};
+  return {installed:H38_PORTAL_INSTALLED_STATUS_CACHE_.installed, missingSheets:missing.slice(), candidateRelease:H38_PORTAL_NEXT.RELEASE};
 }
 
 function h38PortalInstallCandidate(options) {
@@ -75,6 +104,7 @@ function h38PortalInstallCandidate(options) {
       verified.push(spec.sheet);
     }
   });
+  h38PortalInvalidateReadCache_();
   h38PortalSeedSettings_();
   h38PortalWriteProof_({jobId:'SYSTEM', source:'Portal Installer', action:'Install candidate data layer', decision:'INSTALL NON-DEPLOYED CANDIDATE', result:'PASS', evidence:'Created=' + created.join(', ') + '; Verified=' + verified.join(', '), notes:'No triggers, deployment, sends, payments, publishing, or customer delivery.'});
   return {status:'PASS', created:created, verified:verified, testMode:H38_PORTAL_NEXT.TEST_MODE, liveExternalActions:H38_PORTAL_NEXT.LIVE_EXTERNAL_ACTIONS_ENABLED};
@@ -109,16 +139,24 @@ function h38PortalTable_(entity) {
 function h38PortalList(entity, filters) {
   h38PortalAssertOwner_();
   filters = filters || {};
-  var t = h38PortalTable_(entity);
-  var values = t.sheet.getDataRange().getDisplayValues();
-  if (values.length < 2) return [];
-  var headers = values[0];
-  var rows = values.slice(1).filter(function(r){ return r.join('').trim() !== ''; }).map(function(r, index){
-    var o = h38PortalObjectFromRow_(headers,r);
-    o._rowNumber = index + 2;
-    o._entity = entity;
-    return o;
-  });
+  var baseRows = H38_PORTAL_LIST_CACHE_[entity];
+  if (!baseRows) {
+    var t = h38PortalTable_(entity);
+    var values = t.sheet.getDataRange().getDisplayValues();
+    if (values.length < 2) {
+      H38_PORTAL_LIST_CACHE_[entity] = [];
+      return [];
+    }
+    var headers = values[0];
+    baseRows = values.slice(1).filter(function(r){ return r.join('').trim() !== ''; }).map(function(r, index){
+      var o = h38PortalObjectFromRow_(headers,r);
+      o._rowNumber = index + 2;
+      o._entity = entity;
+      return o;
+    });
+    H38_PORTAL_LIST_CACHE_[entity] = h38PortalCloneRows_(baseRows);
+  }
+  var rows = h38PortalCloneRows_(baseRows);
   Object.keys(filters).forEach(function(key) {
     var wanted = String(filters[key] || '').trim().toLowerCase();
     if (!wanted) return;
@@ -164,6 +202,7 @@ function h38PortalSave(entity, record) {
   var row = spec.headers.map(function(h){ return record[h] !== undefined ? record[h] : (current ? current[h] : ''); });
   if (current) t.sheet.getRange(current._rowNumber,1,1,row.length).setValues([row]);
   else t.sheet.appendRow(row);
+  h38PortalInvalidateReadCache_(entity);
   h38PortalWriteProof_({jobId:record['Job ID'] || id, source:spec.sheet, action:(current ? 'Update ' : 'Create ') + entity, decision:'INTERNAL RECORD ACTION', result:'PASS', evidence:spec.id + '=' + id, notes:'Internal record only; no external execution.'});
   return h38PortalGet(entity,id);
 }
@@ -242,6 +281,7 @@ function h38PortalWriteProof_(entry) {
     'Notes':entry.notes || ''
   };
   sh.appendRow(headers.map(function(h){ return data[h] !== undefined ? data[h] : ''; }));
+  h38PortalInvalidateReadCache_('proof');
   return proofId;
 }
 
@@ -273,4 +313,5 @@ function h38PortalWriteError_(entry) {
     'Notes':entry.notes || ''
   };
   sh.appendRow(headers.map(function(h){ return data[h] !== undefined ? data[h] : ''; }));
+  h38PortalInvalidateReadCache_('errors');
 }

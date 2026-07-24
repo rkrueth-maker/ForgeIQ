@@ -15,7 +15,8 @@ function boValidateBusinessPack_(pack){const value=boPlainObject_(pack),business
 function boConfigValue_(pathText,fallback){const parts=String(pathText||'').split('.').filter(Boolean);let value=boGetBusinessPack_();for(let i=0;i<parts.length;i+=1){if(!value||!Object.prototype.hasOwnProperty.call(value,parts[i]))return fallback;value=value[parts[i]];}return value==null||value===''?fallback:value;}
 function boPropertyKey_(logicalKey){const propertyKeys=boConfigValue_('resources.propertyKeys',{});return propertyKeys[logicalKey]||logicalKey;}
 function boConfiguredValue_(logicalKey){return boGetProperties_().getProperty(boPropertyKey_(logicalKey))||'';}
-function boGetSpreadsheet_(){const id=boConfiguredValue_(BO_PLATFORM.SPREADSHEET_PROPERTY);if(!id)throw new Error('Missing Business Office spreadsheet configuration.');return SpreadsheetApp.openById(id);}
+var BO_SPREADSHEET_CACHE_=null;
+function boGetSpreadsheet_(){if(BO_SPREADSHEET_CACHE_)return BO_SPREADSHEET_CACHE_;const id=boConfiguredValue_(BO_PLATFORM.SPREADSHEET_PROPERTY);if(!id)throw new Error('Missing Business Office spreadsheet configuration.');BO_SPREADSHEET_CACHE_=SpreadsheetApp.openById(id);return BO_SPREADSHEET_CACHE_;}
 function boGetBusinessId_(){return boConfiguredValue_(BO_PLATFORM.BUSINESS_PROPERTY)||boConfigValue_('business.id',BO_PLATFORM.DEFAULT_BUSINESS_ID);}
 function boGetInstallationId_(){return boConfigValue_('installationId','business-office');}
 function boGetFolderId_(logicalKey){const id=boConfiguredValue_(logicalKey);if(!id)throw new Error('Missing Business Office folder configuration: '+logicalKey);return id;}

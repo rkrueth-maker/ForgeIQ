@@ -33,6 +33,7 @@ function h38PortalImportCatalogPayload(payload, confirmation) {
   var now = h38PortalNow_();
   var values = all.map(function(r){ r['Created Time']=now; r['Updated Time']=now; return headers.map(function(h){ return r[h] || ''; }); });
   sh.getRange(2,1,values.length,headers.length).setValues(values);
+  h38PortalInvalidateReadCache_('catalog');
   h38PortalSetSetting_('catalog_status','SYNCHRONIZED','Active','Exact 15-product / 9-bundle snapshot imported.');
   h38PortalWriteProof_({jobId:'CATALOG',source:'Portal Catalog',action:'Import approved catalog snapshot',decision:confirmation,result:'PASS',evidence:'Products=15 Bundles=9; Source hash=' + (payload.sourceHash || ''),notes:'Catalog values imported without altering public catalog or live website.'});
   return h38PortalCatalogStatus_();

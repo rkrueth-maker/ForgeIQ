@@ -182,6 +182,8 @@ function h38ProductBoot(){
   h38ProductConnectRenderLifecycle();
   h38ProductConfigureChrome();
   document.addEventListener('click',h38ProductHandleClick);
+  var view=document.getElementById('view');
+  if(view&&!String(view.innerHTML||'').trim())view.innerHTML='<div data-h38-workspace-state="loading">'+h38ProductLoadingState()+'</div>';
   requestAnimationFrame(function(){h38ProductApplyWorkspace(CURRENT||'today');});
 }
 
