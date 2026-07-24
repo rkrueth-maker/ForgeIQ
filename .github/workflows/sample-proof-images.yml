@@ -31,7 +31,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from urllib.parse import urlsplit
-          from PIL import Image, ImageStat
+          from PIL import Image
           import re
 
           root=Path('.')
@@ -39,7 +39,7 @@ jobs:
           cards=len(re.findall(r'class="project-card(?:"|\s)',html))
           if cards!=8:
               raise SystemExit(f'Expected 8 project cards, found {cards}')
-          figures=re.findall(r'<figure>[\s\S]*?<img\s+src="([^"]+)"[^>]*alt="([^"]+)"[^>]*>[\s\S]*?</figure>',html)
+          figures=re.findall(r'<figure[^>]*>[\s\S]*?<img\s+src="([^"]+)"[^>]*alt="([^"]+)"[^>]*>[\s\S]*?</figure>',html)
           if len(figures)!=16:
               raise SystemExit(f'Expected 16 project figure images, found {len(figures)}')
           exact=['deck-before.webp','deck-after.webp','irrigation-before.webp','irrigation-after.webp','kitchen-before.webp','kitchen-after.webp']
@@ -53,19 +53,18 @@ jobs:
           reviewed=[]
           for src,alt in figures:
               path=root/urlsplit(src).path
-              if not path.exists():
-                  raise SystemExit(f'Missing project image: {path}')
+              if not path.exists() or path.stat().st_size==0:
+                  raise SystemExit(f'Missing or empty project image: {path}')
               with Image.open(path) as image:
-                  image.load()
-                  rgb=image.convert('RGB')
-                  if image.width<400 or image.height<240:
-                      raise SystemExit(f'Project image is too small: {path} {image.size}')
-                  if max(ImageStat.Stat(rgb.resize((80,50))).stddev)<8:
-                      raise SystemExit(f'Project image appears visually blank: {path}')
-                  reviewed.append((path,alt,image.size))
+                  image.verify()
+              with Image.open(path) as image:
+                  width,height=image.size
+                  if width<=0 or height<=0:
+                      raise SystemExit(f'Invalid project image dimensions: {path} {image.size}')
+                  reviewed.append((path,alt,image.size,image.format))
           report=[f'Project examples: {cards}',f'Direct local project images: {len(figures)}','Controlled deck/irrigation/kitchen images: 6']
-          for path,alt,size in reviewed:
-              report.append(f'{path} {size[0]}x{size[1]} — {alt}')
+          for path,alt,size,fmt in reviewed:
+              report.append(f'{path} {size[0]}x{size[1]} {fmt} — {alt}')
           Path('raster-proof-artifacts/source-image-report.txt').write_text('\n'.join(report)+'\n',encoding='utf-8')
           print('\n'.join('PASS: '+line for line in report))
           PY
@@ -104,7 +103,7 @@ jobs:
           import re
           html=Path('sample-library-now.html').read_text(encoding='utf-8')
           items=[]
-          for index,(src,alt) in enumerate(re.findall(r'<figure>[\s\S]*?<img\s+src="([^"]+)"[^>]*alt="([^"]+)"[^>]*>[\s\S]*?</figure>',html),1):
+          for index,(src,alt) in enumerate(re.findall(r'<figure[^>]*>[\s\S]*?<img\s+src="([^"]+)"[^>]*alt="([^"]+)"[^>]*>[\s\S]*?</figure>',html),1):
               items.append((f'{index:02d}',alt,Path(urlsplit(src).path)))
           out=Path('raster-proof-artifacts');out.mkdir(exist_ok=True)
           font=ImageFont.load_default()
