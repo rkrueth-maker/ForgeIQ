@@ -4,10 +4,17 @@ on:
   push:
     branches:
       - agent/complete-navigation-settings-audit
+    paths:
+      - '.github/workflows/diagnose-pr290-quote-commercial.yml'
+      - 'apps-script/business-office/BusinessOffice_QuoteBuilder_Index.html'
+      - 'apps-script/business-office/BusinessOffice_QuoteBuilder_Commercial.gs'
+      - 'apps-script/business-office/BusinessOffice_QuoteBuilder_Commercial_Client.html'
+      - 'apps-script/business-office/BusinessOffice_QuoteBuilder_Proposal.html'
+      - 'scripts/verify-quote-builder-commercial-complete.js'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   diagnose:
@@ -15,6 +22,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: agent/complete-navigation-settings-audit
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -22,13 +31,18 @@ jobs:
         shell: bash
         run: |
           set +e
-          node scripts/verify-quote-builder-commercial-complete.js > quote-commercial.log 2>&1
-          echo "exit_code=$?" >> quote-commercial.log
-          cat quote-commercial.log
+          mkdir -p diagnostics
+          node scripts/verify-quote-builder-commercial-complete.js > diagnostics/pr290-quote-commercial.log 2>&1
+          code=$?
+          echo "exit_code=$code" >> diagnostics/pr290-quote-commercial.log
+          cat diagnostics/pr290-quote-commercial.log
           exit 0
-      - name: Upload diagnostic
-        uses: actions/upload-artifact@v4
-        with:
-          name: pr290-quote-commercial-${{ github.run_id }}
-          path: quote-commercial.log
-          retention-days: 3
+      - name: Commit diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add diagnostics/pr290-quote-commercial.log
+          git commit -m 'Record PR 290 Quote Builder commercial diagnostic' || exit 0
+          git push origin HEAD:agent/complete-navigation-settings-audit
