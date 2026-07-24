@@ -27,7 +27,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/verify-change-governance.js
           python3 - <<'PY'
           from pathlib import Path
           import re
@@ -41,15 +40,15 @@ jobs:
           python3 /tmp/apply-navigation-cache-speed.py
           rm -f .github/workflows/apply-navigation-cache-speed.yml
           rm -f .github/workflows/diagnose-pr288.yml
-          node scripts/verify-change-governance.js
+          node scripts/verify-change-governance.js >/tmp/governance.log
           node scripts/verify-navigation-cache-performance.js
-          node scripts/verify-unified-app-architecture.js
-          node scripts/verify-owner-portal-next.js
-          node scripts/verify-business-office.js
-          node scripts/verify-unified-client-routing-runtime.js
-          node scripts/verify-task-messaging.js
-          node scripts/verify-task-messaging-hardening.js
-          node scripts/verify-unified-app-ux-complete.js
+          node scripts/verify-unified-app-architecture.js >/tmp/unified-architecture.log
+          node scripts/verify-owner-portal-next.js >/tmp/owner-portal.log
+          node scripts/verify-business-office.js >/tmp/business-office.log
+          node scripts/verify-unified-client-routing-runtime.js >/tmp/routing.log
+          node scripts/verify-task-messaging.js >/tmp/task-messaging.log
+          node scripts/verify-task-messaging-hardening.js >/tmp/task-messaging-hardening.log
+          node scripts/verify-unified-app-ux-complete.js >/tmp/unified-ux.log
           git diff --check
       - name: Commit completed build
         shell: bash
