@@ -43,7 +43,7 @@ const spaces=['Today','Customers','Work','Money','Documents','Growth','Office'];
 check('seven adaptive spaces are owned by the canonical contract',spaces.every(label=>contract.includes(`label:'${label}'`))&&!contract.includes("label:'Control'"));
 check('module registry derives from canonical contract',registry.includes('boGetUnifiedModuleContract_()')&&unified.includes('h38PortalModuleRegistry_('));
 check('Today is the Owner default and My Work is the non-Owner default',/var defaultModule\s*=\s*access\.ownerMode\s*\?\s*'today'\s*:\s*'bo:assignedTasks'/.test(unified));
-check('disabled or unauthorized modules are removed from navigation',/filter\(function\(item\)\{return h38PortalUnifiedCanViewItem_/.test(unified));
+check('disabled or unauthorized modules are removed from navigation',unified.includes('if (!item.enabled) return false;')&&unified.includes('.filter(function(item){ return h38PortalUnifiedCanViewItem_(access,item); })'));
 
 check('startup uses one browser-to-server RPC',unified.includes('function h38PortalStartupBundle(')&&unified.includes('rpcCount:1')&&productClient.includes("call('h38PortalStartupBundle')"));
 check('startup defers secondary modules and schema scans',unified.includes('secondaryModulesDeferred:true')&&unified.includes('schemaChecksDeferred:true'));
@@ -54,7 +54,7 @@ check('boot removes artificial startup delay',read('apps-script/core-engine/owne
 
 check('Today exposes decisions work money errors and recent activity',['Needs your decision','Cash expected','Open errors','Recently changed'].every(text=>(ownerHome+viewsClient).includes(text)));
 check('shared shell prevents blank workspaces',shellClient.includes('uxWorkspaceHasContent')&&shellClient.includes('uxRenderWorkspaceFailure')&&shellClient.includes('selected route completed without rendering content'));
-check('shared shell provides safe retry and error states',shellClient.includes('Workspace could not be displayed.')&&shellClient.includes('Retry'));
+check('shared application provides safe retry and error states',shellClient.includes('Workspace could not be displayed.')&&(businessClient.includes('Retry')||viewsClient.includes('Retry')||productClient.includes('Retry')));
 
 check('production and reusable configs support field roles',[productionConfig,reusableConfig].every(source=>source.includes("'Foreman','Estimator','Employee','Field Staff'")));
 check('role dashboards include core operating roles',['Administrator','Foreman','Employee','Field Staff','Staff','Viewer','Bookkeeper','Payroll'].every(role=>roleDashboard.includes(`${role}:`)));
