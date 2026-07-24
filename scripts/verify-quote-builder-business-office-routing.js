@@ -47,6 +47,8 @@ need(businessClient,'Edit in Quote Builder</button>','explicit builder edit acti
 need(businessClient,'boNativeQuoteBuilderEnabled','builder-aware viewer controls');
 
 need(quoteIndex,"boInclude_('BusinessOffice_QuoteBuilder_Launch_Context')",'Quote Builder launch-context include');
+need(quoteIndex,'id="qbBackToOffice"','persistent Business Office return button');
+need(quoteIndex,'class="qb-office-return"','visible Business Office return control');
 need(launch,"params.get('view')",'requested Quote Builder view');
 need(launch,"params.get('customerId')",'selected customer context');
 need(launch,"params.get('quoteId')",'selected quote context');
@@ -54,6 +56,10 @@ need(launch,"window.qbDetails(quoteId)",'existing quote open');
 need(launch,"select.value=customerId",'new quote customer preselection');
 need(launch,"'Back to Quotes'",'clear Quotes return action');
 need(launch,"configured.hash='module=quotes'",'return to Quotes workspace');
+need(launch,'function wirePersistentOfficeReturn','persistent return-button wiring');
+need(launch,"document.getElementById('qbBackToOffice')",'persistent return-button lookup');
+need(launch,"button.onclick=returnToBusinessOffice",'persistent return-button action');
+need(launch,'Return to Business Office · Customers → Quotes','clear persistent return destination');
 
 if(pack.modules.quoteBuilder!==true)throw new Error('Highway 38 Business Pack must explicitly enable quoteBuilder.');
 need(generatedPack,'quotes:true,quoteBuilder:true','generated Business Pack add-on flag');
@@ -139,4 +145,4 @@ context.openBusinessRecordForm('quotes','');
 equal(assigned.length,0,'disabled add-on must not redirect');
 equal(baseCalls.form,1,'legacy quote editor remains available when add-on is not installed');
 
-console.log('PASS — Quotes remains the Business Office browse/view workspace, Quote Builder owns explicit creation and editing, customer context is preserved, and the direct app returns to Quotes.');
+console.log('PASS — Quotes remains the Business Office browse/view workspace, Quote Builder owns explicit creation and editing, customer context is preserved, and both persistent and navigation return controls go back to Business Office → Quotes.');
